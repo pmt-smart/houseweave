@@ -109,3 +109,38 @@ the mesh lasts minutes, past the 30 s that end the count.
 | bridge | 1 856 KB | 1 736 656 bytes | 160.0 KB |
 
 **Open:** a node with no Wi-Fi has no way to a new safeboot: one over the mesh would be the receiver's to take.
+
+## 2026-10-24 — A safeboot over the mesh, reviewed, and the pinned safeboot's record kept
+
+**A safeboot over the mesh, reviewed.** A node with no Wi-Fi has no way to a new safeboot. The idea was to fetch one through a neighbour (the
+mesh's HTTP, `berry/mesh_http.be`) and write it from the app. An adversarial review held it against the code. It stands with no change to the
+server, which serves one span of a file with `Range`, and it needs five things:
+
+- an answer in bytes: MeshHttp gives the node that asked its answer as a string, which stops at the first zero byte;
+- pieces of 4 to 8 KB, not 32, for a panel's heap;
+- time: at about 2 to 3 KB/s, the 749 408 bytes take 5 to 10 minutes;
+- the partition erased a block at a time as the write goes, not all at once, so that the radio is not deaf for seconds;
+- the first sector written last, once the SHA-256 checks.
+
+The last is because the build's boot loader does not check an image's hash when it boots (`CONFIG_BOOTLOADER_SKIP_VALIDATE_ALWAYS=y` in the
+framework's sdkconfig). An image whose headers are all there and whose bytes are wrong boots and fails again and again, and only the serial
+line brings the device back. While its first sector is still erased, the boot loader takes the app instead. A write cut in the middle is not
+that case, since the next segment's header is still erased and the boot loader refuses the image. The same order would make the install over
+HTTP safer too. The safeboot over the mesh waits until it is needed: a new house key, or a fix of the receiver that must reach the nodes with
+no Wi-Fi.
+
+**What the review found on the way.** A device flashed with a factory image that never has the Wi-Fi keeps no record of its safeboot: only an
+install over HTTP keeps one. `EspNowOtaArm` knows a safeboot by its record or by the one the build pins. So the first app such a device takes
+over the mesh that pins another safeboot would refuse it, and the device would take no image again. The build now gives the app the signed
+record and signature of the safeboot it pins, and the app keeps them when it finds its partition holding that safeboot (`8dd1e94` in the
+fork, `167d085`; the OTA host test checks it). This covers the devices flashed with a factory image of this build or a later one.
+
+The bench's node 7, out of the Wi-Fi's reach for now, is not that case: it kept the record of its safeboot when it was upgraded over HTTP on
+2026-10-22, and it takes its images over the mesh with that record.
+
+**The images, measured** on the build of this change (`167d085/8dd1e94`), each 240 bytes larger than on `443140d/ea07370f`:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 057 872 bytes | 166.4 KB |
+| bridge | 1 856 KB | 1 736 896 bytes | 159.8 KB |
