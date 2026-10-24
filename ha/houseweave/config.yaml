@@ -1,0 +1,36 @@
+# HouseWeave, an add-on of Home Assistant's Supervisor: the house's package. Its
+# server (server/) serves the nodes' releases and keeps their backups on the nodes' port, 8080,
+# and the owner's API on the app's port, 8099, which only Home Assistant's ingress reaches; and it
+# carries the integration that makes the panels' schedules Home Assistant's calendars
+# (custom_components/houseweave), copied into Home Assistant's configuration at its start.
+# The slug, the integration's domain and the folder in share keep the project's first name.
+# The folder is /share/houseweave, the one the Samba add-on shows as
+# "share": releases are dropped there. The server's identity, the house and the
+# nodes' backups are in /data, the add-on's own, which it does not serve.
+name: HouseWeave
+version: "1.5.0"
+slug: houseweave_release_server
+description: A smart house mesh, built on ESP32. Serves the nodes' releases, keeps their backups, and makes the panels' schedules calendars of Home Assistant.
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: auto
+# the app, in Home Assistant's sidebar, through the ingress: the app's port, which the add-on maps to no address of the network
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:home-group
+panel_title: HouseWeave
+ports:
+  8080/tcp: 8080
+ports_description:
+  8080/tcp: HTTP for the nodes (releases and backups)
+map:
+  - type: share
+    read_only: false
+  # Home Assistant's configuration, at /homeassistant: the integration goes into its custom_components
+  - type: homeassistant_config
+    read_only: false
+# the Supervisor's info calls: the machine's address and the port mapped to
+# 8080, which the server gives the house when a panel pairs it
+hassio_api: true

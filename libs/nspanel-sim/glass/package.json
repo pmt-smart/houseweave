@@ -1,0 +1,28 @@
+{
+  "name": "@nspanel-sim/glass",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "node": "./dist/index.js",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "test": "tsc -p ../layout/tsconfig.json && tsc -p ../export/tsconfig.json && tsc -p tsconfig.json && node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "@nspanel-sim/export": "*",
+    "@nspanel-sim/layout": "*"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "@types/node": "^24.13.3"
+  }
+}

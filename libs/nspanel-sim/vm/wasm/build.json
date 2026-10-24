@@ -1,0 +1,8 @@
+{
+  "berry": {
+    "submodule": "firmware/tasmota",
+    "commit": "b8f623e3b2741b79e33beba49024a41d5773cc27"
+  },
+  "emscripten": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.10 (d6c521a7f05449857c76bd99e396895583cf2083)",
+  "bytes": 504651
+}

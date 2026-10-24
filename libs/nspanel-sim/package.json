@@ -1,0 +1,19 @@
+{
+  "name": "nspanel-sim",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "ui",
+    "sim",
+    "core",
+    "export",
+    "layout",
+    "vm",
+    "glass"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=sim",
+    "typecheck": "npm run typecheck --workspace=layout --workspace=ui --workspace=core --workspace=export --workspace=vm --workspace=glass --workspace=sim",
+    "test": "npm test --workspace=layout --workspace=core --workspace=export --workspace=vm --workspace=glass"
+  }
+}

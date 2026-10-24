@@ -1,0 +1,11 @@
+{
+  "domain": "houseweave",
+  "name": "HouseWeave",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["mqtt"],
+  "documentation": "https://github.com/pmt-smart/HouseWeave",
+  "iot_class": "local_push",
+  "requirements": [],
+  "version": "1.5.0"
+}

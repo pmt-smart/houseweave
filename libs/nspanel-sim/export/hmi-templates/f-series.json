@@ -1,0 +1,3216 @@
+{
+  "$comment": "Per-type component templates as the Nextion Editor 1.67/1.68 writes them for the F/Discovery series (attribute order, widths, defaults; event slots). Extracted from the manifest.hmi fixtures by scripts/export-hmi-templates.mjs — do not edit by hand. String attributes (objname, txt, ...) are resized by the builder.",
+  "series": "F (Discovery), model NX4832F035_011",
+  "templates": {
+    "0": {
+      "type": 0,
+      "name": "Curve",
+      "header": "att-40",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#6",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "06"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "7330"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "1f00"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "9c00"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "9700"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "9300"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "b500"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "2e01"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "dir",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "ch",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "gdc",
+          "width": 2,
+          "defaultHex": "0004"
+        },
+        {
+          "name": "gdw",
+          "width": 1,
+          "defaultHex": "28"
+        },
+        {
+          "name": "gdh",
+          "width": 1,
+          "defaultHex": "28"
+        },
+        {
+          "name": "objWid",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "objHig",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "pco0",
+          "width": 2,
+          "defaultHex": "effb"
+        },
+        {
+          "name": "pco1",
+          "width": 2,
+          "defaultHex": "efff"
+        },
+        {
+          "name": "pco2",
+          "width": 2,
+          "defaultHex": "00f8"
+        },
+        {
+          "name": "pco3",
+          "width": 2,
+          "defaultHex": "e007"
+        },
+        {
+          "name": "inittrue",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "dis",
+          "width": 2,
+          "defaultHex": "6400"
+        },
+        {
+          "name": "molloc_s",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "molloc",
+          "width": 4,
+          "defaultHex": "00000000"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "1": {
+      "type": 1,
+      "name": "Slider",
+      "header": "att-39",
+      "source": "eseverson-hmi/00_baseline_base.HMI/1.pa#2",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "6830"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "9c00"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "1e00"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "3101"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "1900"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "cc01"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "3600"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "mode",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "psta",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "wid",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "hig",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "dis",
+          "width": 1,
+          "defaultHex": "64"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "4629"
+        },
+        {
+          "name": "pic1",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "picc1",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "bco1",
+          "width": 2,
+          "defaultHex": "d1f7"
+        },
+        {
+          "name": "pic2",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "9463"
+        },
+        {
+          "name": "val",
+          "width": 2,
+          "defaultHex": "6400"
+        },
+        {
+          "name": "maxval",
+          "width": 2,
+          "defaultHex": "6400"
+        },
+        {
+          "name": "minval",
+          "width": 2,
+          "defaultHex": "0500"
+        },
+        {
+          "name": "ch",
+          "width": 1,
+          "defaultHex": "19"
+        }
+      ],
+      "events": [
+        "down",
+        "up",
+        "slide"
+      ]
+    },
+    "5": {
+      "type": 5,
+      "name": "Touchcap",
+      "header": "att-8",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#4",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "05"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "04"
+        },
+        {
+          "name": "objname",
+          "width": 3,
+          "defaultHex": "746330"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "val",
+          "width": 1,
+          "defaultHex": "00"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "51": {
+      "type": 51,
+      "name": "Timer",
+      "header": "att-9",
+      "source": "eseverson-hmi/00_baseline_base.HMI/0.pa#22",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "33"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "16"
+        },
+        {
+          "name": "objname",
+          "width": 3,
+          "defaultHex": "746d30"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "tim",
+          "width": 2,
+          "defaultHex": "9001"
+        },
+        {
+          "name": "en",
+          "width": 1,
+          "defaultHex": "01"
+        }
+      ],
+      "events": [
+        "timer"
+      ]
+    },
+    "52": {
+      "type": 52,
+      "name": "Vari",
+      "header": "att-11",
+      "source": "eseverson-hmi/00_baseline_base.HMI/0.pa#23",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "34"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "17"
+        },
+        {
+          "name": "objname",
+          "width": 3,
+          "defaultHex": "62636f"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "txt",
+          "width": 6,
+          "defaultHex": "6e6577747874"
+        },
+        {
+          "name": "txt_maxl",
+          "width": 2,
+          "defaultHex": "0a00"
+        },
+        {
+          "name": "val",
+          "width": 4,
+          "defaultHex": "46290000"
+        }
+      ],
+      "events": []
+    },
+    "53": {
+      "type": 53,
+      "name": "ButtonT",
+      "header": "att-42",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#7",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "35"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "07"
+        },
+        {
+          "name": "objname",
+          "width": 3,
+          "defaultHex": "627430"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "9901"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "a100"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "3c00"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "3c00"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "d401"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "dc00"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "style",
+          "width": 1,
+          "defaultHex": "04"
+        },
+        {
+          "name": "borderc",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "borderw",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "font",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "18c6"
+        },
+        {
+          "name": "pic2",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "picc2",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "bco2",
+          "width": 2,
+          "defaultHex": "0004"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "pco2",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "xcen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "ycen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "val",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "txt",
+          "width": 6,
+          "defaultHex": "6e6577747874"
+        },
+        {
+          "name": "txt_maxl",
+          "width": 2,
+          "defaultHex": "0a00"
+        },
+        {
+          "name": "isbr",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spax",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spay",
+          "width": 1,
+          "defaultHex": "00"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "54": {
+      "type": 54,
+      "name": "Number",
+      "header": "att-39",
+      "source": "jobr99/nspanel.HMI/6.pa#51",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "36"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "33"
+        },
+        {
+          "name": "objname",
+          "width": 5,
+          "defaultHex": "6e4e756d31"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "7a01"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "4c00"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "2e00"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "3200"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "a701"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "7d00"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "style",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "key",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "borderc",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "borderw",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "font",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "e318"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "xcen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "ycen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "val",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "lenth",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "format",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "isbr",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "spax",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spay",
+          "width": 1,
+          "defaultHex": "00"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "55": {
+      "type": 55,
+      "name": "GText",
+      "header": "att-46",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#2",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "37"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "6730"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "bc00"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "1500"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "f000"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "1e00"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "ab01"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "3200"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "style",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "key",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "borderc",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "borderw",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "font",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "xcen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "ycen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "dir",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "dis",
+          "width": 1,
+          "defaultHex": "04"
+        },
+        {
+          "name": "tim",
+          "width": 2,
+          "defaultHex": "9600"
+        },
+        {
+          "name": "en",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "txt",
+          "width": 6,
+          "defaultHex": "6e6577747874"
+        },
+        {
+          "name": "txt_maxl",
+          "width": 2,
+          "defaultHex": "0a00"
+        },
+        {
+          "name": "isbr",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spax",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spay",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "vvs0",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "vvs1",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "vvs2",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "vvs3",
+          "width": 2,
+          "defaultHex": "0000"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "56": {
+      "type": 56,
+      "name": "CheckBox",
+      "header": "att-27",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#8",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "38"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "08"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "6330"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "1e01"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "5c00"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "1400"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "1400"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "3101"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "6f00"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "style",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "borderw",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "borderc",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "val",
+          "width": 1,
+          "defaultHex": "01"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "57": {
+      "type": 57,
+      "name": "Radio",
+      "header": "att-24",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#9",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "39"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "09"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "7230"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "0a01"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "7500"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "1400"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "1400"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "1d01"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "8800"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "val",
+          "width": 1,
+          "defaultHex": "01"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "58": {
+      "type": 58,
+      "name": "Qrcode",
+      "header": "att-28",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#10",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "3a"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "0a"
+        },
+        {
+          "name": "objname",
+          "width": 3,
+          "defaultHex": "717230"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "8300"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "3f00"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "5200"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "5200"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "d400"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "9000"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "dis",
+          "width": 1,
+          "defaultHex": "08"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "txt",
+          "width": 24,
+          "defaultHex": "68747470733a2f2f6e657874696f6e2e69746561642e6363"
+        },
+        {
+          "name": "txt_maxl",
+          "width": 2,
+          "defaultHex": "1e00"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "59": {
+      "type": 59,
+      "name": "XFloat",
+      "header": "att-39",
+      "source": "eseverson-hmi/00_baseline_base.HMI/2.pa#2",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "3b"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "7831"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "e001"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "8000"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "df01"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "7f00"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "style",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "key",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "borderc",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "borderw",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "font",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "4629"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "deff"
+        },
+        {
+          "name": "xcen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "ycen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "val",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "vvs0",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "vvs1",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "isbr",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "spax",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spay",
+          "width": 1,
+          "defaultHex": "00"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "98": {
+      "type": 98,
+      "name": "Button",
+      "header": "att-42",
+      "source": "eseverson-hmi/00_baseline_base.HMI/1.pa#4",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "62"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "04"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "6230"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "3400"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "e900"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "6400"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "3200"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "9700"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "1a01"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "style",
+          "width": 1,
+          "defaultHex": "04"
+        },
+        {
+          "name": "borderc",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "borderw",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "font",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "18c6"
+        },
+        {
+          "name": "pic2",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "picc2",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "bco2",
+          "width": 2,
+          "defaultHex": "0004"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "pco2",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "xcen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "ycen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "val",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "txt",
+          "width": 6,
+          "defaultHex": "557064617465"
+        },
+        {
+          "name": "txt_maxl",
+          "width": 2,
+          "defaultHex": "0a00"
+        },
+        {
+          "name": "isbr",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spax",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spay",
+          "width": 1,
+          "defaultHex": "00"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "106": {
+      "type": 106,
+      "name": "Prog",
+      "header": "att-29",
+      "source": "eseverson-hmi/00_baseline_base.HMI/0.pa#7",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "6a"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "07"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "6a30"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "e001"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "0f00"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "df01"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "0e00"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "dez",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "val",
+          "width": 1,
+          "defaultHex": "32"
+        },
+        {
+          "name": "dis",
+          "width": 1,
+          "defaultHex": "19"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "4629"
+        },
+        {
+          "name": "bpic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "cdfd"
+        },
+        {
+          "name": "ppic",
+          "width": 2,
+          "defaultHex": "ffff"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "109": {
+      "type": 109,
+      "name": "Hotspot",
+      "header": "att-21",
+      "source": "eseverson-hmi/07_add_hotspot_07.HMI/0.pa#30",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "6d"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "1e"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "6d31"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "3c00"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "3c00"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "3b00"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "3b00"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "112": {
+      "type": 112,
+      "name": "Picture",
+      "header": "att-22",
+      "source": "eseverson-hmi/00_baseline_base.HMI/1.pa#5",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "70"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "05"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "7030"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "9b00"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "4900"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "0801"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "c400"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "a201"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "0c01"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "0000"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "113": {
+      "type": 113,
+      "name": "PictureCrop",
+      "header": "att-24",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#3",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "71"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "03"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "7130"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "0a00"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "7500"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "3c00"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "3c00"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "4500"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "b000"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "vvs0",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "vvs1",
+          "width": 2,
+          "defaultHex": "0000"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "116": {
+      "type": 116,
+      "name": "Text",
+      "header": "att-39",
+      "source": "eseverson-hmi/00_baseline_base.HMI/0.pa#11",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "74"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "0b"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "7430"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "4500"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "a000"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "1f00"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "9f00"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "6300"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "69deee2d"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "f267c616"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "style",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "key",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "borderc",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "borderw",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "font",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "4629"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "deff"
+        },
+        {
+          "name": "xcen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "ycen",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "pw",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "txt",
+          "width": 3,
+          "defaultHex": "6b5061"
+        },
+        {
+          "name": "txt_maxl",
+          "width": 2,
+          "defaultHex": "0f00"
+        },
+        {
+          "name": "isbr",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spax",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "spay",
+          "width": 1,
+          "defaultHex": "00"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    },
+    "121": {
+      "type": 121,
+      "name": "Page",
+      "header": "att-28",
+      "source": "eseverson-hmi/00_baseline_base.HMI/0.pa#0",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "79"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "objname",
+          "width": 4,
+          "defaultHex": "6d61696e"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "e001"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "4001"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "df01"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "3f01"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "up",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "down",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "left",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "right",
+          "width": 1,
+          "defaultHex": "ff"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "4629"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        }
+      ],
+      "events": [
+        "load",
+        "loadend",
+        "down",
+        "up",
+        "unload"
+      ]
+    },
+    "122": {
+      "type": 122,
+      "name": "Zhizhen",
+      "header": "att-37",
+      "source": "eseverson-hmi/15_picture_15.HMI/3.pa#5",
+      "attributes": [
+        {
+          "name": "type",
+          "width": 1,
+          "defaultHex": "7a"
+        },
+        {
+          "name": "id",
+          "width": 1,
+          "defaultHex": "05"
+        },
+        {
+          "name": "objname",
+          "width": 2,
+          "defaultHex": "7a30"
+        },
+        {
+          "name": "vscope",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "drag",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "sendkey",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "aph",
+          "width": 1,
+          "defaultHex": "7f"
+        },
+        {
+          "name": "movex",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "movey",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "x",
+          "width": 2,
+          "defaultHex": "da00"
+        },
+        {
+          "name": "y",
+          "width": 2,
+          "defaultHex": "a400"
+        },
+        {
+          "name": "w",
+          "width": 2,
+          "defaultHex": "8400"
+        },
+        {
+          "name": "h",
+          "width": 2,
+          "defaultHex": "8400"
+        },
+        {
+          "name": "endx",
+          "width": 2,
+          "defaultHex": "5d01"
+        },
+        {
+          "name": "endy",
+          "width": 2,
+          "defaultHex": "2701"
+        },
+        {
+          "name": "effect",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "first",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "time",
+          "width": 2,
+          "defaultHex": "2c01"
+        },
+        {
+          "name": "lockobj",
+          "width": 1,
+          "defaultHex": "00"
+        },
+        {
+          "name": "groupid0",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "groupid1",
+          "width": 4,
+          "defaultHex": "00000000"
+        },
+        {
+          "name": "sta",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "picc",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "bco",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "pic",
+          "width": 2,
+          "defaultHex": "ffff"
+        },
+        {
+          "name": "val",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "format",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "up",
+          "width": 2,
+          "defaultHex": "ff7f"
+        },
+        {
+          "name": "down",
+          "width": 2,
+          "defaultHex": "1e00"
+        },
+        {
+          "name": "left",
+          "width": 2,
+          "defaultHex": "0000"
+        },
+        {
+          "name": "pco",
+          "width": 2,
+          "defaultHex": "0004"
+        },
+        {
+          "name": "pco2",
+          "width": 2,
+          "defaultHex": "00f8"
+        },
+        {
+          "name": "hig",
+          "width": 1,
+          "defaultHex": "18"
+        },
+        {
+          "name": "wid",
+          "width": 1,
+          "defaultHex": "02"
+        },
+        {
+          "name": "vvs0",
+          "width": 1,
+          "defaultHex": "01"
+        },
+        {
+          "name": "vvs1",
+          "width": 1,
+          "defaultHex": "07"
+        },
+        {
+          "name": "vvs2",
+          "width": 1,
+          "defaultHex": "02"
+        }
+      ],
+      "events": [
+        "down",
+        "up"
+      ]
+    }
+  }
+}

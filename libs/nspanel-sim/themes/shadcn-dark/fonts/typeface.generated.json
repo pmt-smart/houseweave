@@ -1,0 +1,40 @@
+{
+  "asked": "Inter",
+  "fonts": {
+    "text-24": {
+      "ziName": "noto-sans-24-sp5",
+      "weight": 400,
+      "height": 24,
+      "antiAlias": true
+    },
+    "title-32": {
+      "ziName": "noto-sans-32-sp5",
+      "weight": 400,
+      "height": 32,
+      "antiAlias": true
+    },
+    "clock-48": {
+      "ziName": "NotoSans-Regular",
+      "weight": 400,
+      "height": 48,
+      "antiAlias": true
+    },
+    "icons-32": {
+      "ziName": "NotoSans-Regular",
+      "weight": 400,
+      "height": 32,
+      "antiAlias": true
+    },
+    "icons-48": {
+      "ziName": "NotoSans-Regular",
+      "weight": 400,
+      "height": 48,
+      "antiAlias": true
+    }
+  },
+  "carriedNames": [
+    "noto-sans-24-sp5",
+    "noto-sans-32-sp5",
+    "NotoSans-Regular"
+  ]
+}

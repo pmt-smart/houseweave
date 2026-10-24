@@ -1,0 +1,39 @@
+{
+  "$comment": "Snapshot of the simulator's OWN layout on 2026-09-09, before the exploration phase switched the target to the donor's layout. Measured in the running simulator (coordinates relative to the 450x320 <Screen>, in device px, rounded). Kept to revisit the simulator-first layout later; the code that produced it is tagged sim-layout-2026-09-09 in git.",
+  "device": "eu-landscape",
+  "visibleWidth": 450,
+  "height": 320,
+  "screens": {
+    "screensaver": {
+      "time": { "x": 0, "y": 16, "w": 450, "h": 79, "font": "72px/700" },
+      "date": { "x": 0, "y": 99, "w": 450, "h": 21, "font": "14px/400" },
+      "divider": { "x": 32, "y": 132, "w": 386, "h": 1 },
+      "currentTemp": { "x": 50, "y": 147, "w": 98, "h": 38, "font": "32px/700" },
+      "forecastCentersX": [204, 268, 331, 394],
+      "forecastValueRowY": 147,
+      "forecastValueFont": "16px/700",
+      "statusIcons": [{ "x": 12, "y": 12, "w": 20, "h": 20 }, { "x": 418, "y": 12, "w": 20, "h": 20 }]
+    },
+    "home": {
+      "navPrev": { "x": 8, "y": 12, "w": 78, "h": 78 },
+      "navNext": { "x": 364, "y": 12, "w": 78, "h": 78 },
+      "title": { "x": 206, "y": 40, "w": 38, "h": 21, "font": "14px/400", "note": "text box only; centred in the header" },
+      "cardRow": { "y": 110, "cardW": 122, "cardH": 119, "gap": 20, "firstX": 20, "iconBox": { "w": 98, "h": 98 }, "captionY": 212, "captionH": 17, "captionFont": "10.5px" },
+      "note": "flex-wrap row; only one row (3 cards) fits before the bottom of the screen"
+    },
+    "lightDetail": {
+      "icon": { "x": 16, "y": 18, "w": 40, "h": 40 },
+      "name": { "x": 66, "y": 18, "w": 314, "h": 40, "font": "40px/500" },
+      "close": { "x": 390, "y": 16, "w": 44, "h": 44 },
+      "divider": { "x": 16, "y": 72, "w": 418, "h": 1 },
+      "rowIcons": [{ "x": 16, "y": 98, "w": 40, "h": 40 }, { "x": 16, "y": 180, "w": 40, "h": 40 }, { "x": 16, "y": 262, "w": 40, "h": 40 }],
+      "sliders": [{ "x": 66, "y": 97, "w": 302, "h": 40 }, { "x": 66, "y": 179, "w": 302, "h": 40 }, { "x": 66, "y": 261, "w": 302, "h": 40 }],
+      "autoChips": [{ "x": 382, "y": 98, "w": 48, "h": 40 }, { "x": 382, "y": 180, "w": 48, "h": 40 }]
+    },
+    "settings": {
+      "title": { "x": 16, "y": 16, "w": 418, "h": 30, "font": "20px/500" },
+      "rowLabel": { "x": 16, "y": 118, "w": 360, "h": 42, "font": "14px/400" },
+      "switch": { "x": 376, "y": 120, "w": 58, "h": 38 }
+    }
+  }
+}

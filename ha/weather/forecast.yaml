@@ -1,0 +1,49 @@
+# The weather the panels' screensaver shows: a Home Assistant
+# automation that says it, retained, on the house's MQTT, on
+# houseweave/weather, as {"at": <UTC seconds>, "cells": [[label, °C], ...]}:
+# the first cell the weather now, the next four the days ahead, a temperature a
+# number in degrees Celsius or null. Every panel listens to it; none asks for it.
+#
+# A panel on the firmware before HouseWeave's listens on casainteligente/weather,
+# so the forecast goes on that topic too until every panel runs the current
+# firmware, and then that line of for_each goes.
+#
+# Paste it in Settings > Automations & scenes > Create automation > Edit in
+# YAML, with the house's weather entity in place of weather.forecast_home (Met.no's
+# for the Home zone). A panel shows "--" for a forecast older than 6 hours, so this
+# says it again every 30 minutes. Without it, or with Home Assistant down, the row
+# says "--" and nothing else on the panel changes.
+alias: Weather for the panels
+description: The panels' screensaver weather, on houseweave/weather
+mode: single
+triggers:
+  - trigger: state
+    entity_id: weather.forecast_home
+  - trigger: time_pattern
+    minutes: "/30"
+  - trigger: homeassistant
+    event: start
+actions:
+  - action: weather.get_forecasts
+    target:
+      entity_id: weather.forecast_home
+    data:
+      type: daily
+    response_variable: daily
+  - repeat:
+      for_each:
+        - houseweave/weather
+        - casainteligente/weather
+      sequence:
+        - action: mqtt.publish
+          data:
+            topic: "{{ repeat.item }}"
+            retain: true
+            payload: >-
+              {%- set temp = state_attr('weather.forecast_home', 'temperature') -%}
+              {%- set ns = namespace(cells=[["Now", temp if temp is number else none]]) -%}
+              {%- for day in daily['weather.forecast_home'].forecast[0:4] -%}
+                {%- set ns.cells = ns.cells + [[as_timestamp(day.datetime) | timestamp_custom('%a'),
+                                                day.temperature if day.temperature is number else none]] -%}
+              {%- endfor -%}
+              {{ {"at": as_timestamp(now()) | int, "cells": ns.cells} | to_json }}

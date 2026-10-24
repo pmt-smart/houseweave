@@ -1,0 +1,34 @@
+{
+  "devices": [
+    { "name": "bridge-1", "role": "bridge", "ip": "203.0.113.11", "hostname": "zbbridge-1" },
+    { "name": "bridge-fabrica", "role": "bridge", "ip": "203.0.113.14", "sacrificial": true },
+    { "name": "panel-eu", "role": "panel", "ip": "203.0.113.12", "bridge": "bridge-1", "taps": { "lamp-1": 130100 } },
+    { "name": "panel-living-us", "role": "panel", "ip": "203.0.113.13", "bridge": "bridge-1" },
+    { "name": "panel-us-novo", "role": "panel", "ip": "203.0.113.15", "bridge": "bridge-fabrica", "sacrificial": true }
+  ],
+  "lamps": [
+    { "name": "lamp-1", "ieee": "0x00124B0000000001", "coordinator": "bridge-1" },
+    { "name": "lamp-2", "ieee": "0x00124B0000000002", "coordinator": "bridge-1" },
+    { "name": "lamp-3", "ieee": "0x00124B0000000003", "coordinator": "bridge-1" },
+    { "name": "lamp-4", "ieee": "0x00124B0000000004", "coordinator": "bridge-1" },
+    { "name": "lamp-5", "ieee": "0x00124B0000000005", "coordinator": "bridge-1" },
+    { "name": "lamp-6", "ieee": "0x00124B0000000006", "coordinator": "bridge-1" },
+    { "name": "lamp-7", "ieee": "0x00124B0000000007", "coordinator": "bridge-1" },
+    { "name": "lamp-8", "ieee": "0x00124B0000000008", "coordinator": "bridge-1" },
+    { "name": "lamp-9", "ieee": "0x00124B0000000009", "coordinator": "bridge-1" },
+    { "name": "lamp-10", "ieee": "0x00124B000000000A", "coordinator": "bridge-1" },
+    { "name": "lamp-11", "ieee": "0x00124B000000000B", "coordinator": "bridge-1" },
+    { "name": "lamp-12", "ieee": "0x00124B000000000C", "coordinator": "bridge-1" },
+    { "name": "lamp-13", "ieee": "0x00124B000000000D", "coordinator": "bridge-fabrica" },
+    { "name": "lamp-14", "ieee": "0x00124B000000000E", "coordinator": "bridge-fabrica" },
+    { "name": "lamp-15", "ieee": "0x00124B000000000F", "coordinator": "bridge-fabrica" },
+    { "name": "lamp-16", "ieee": "0x00124B0000000010", "coordinator": "bridge-fabrica" },
+    { "name": "lamp-17", "ieee": "0x00124B0000000011", "coordinator": "bridge-fabrica" },
+    { "name": "lamp-18", "ieee": "0x00124B0000000012", "coordinator": "bridge-fabrica" }
+  ],
+  "outlets": [
+    { "name": "plug-router", "ip": "203.0.113.20", "role": "router" },
+    { "name": "plug-bridge-fabrica", "ip": "203.0.113.21", "role": "bridge", "powers": ["bridge-fabrica"] },
+    { "name": "plug-panel-novo", "ip": "203.0.113.22", "channel": 2, "role": "panel", "powers": ["panel-us-novo"] }
+  ]
+}

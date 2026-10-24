@@ -1,0 +1,9286 @@
+{
+ "about": "The alarm-state order rule (the version vector and the set of heads) and what hangs from it: written by libs/nspanel-sim/vm/test/alarm-merge.test.mjs from the reference implementation libs/nspanel-sim/vm/test/alarm-merge-ref.mjs, which also checks this file is current. The Berry port replays every section and must give the same answers. The format is documented in the header of the test.",
+ "constants": {
+  "TICK_MS": 100,
+  "LISTEN_MS": 10000,
+  "ADOPT_EPS_MS": 20,
+  "RESYNC_MAX_MS": 3600000,
+  "STAMP_TICK_MS": 10,
+  "FRESH_WINDOW_MS": 3000,
+  "FUTURE_TOLERANCE_MS": 250,
+  "RECONCILE_MS": 3000,
+  "SIREN_MS": 300000,
+  "MAX_NODE": 15,
+  "MAX_HEADS": 15,
+  "MAX_COUNTER": 1048575,
+  "VV_BYTES": 38,
+  "RECORD_BYTES": 52,
+  "HEADS_MAX_BYTES": 780,
+  "HEARTBEAT_BYTES": 19,
+  "STAMP_BYTES": 6,
+  "BASE_UP_MS": 10000000,
+  "house_timeline": [
+   1,
+   1
+  ]
+ },
+ "dots": [
+  [
+   "1:1",
+   1048577
+  ],
+  [
+   "2:5",
+   2097157
+  ],
+  [
+   "15:1048575",
+   16777215
+  ]
+ ],
+ "records": [
+  {
+   "name": "the initial record of the house",
+   "record": {
+    "state": "armed_away",
+    "dot": "1:1",
+    "vv": {
+     "1": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100800,
+    "trusted": true,
+    "lost": 0
+   },
+   "wire": "061000010100000001000189c0000000100000000000000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "name": "an arm with a wide vector and two devices left out",
+   "record": {
+    "state": "armed_away",
+    "dot": "2:3",
+    "vv": {
+     "1": 1048575,
+     "2": 3,
+     "7": 74565,
+     "15": 1048575
+    },
+    "timeline": [
+     3,
+     3735928559
+    ],
+    "mark": 4294967294,
+    "trusted": true,
+    "lost": 2
+   },
+   "wire": "0620000303deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0"
+  },
+  {
+   "name": "a trigger, untrusted, from the last node",
+   "record": {
+    "state": "triggered",
+    "dot": "15:1048575",
+    "vv": {
+     "1": 4,
+     "14": 1000000,
+     "15": 1048575
+    },
+    "timeline": [
+     15,
+     1
+    ],
+    "mark": 7,
+    "trusted": false,
+    "lost": 0
+   },
+   "wire": "03ffffff0f00000001000000070000004000000000000000000000000000000000000000000000000000000000000f4240fffff0"
+  },
+  {
+   "name": "a disarm with only its own dot in the vector",
+   "record": {
+    "state": "disarmed",
+    "dot": "9:1",
+    "vv": {
+     "9": 1
+    },
+    "timeline": [
+     9,
+     2
+    ],
+    "mark": 0,
+    "trusted": true,
+    "lost": 0
+   },
+   "wire": "04900001090000000200000000000000000000000000000000000000000000000000000010000000000000000000000000000000"
+  }
+ ],
+ "invalid": [
+  {
+   "name": "the sample: a record",
+   "wire": "0620000303deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": true
+  },
+  {
+   "name": "cut by a byte",
+   "wire": "0620000303deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000ffff",
+   "valid": false
+  },
+  {
+   "name": "a byte too many",
+   "wire": "0620000303deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff000",
+   "valid": false
+  },
+  {
+   "name": "empty",
+   "wire": "",
+   "valid": false
+  },
+  {
+   "name": "bit 3 of the flags set",
+   "wire": "0e20000303deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "bit 7 of the flags set",
+   "wire": "8620000303deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "a padding bit set",
+   "wire": "0620000303deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff1",
+   "valid": false
+  },
+  {
+   "name": "the vector does not hold the record's own dot (2:15, 3 in the second counter)",
+   "wire": "0620000f03deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "a dot of node 0 and counter 1",
+   "wire": "0600000103deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "a dot of node 0 and a large counter",
+   "wire": "0601234503deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "the dot 0:0",
+   "wire": "0600000003deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "a dot of node 2 and counter 0",
+   "wire": "0620000003deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "a dot of node 15 and counter 0",
+   "wire": "06f0000003deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": false
+  },
+  {
+   "name": "the first dot of the first node (the vector holds 1:1)",
+   "wire": "0610000103deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": true
+  },
+  {
+   "name": "the last dot of the last node (the vector holds 15:1048575)",
+   "wire": "06ffffff03deadbeeffffffffe02fffff00003000000000000000000001234500000000000000000000000000000000000fffff0",
+   "valid": true
+  }
+ ],
+ "hello": [
+  {
+   "hello": {
+    "timeline": [
+     1,
+     1
+    ],
+    "mesh": 90000000,
+    "digest": 1194059974,
+    "heads": 1,
+    "synced": true
+   },
+   "applied": "2:2",
+   "wire": "01000000010000055d4a80472be8c620000203"
+  },
+  {
+   "hello": {
+    "timeline": [
+     15,
+     4000000000
+    ],
+    "mesh": 281474976710655,
+    "digest": 3735928559,
+    "heads": 15,
+    "synced": false
+   },
+   "applied": "0:0",
+   "wire": "0fee6b2800ffffffffffffdeadbeef0000001e"
+  }
+ ],
+ "digest": [
+  {
+   "heads": [],
+   "digest": "811c9dc5"
+  },
+  {
+   "heads": [
+    {
+     "state": "armed_away",
+     "dot": "1:1",
+     "vv": {
+      "1": 1
+     },
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800,
+     "trusted": true,
+     "lost": 0
+    }
+   ],
+   "digest": "472be8c6"
+  },
+  {
+   "heads": [
+    {
+     "state": "armed_away",
+     "dot": "1:1",
+     "vv": {
+      "1": 1
+     },
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800,
+     "trusted": true,
+     "lost": 0
+    },
+    {
+     "state": "armed_away",
+     "dot": "2:3",
+     "vv": {
+      "1": 1048575,
+      "2": 3,
+      "7": 74565,
+      "15": 1048575
+     },
+     "timeline": [
+      3,
+      3735928559
+     ],
+     "mark": 4294967294,
+     "trusted": true,
+     "lost": 2
+    },
+    {
+     "state": "disarmed",
+     "dot": "9:1",
+     "vv": {
+      "9": 1
+     },
+     "timeline": [
+      9,
+      2
+     ],
+     "mark": 0,
+     "trusted": true,
+     "lost": 0
+    },
+    {
+     "state": "triggered",
+     "dot": "15:1048575",
+     "vv": {
+      "1": 4,
+      "14": 1000000,
+      "15": 1048575
+     },
+     "timeline": [
+      15,
+      1
+     ],
+     "mark": 7,
+     "trusted": false,
+     "lost": 0
+    }
+   ],
+   "digest": "c1928577"
+  }
+ ],
+ "stamp": [
+  {
+   "stamp": {
+    "tag": 257,
+    "issued": 5000000
+   },
+   "wire": "0101004c4b40"
+  }
+ ],
+ "merge": [
+  {
+   "name": "the same action in two timelines keeps the larger mark, the older timeline's",
+   "a": {
+    "state": "disarmed",
+    "dot": "2:1",
+    "vv": {
+     "2": 1
+    },
+    "timeline": [
+     2,
+     2
+    ],
+    "mark": 500,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:1",
+    "vv": {
+     "2": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 900500,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "same"
+  },
+  {
+   "name": "the same action with equal marks keeps the smaller timeline id",
+   "a": {
+    "state": "disarmed",
+    "dot": "2:1",
+    "vv": {
+     "2": 1
+    },
+    "timeline": [
+     2,
+     2
+    ],
+    "mark": 500,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:1",
+    "vv": {
+     "2": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 500,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "same"
+  },
+  {
+   "name": "layer 1: what descends wins over a later mark and over the disarmed",
+   "a": {
+    "state": "disarmed",
+    "dot": "1:5",
+    "vv": {
+     "1": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 9000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "1": 5,
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "name": "layer 1: a copy that descends wins across timelines and with an untrusted mark",
+   "a": {
+    "state": "disarmed",
+    "dot": "1:5",
+    "vv": {
+     "1": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "1": 5,
+     "2": 2
+    },
+    "timeline": [
+     9,
+     9
+    ],
+    "mark": 1,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "name": "layer 1: a vector that has gone past the counter descends from it too (it does not need the dot itself)",
+   "a": {
+    "state": "disarmed",
+    "dot": "1:5",
+    "vv": {
+     "1": 5
+    },
+    "timeline": [
+     9,
+     9
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:9",
+    "vv": {
+     "1": 40,
+     "2": 9
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "name": "layer 1: there is no window: an ancestor a million actions back is still seen",
+   "a": {
+    "state": "disarmed",
+    "dot": "1:3",
+    "vv": {
+     "1": 3
+    },
+    "timeline": [
+     9,
+     9
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:9",
+    "vv": {
+     "1": 1048575,
+     "2": 9
+    },
+    "timeline": [
+     8,
+     8
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "name": "layer 1: a node's later action descends its earlier ones, whatever else its vector says",
+   "a": {
+    "state": "disarmed",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     9,
+     9
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:3",
+    "vv": {
+     "2": 3
+    },
+    "timeline": [
+     8,
+     8
+    ],
+    "mark": 1,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "name": "layer 1 is strict about the counter: a vector one short of it does not descend, and the clock decides",
+   "a": {
+    "state": "disarmed",
+    "dot": "1:5",
+    "vv": {
+     "1": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 10,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "1": 4,
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 9000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "name": "layer 2: inside one timeline the later mark wins (an arm after a disarm)",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 2000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "name": "layer 2: ... and a disarm after an arm",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 2000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "name": "layer 2: marks compare across the wrap of the counter",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967291,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "name": "layer 2: a trigger after a disarm wins",
+   "a": {
+    "state": "triggered",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 3000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 2000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "name": "layer 2: a trigger before a later disarm loses",
+   "a": {
+    "state": "triggered",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 2000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "name": "layer 2, equal marks: nobody can say which is later, the disarmed wins",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "tie"
+  },
+  {
+   "name": "layer 2, equal marks: of two armed ones the more severe (away over home)",
+   "a": {
+    "state": "armed_home",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "tie"
+  },
+  {
+   "name": "layer 2, equal marks: a trigger over an arm",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "tie"
+  },
+  {
+   "name": "layer 2, equal marks and severity: the larger dot, only to be the same everywhere",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:7",
+    "vv": {
+     "2": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:2",
+    "vv": {
+     "3": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 777,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "tie"
+  },
+  {
+   "name": "layer 3: different timelines, the disarmed wins whatever the marks",
+   "a": {
+    "state": "disarmed",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 10,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     2,
+     2
+    ],
+    "mark": 999999,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "name": "layer 3: different timelines, two armed ones: the more severe",
+   "a": {
+    "state": "armed_home",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     2,
+     2
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "name": "layer 3: different timelines, same severity: the larger dot",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:7",
+    "vv": {
+     "2": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:2",
+    "vv": {
+     "3": 2
+    },
+    "timeline": [
+     2,
+     2
+    ],
+    "mark": 1000,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "name": "layer 3: the same timeline but an untrusted mark is not placed: the disarmed wins over the later arm",
+   "a": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 9000,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 10,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  }
+ ],
+ "mergeFuzz": [
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:3",
+    "vv": {
+     "2": 3,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:1",
+    "vv": {
+     "1": 1,
+     "2": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:7",
+    "vv": {
+     "1": 1,
+     "3": 3,
+     "4": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:6",
+    "vv": {
+     "4": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "4:3",
+    "vv": {
+     "2": 5,
+     "4": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:5",
+    "vv": {
+     "4": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:5",
+    "vv": {
+     "1": 5,
+     "2": 5,
+     "3": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:7",
+    "vv": {
+     "3": 5,
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:5",
+    "vv": {
+     "1": 0,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:8",
+    "vv": {
+     "1": 3,
+     "2": 3,
+     "3": 8,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "2:3",
+    "vv": {
+     "2": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "3": 1,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "tie"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "3:8",
+    "vv": {
+     "3": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "1:3",
+    "vv": {
+     "1": 3,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:6",
+    "vv": {
+     "2": 6,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:8",
+    "vv": {
+     "2": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:2",
+    "vv": {
+     "1": 2,
+     "2": 0,
+     "3": 1,
+     "4": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:4",
+    "vv": {
+     "1": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:5",
+    "vv": {
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "2": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:6",
+    "vv": {
+     "1": 2,
+     "2": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:5",
+    "vv": {
+     "1": 5,
+     "2": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:8",
+    "vv": {
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:1",
+    "vv": {
+     "2": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "tie"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:1",
+    "vv": {
+     "1": 1,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "1:1",
+    "vv": {
+     "1": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "same"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:6",
+    "vv": {
+     "1": 1,
+     "2": 0,
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:4",
+    "vv": {
+     "4": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:4",
+    "vv": {
+     "1": 5,
+     "4": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:3",
+    "vv": {
+     "3": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "3:3",
+    "vv": {
+     "1": 2,
+     "3": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:3",
+    "vv": {
+     "1": 0,
+     "2": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:2",
+    "vv": {
+     "1": 2,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:4",
+    "vv": {
+     "3": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:4",
+    "vv": {
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:2",
+    "vv": {
+     "3": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:8",
+    "vv": {
+     "2": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:3",
+    "vv": {
+     "1": 1,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:3",
+    "vv": {
+     "1": 3,
+     "2": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "2": 5,
+     "3": 0
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:7",
+    "vv": {
+     "2": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:6",
+    "vv": {
+     "1": 2,
+     "2": 6,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:3",
+    "vv": {
+     "2": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:8",
+    "vv": {
+     "2": 5,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:5",
+    "vv": {
+     "2": 0,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "2": 0
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:7",
+    "vv": {
+     "1": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "same"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:8",
+    "vv": {
+     "1": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "1:3",
+    "vv": {
+     "1": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "3:8",
+    "vv": {
+     "3": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:7",
+    "vv": {
+     "2": 3,
+     "3": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:6",
+    "vv": {
+     "1": 6,
+     "3": 5,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "1:2",
+    "vv": {
+     "1": 2,
+     "3": 2,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "4:2",
+    "vv": {
+     "2": 0,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:2",
+    "vv": {
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "same"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:4",
+    "vv": {
+     "1": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "2": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "3:8",
+    "vv": {
+     "1": 0,
+     "2": 1,
+     "3": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:1",
+    "vv": {
+     "3": 1,
+     "4": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "4:6",
+    "vv": {
+     "3": 1,
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "1:4",
+    "vv": {
+     "1": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:4",
+    "vv": {
+     "2": 2,
+     "3": 4,
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:5",
+    "vv": {
+     "2": 1,
+     "3": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:2",
+    "vv": {
+     "2": 2,
+     "3": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:7",
+    "vv": {
+     "3": 0,
+     "4": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:6",
+    "vv": {
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:4",
+    "vv": {
+     "1": 3,
+     "2": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:2",
+    "vv": {
+     "1": 4,
+     "3": 3,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:5",
+    "vv": {
+     "3": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "tie"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "3:8",
+    "vv": {
+     "3": 8,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:2",
+    "vv": {
+     "3": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:8",
+    "vv": {
+     "2": 2,
+     "3": 3,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:6",
+    "vv": {
+     "2": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:2",
+    "vv": {
+     "1": 0,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:3",
+    "vv": {
+     "3": 3,
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:5",
+    "vv": {
+     "2": 5,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "4:8",
+    "vv": {
+     "1": 0,
+     "2": 0,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:6",
+    "vv": {
+     "2": 6,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:8",
+    "vv": {
+     "1": 0,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "tie"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:2",
+    "vv": {
+     "1": 2,
+     "3": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:7",
+    "vv": {
+     "2": 0,
+     "3": 0,
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:3",
+    "vv": {
+     "2": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:3",
+    "vv": {
+     "2": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "same"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:3",
+    "vv": {
+     "2": 3,
+     "3": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:2",
+    "vv": {
+     "1": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "3": 3,
+     "4": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:1",
+    "vv": {
+     "1": 5,
+     "2": 1,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:5",
+    "vv": {
+     "2": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:7",
+    "vv": {
+     "1": 1,
+     "3": 5,
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:5",
+    "vv": {
+     "1": 2,
+     "3": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "3:1",
+    "vv": {
+     "2": 0,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:5",
+    "vv": {
+     "3": 2,
+     "4": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:4",
+    "vv": {
+     "2": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:1",
+    "vv": {
+     "1": 2,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:4",
+    "vv": {
+     "4": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:2",
+    "vv": {
+     "3": 2,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:8",
+    "vv": {
+     "2": 3,
+     "4": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:5",
+    "vv": {
+     "2": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "3:6",
+    "vv": {
+     "1": 0,
+     "3": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:2",
+    "vv": {
+     "3": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "1:3",
+    "vv": {
+     "1": 3,
+     "2": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:1",
+    "vv": {
+     "1": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "2:6",
+    "vv": {
+     "2": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:8",
+    "vv": {
+     "3": 1,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:2",
+    "vv": {
+     "2": 3,
+     "3": 2,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:4",
+    "vv": {
+     "1": 5,
+     "2": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "4:2",
+    "vv": {
+     "1": 1,
+     "2": 3,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:5",
+    "vv": {
+     "2": 3,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:8",
+    "vv": {
+     "1": 3,
+     "2": 8,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:5",
+    "vv": {
+     "2": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:2",
+    "vv": {
+     "1": 3,
+     "3": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:4",
+    "vv": {
+     "1": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:5",
+    "vv": {
+     "3": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:4",
+    "vv": {
+     "4": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "3:7",
+    "vv": {
+     "1": 0,
+     "2": 0,
+     "3": 7,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "2": 0
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:8",
+    "vv": {
+     "1": 0,
+     "2": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:3",
+    "vv": {
+     "1": 3,
+     "2": 0,
+     "3": 0,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:8",
+    "vv": {
+     "1": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "2:6",
+    "vv": {
+     "2": 6,
+     "4": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:5",
+    "vv": {
+     "1": 0,
+     "2": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:2",
+    "vv": {
+     "1": 2,
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "2:6",
+    "vv": {
+     "2": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:6",
+    "vv": {
+     "2": 3,
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:7",
+    "vv": {
+     "1": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:2",
+    "vv": {
+     "1": 0,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:8",
+    "vv": {
+     "4": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "2": 4,
+     "4": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:8",
+    "vv": {
+     "1": 5,
+     "2": 8,
+     "3": 2,
+     "4": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "3:3",
+    "vv": {
+     "1": 2,
+     "3": 5,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "1:2",
+    "vv": {
+     "1": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:6",
+    "vv": {
+     "1": 3,
+     "2": 6,
+     "3": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:5",
+    "vv": {
+     "1": 3,
+     "2": 4,
+     "3": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "tie"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:3",
+    "vv": {
+     "1": 4,
+     "2": 5,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:7",
+    "vv": {
+     "1": 5,
+     "3": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "3:3",
+    "vv": {
+     "3": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:7",
+    "vv": {
+     "2": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:3",
+    "vv": {
+     "1": 4,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:6",
+    "vv": {
+     "1": 6,
+     "3": 5,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:8",
+    "vv": {
+     "3": 8,
+     "4": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "2": 0
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:6",
+    "vv": {
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:1",
+    "vv": {
+     "1": 1,
+     "3": 4,
+     "4": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:6",
+    "vv": {
+     "2": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:6",
+    "vv": {
+     "2": 1,
+     "3": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:7",
+    "vv": {
+     "3": 7,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "3": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:6",
+    "vv": {
+     "1": 4,
+     "3": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "3:4",
+    "vv": {
+     "3": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:4",
+    "vv": {
+     "2": 4,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:1",
+    "vv": {
+     "2": 0,
+     "3": 0,
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:3",
+    "vv": {
+     "2": 0,
+     "3": 3,
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:4",
+    "vv": {
+     "1": 4,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:3",
+    "vv": {
+     "1": 1,
+     "2": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:2",
+    "vv": {
+     "1": 0,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "4:6",
+    "vv": {
+     "1": 3,
+     "2": 3,
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:7",
+    "vv": {
+     "2": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "2:6",
+    "vv": {
+     "2": 6,
+     "3": 3,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "4:8",
+    "vv": {
+     "1": 2,
+     "2": 4,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:8",
+    "vv": {
+     "1": 3,
+     "2": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:8",
+    "vv": {
+     "1": 2,
+     "2": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "1:4",
+    "vv": {
+     "1": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:4",
+    "vv": {
+     "1": 4,
+     "2": 0,
+     "3": 1,
+     "4": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:2",
+    "vv": {
+     "1": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:5",
+    "vv": {
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "2": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "2:8",
+    "vv": {
+     "2": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "1:8",
+    "vv": {
+     "1": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:4",
+    "vv": {
+     "2": 4,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "3:6",
+    "vv": {
+     "3": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:6",
+    "vv": {
+     "2": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "4:6",
+    "vv": {
+     "2": 4,
+     "3": 5,
+     "4": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "4:3",
+    "vv": {
+     "2": 1,
+     "4": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:8",
+    "vv": {
+     "3": 3,
+     "4": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:2",
+    "vv": {
+     "3": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "2": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:6",
+    "vv": {
+     "1": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:4",
+    "vv": {
+     "2": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "1:5",
+    "vv": {
+     "1": 5,
+     "2": 4,
+     "3": 4,
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:1",
+    "vv": {
+     "1": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:5",
+    "vv": {
+     "1": 5,
+     "3": 3,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:8",
+    "vv": {
+     "2": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "1:6",
+    "vv": {
+     "1": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "1:4",
+    "vv": {
+     "1": 4,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:8",
+    "vv": {
+     "1": 1,
+     "4": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:8",
+    "vv": {
+     "1": 1,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "same"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:7",
+    "vv": {
+     "1": 4,
+     "2": 7,
+     "3": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "1:3",
+    "vv": {
+     "1": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:3",
+    "vv": {
+     "3": 3,
+     "4": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "4:6",
+    "vv": {
+     "3": 3,
+     "4": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:3",
+    "vv": {
+     "2": 3,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "1:2",
+    "vv": {
+     "1": 2,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "3:8",
+    "vv": {
+     "3": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "1:5",
+    "vv": {
+     "1": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:4",
+    "vv": {
+     "3": 4,
+     "4": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:7",
+    "vv": {
+     "3": 0,
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "3:8",
+    "vv": {
+     "2": 2,
+     "3": 8,
+     "4": 0
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:1",
+    "vv": {
+     "1": 0,
+     "3": 4,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:1",
+    "vv": {
+     "1": 4,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:2",
+    "vv": {
+     "1": 2,
+     "2": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:2",
+    "vv": {
+     "1": 3,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:3",
+    "vv": {
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "4:5",
+    "vv": {
+     "4": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:1",
+    "vv": {
+     "2": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:6",
+    "vv": {
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:7",
+    "vv": {
+     "3": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:7",
+    "vv": {
+     "3": 2,
+     "4": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "3:7",
+    "vv": {
+     "1": 1,
+     "3": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:2",
+    "vv": {
+     "1": 2,
+     "4": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:1",
+    "vv": {
+     "1": 2,
+     "2": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:8",
+    "vv": {
+     "1": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:7",
+    "vv": {
+     "4": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:5",
+    "vv": {
+     "3": 5,
+     "4": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "1:7",
+    "vv": {
+     "1": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:5",
+    "vv": {
+     "2": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:8",
+    "vv": {
+     "3": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:8",
+    "vv": {
+     "1": 0,
+     "2": 4,
+     "3": 8,
+     "4": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "same"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "1:2",
+    "vv": {
+     "1": 2,
+     "3": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:6",
+    "vv": {
+     "1": 3,
+     "3": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:7",
+    "vv": {
+     "2": 0,
+     "3": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "1:8",
+    "vv": {
+     "1": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:2",
+    "vv": {
+     "1": 3,
+     "2": 3,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:3",
+    "vv": {
+     "3": 4,
+     "4": 0
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:3",
+    "vv": {
+     "1": 4,
+     "2": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "1": 2,
+     "2": 2,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:5",
+    "vv": {
+     "1": 3,
+     "2": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:5",
+    "vv": {
+     "3": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "2:8",
+    "vv": {
+     "1": 3,
+     "2": 8,
+     "3": 2,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:6",
+    "vv": {
+     "3": 2,
+     "4": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:5",
+    "vv": {
+     "1": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:6",
+    "vv": {
+     "2": 4,
+     "3": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:7",
+    "vv": {
+     "2": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:7",
+    "vv": {
+     "3": 7,
+     "4": 0
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "tie"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:6",
+    "vv": {
+     "2": 3,
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:2",
+    "vv": {
+     "2": 1,
+     "3": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "3:7",
+    "vv": {
+     "3": 7
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:2",
+    "vv": {
+     "2": 2,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:7",
+    "vv": {
+     "1": 5,
+     "2": 7,
+     "4": 0
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:6",
+    "vv": {
+     "1": 2,
+     "4": 6
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967290,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "4:1",
+    "vv": {
+     "3": 4,
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:8",
+    "vv": {
+     "1": 5,
+     "2": 4,
+     "3": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:2",
+    "vv": {
+     "1": 1,
+     "3": 2,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "1": 2,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:6",
+    "vv": {
+     "2": 6,
+     "3": 3
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "2:7",
+    "vv": {
+     "1": 2,
+     "2": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "2:1",
+    "vv": {
+     "1": 4,
+     "2": 1,
+     "3": 5,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:4",
+    "vv": {
+     "3": 4,
+     "4": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "2": 3,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "3:8",
+    "vv": {
+     "2": 4,
+     "3": 8,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:2",
+    "vv": {
+     "1": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "3:1",
+    "vv": {
+     "1": 1,
+     "2": 0,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:8",
+    "vv": {
+     "2": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:5",
+    "vv": {
+     "3": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:7",
+    "vv": {
+     "1": 7,
+     "3": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:1",
+    "vv": {
+     "3": 3,
+     "4": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:4",
+    "vv": {
+     "1": 4,
+     "2": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:6",
+    "vv": {
+     "3": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "4:3",
+    "vv": {
+     "3": 3,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "3:8",
+    "vv": {
+     "2": 5,
+     "3": 8
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "1:2",
+    "vv": {
+     "1": 4,
+     "2": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "2:3",
+    "vv": {
+     "2": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "2:2",
+    "vv": {
+     "2": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "2:6",
+    "vv": {
+     "2": 6,
+     "3": 2
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:1",
+    "vv": {
+     "2": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:8",
+    "vv": {
+     "2": 0,
+     "3": 0,
+     "4": 8
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "4:1",
+    "vv": {
+     "1": 3,
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": false,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "2:5",
+    "vv": {
+     "1": 3,
+     "2": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:5",
+    "vv": {
+     "1": 5,
+     "2": 0
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 5,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "1:7",
+    "vv": {
+     "1": 7
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "disarmed",
+    "dot": "1:6",
+    "vv": {
+     "1": 6,
+     "3": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_away",
+    "dot": "1:5",
+    "vv": {
+     "1": 5,
+     "4": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:8",
+    "vv": {
+     "1": 8,
+     "3": 1
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "4:3",
+    "vv": {
+     "1": 1,
+     "4": 3
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "clock"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:4",
+    "vv": {
+     "1": 4,
+     "2": 5,
+     "4": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:6",
+    "vv": {
+     "3": 2,
+     "4": 6
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "3:8",
+    "vv": {
+     "3": 8,
+     "4": 5
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "4:1",
+    "vv": {
+     "4": 1
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "a",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:1",
+    "vv": {
+     "2": 1,
+     "4": 0
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "armed_home",
+    "dot": "3:5",
+    "vv": {
+     "2": 1,
+     "3": 5,
+     "4": 0
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_away",
+    "dot": "2:2",
+    "vv": {
+     "1": 2,
+     "2": 2,
+     "3": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 150,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "4:2",
+    "vv": {
+     "2": 5,
+     "4": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  },
+  {
+   "a": {
+    "state": "armed_home",
+    "dot": "3:5",
+    "vv": {
+     "1": 1,
+     "3": 5,
+     "4": 5
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "triggered",
+    "dot": "2:4",
+    "vv": {
+     "1": 2,
+     "2": 4
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 55,
+    "trusted": false,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "safe"
+  },
+  {
+   "a": {
+    "state": "triggered",
+    "dot": "1:2",
+    "vv": {
+     "1": 2
+    },
+    "timeline": [
+     2,
+     1
+    ],
+    "mark": 100,
+    "trusted": true,
+    "lost": 0
+   },
+   "b": {
+    "state": "disarmed",
+    "dot": "1:4",
+    "vv": {
+     "1": 4,
+     "2": 4
+    },
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 4294967340,
+    "trusted": true,
+    "lost": 0
+   },
+   "win": "b",
+   "layer": "descent"
+  }
+ ],
+ "epoch": [
+  {
+   "name": "the epoch is saved, counted from the saved one, and the timeline is the node's own",
+   "node": {
+    "id": 3,
+    "epoch": 4
+   },
+   "boots": [
+    {
+     "epochOk": true
+    },
+    {
+     "epochOk": true
+    }
+   ],
+   "want": [
+    {
+     "timeline": [
+      3,
+      5
+     ],
+     "saved": 5,
+     "trusted": true
+    },
+    {
+     "timeline": [
+      3,
+      6
+     ],
+     "saved": 6,
+     "trusted": true
+    }
+   ]
+  },
+  {
+   "name": "a flash that refuses the epoch: a random one for this life, the saved counter left alone, the trust bit cleared; the next boot counts from the saved one",
+   "node": {
+    "id": 3,
+    "epoch": 4
+   },
+   "boots": [
+    {
+     "epochOk": false,
+     "epoch": 3405691582
+    },
+    {
+     "epochOk": false,
+     "epoch": 305419896
+    },
+    {
+     "epochOk": true
+    }
+   ],
+   "want": [
+    {
+     "timeline": [
+      3,
+      3405691582
+     ],
+     "saved": 4,
+     "trusted": false
+    },
+    {
+     "timeline": [
+      3,
+      305419896
+     ],
+     "saved": 4,
+     "trusted": false
+    },
+    {
+     "timeline": [
+      3,
+      5
+     ],
+     "saved": 5,
+     "trusted": true
+    }
+   ]
+  }
+ ],
+ "timeline": [
+  {
+   "name": "the younger timeline adopts the older and its own record moves",
+   "node": {
+    "id": 2,
+    "epoch": 2,
+    "record": {
+     "state": "disarmed",
+     "dot": "2:1",
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "timeline": [
+      2,
+      2
+     ],
+     "mark": 600,
+     "trusted": true,
+     "lost": 0
+    }
+   },
+   "up": 61000,
+   "hello": {
+    "tl": [
+     1,
+     1
+    ],
+    "mesh": 90000000
+   },
+   "want": {
+    "adopted": true,
+    "delta": 89939000,
+    "timeline": [
+     1,
+     1
+    ],
+    "off": 89939000,
+    "record": {
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 899990
+    }
+   }
+  },
+  {
+   "name": "the older node keeps its timeline",
+   "node": {
+    "id": 1,
+    "epoch": 1,
+    "tl": [
+     1,
+     1
+    ],
+    "off": 0,
+    "record": {
+     "state": "armed_away",
+     "dot": "1:1",
+     "vv": {
+      "1": 1
+     },
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800,
+     "trusted": true,
+     "lost": 0
+    }
+   },
+   "up": 90000000,
+   "hello": {
+    "tl": [
+     2,
+     2
+    ],
+    "mesh": 61000
+   },
+   "want": {
+    "adopted": false,
+    "delta": 0,
+    "timeline": [
+     1,
+     1
+    ],
+    "off": 0,
+    "record": {
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800
+    }
+   }
+  },
+  {
+   "name": "a record from a timeline that is over is not translated",
+   "node": {
+    "id": 2,
+    "epoch": 2,
+    "record": {
+     "state": "disarmed",
+     "dot": "3:4",
+     "vv": {
+      "3": 4
+     },
+     "timeline": [
+      3,
+      7
+     ],
+     "mark": 5000,
+     "trusted": true,
+     "lost": 0
+    }
+   },
+   "up": 5000,
+   "hello": {
+    "tl": [
+     1,
+     1
+    ],
+    "mesh": 50000000
+   },
+   "want": {
+    "adopted": true,
+    "delta": 49995000,
+    "timeline": [
+     1,
+     1
+    ],
+    "off": 49995000,
+    "record": {
+     "timeline": [
+      3,
+      7
+     ],
+     "mark": 5000
+    }
+   }
+  },
+  {
+   "name": "the same timeline: a larger time is followed, nothing is translated",
+   "node": {
+    "id": 2,
+    "epoch": 1,
+    "tl": [
+     1,
+     1
+    ],
+    "off": 0,
+    "record": {
+     "state": "armed_away",
+     "dot": "1:1",
+     "vv": {
+      "1": 1
+     },
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800,
+     "trusted": true,
+     "lost": 0
+    }
+   },
+   "up": 1000000,
+   "hello": {
+    "tl": [
+     1,
+     1
+    ],
+    "mesh": 1000050
+   },
+   "want": {
+    "adopted": false,
+    "delta": 0,
+    "timeline": [
+     1,
+     1
+    ],
+    "off": 50,
+    "record": {
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800
+    }
+   }
+  },
+  {
+   "name": "the same timeline: an hour ahead is not a drift and is not followed",
+   "node": {
+    "id": 2,
+    "epoch": 1,
+    "tl": [
+     1,
+     1
+    ],
+    "off": 0,
+    "record": {
+     "state": "armed_away",
+     "dot": "1:1",
+     "vv": {
+      "1": 1
+     },
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800,
+     "trusted": true,
+     "lost": 0
+    }
+   },
+   "up": 1000000,
+   "hello": {
+    "tl": [
+     1,
+     1
+    ],
+    "mesh": 4600001
+   },
+   "want": {
+    "adopted": false,
+    "delta": 0,
+    "timeline": [
+     1,
+     1
+    ],
+    "off": 0,
+    "record": {
+     "timeline": [
+      1,
+      1
+     ],
+     "mark": 100800
+    }
+   }
+  },
+  {
+   "name": "equal ages: the smaller timeline id wins, so this side (the larger id) adopts",
+   "node": {
+    "id": 2,
+    "epoch": 9,
+    "record": {
+     "state": "disarmed",
+     "dot": "2:1",
+     "vv": {
+      "2": 1
+     },
+     "timeline": [
+      2,
+      9
+     ],
+     "mark": 100,
+     "trusted": true,
+     "lost": 0
+    }
+   },
+   "up": 5000003,
+   "hello": {
+    "tl": [
+     1,
+     4
+    ],
+    "mesh": 5000000
+   },
+   "want": {
+    "adopted": true,
+    "delta": -3,
+    "timeline": [
+     1,
+     4
+    ],
+    "off": -3,
+    "record": {
+     "timeline": [
+      1,
+      4
+     ],
+     "mark": 100
+    }
+   }
+  },
+  {
+   "name": "equal ages: and this side (the smaller id) keeps its own",
+   "node": {
+    "id": 1,
+    "epoch": 4,
+    "record": {
+     "state": "disarmed",
+     "dot": "1:2",
+     "vv": {
+      "1": 2
+     },
+     "timeline": [
+      1,
+      4
+     ],
+     "mark": 100,
+     "trusted": true,
+     "lost": 0
+    }
+   },
+   "up": 5000003,
+   "hello": {
+    "tl": [
+     2,
+     9
+    ],
+    "mesh": 5000000
+   },
+   "want": {
+    "adopted": false,
+    "delta": 0,
+    "timeline": [
+     1,
+     4
+    ],
+    "off": 0,
+    "record": {
+     "timeline": [
+      1,
+      4
+     ],
+     "mark": 100
+    }
+   }
+  }
+ ],
+ "heads": [
+  {
+   "name": "two concurrent copies are both kept, and the safe side shows the disarmed",
+   "anyOrder": true,
+   "node": {
+    "id": 4,
+    "ctr": 0,
+    "heads": [
+     {
+      "state": "armed_away",
+      "dot": "1:1",
+      "vv": {
+       "1": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 100800,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   },
+   "takes": [
+    [
+     {
+      "state": "armed_away",
+      "dot": "2:1",
+      "vv": {
+       "1": 1,
+       "2": 1
+      },
+      "timeline": [
+       2,
+       2
+      ],
+      "mark": 500,
+      "trusted": true,
+      "lost": 0
+     }
+    ],
+    [
+     {
+      "state": "disarmed",
+      "dot": "3:1",
+      "vv": {
+       "1": 1,
+       "3": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 9000,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   ],
+   "want": {
+    "heads": [
+     "2:1",
+     "3:1"
+    ],
+    "state": "disarmed",
+    "dot": "3:1",
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 9000,
+    "vv": {
+     "1": 1,
+     "3": 1
+    },
+    "digest": "f4c6fbc3",
+    "changed": true
+   }
+  },
+  {
+   "name": "a descendant replaces the head it descends from and leaves the other one (the finding F2 in three copies)",
+   "anyOrder": true,
+   "node": {
+    "id": 4,
+    "ctr": 0,
+    "heads": [
+     {
+      "state": "armed_away",
+      "dot": "1:1",
+      "vv": {
+       "1": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 100800,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   },
+   "takes": [
+    [
+     {
+      "state": "armed_away",
+      "dot": "2:1",
+      "vv": {
+       "1": 1,
+       "2": 1
+      },
+      "timeline": [
+       2,
+       2
+      ],
+      "mark": 500,
+      "trusted": true,
+      "lost": 0
+     }
+    ],
+    [
+     {
+      "state": "disarmed",
+      "dot": "1:2",
+      "vv": {
+       "1": 2
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 104000,
+      "trusted": true,
+      "lost": 0
+     }
+    ],
+    [
+     {
+      "state": "armed_home",
+      "dot": "3:1",
+      "vv": {
+       "1": 2,
+       "3": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 105000,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   ],
+   "want": {
+    "heads": [
+     "2:1",
+     "3:1"
+    ],
+    "state": "armed_away",
+    "dot": "2:1",
+    "timeline": [
+     2,
+     2
+    ],
+    "mark": 500,
+    "vv": {
+     "1": 1,
+     "2": 1
+    },
+    "digest": "471a5e19",
+    "changed": true
+   }
+  },
+  {
+   "name": "a copy that descends from every head leaves one head",
+   "anyOrder": false,
+   "node": {
+    "id": 5,
+    "ctr": 0,
+    "heads": [
+     {
+      "state": "armed_away",
+      "dot": "2:1",
+      "vv": {
+       "1": 1,
+       "2": 1
+      },
+      "timeline": [
+       2,
+       2
+      ],
+      "mark": 500,
+      "trusted": true,
+      "lost": 0
+     },
+     {
+      "state": "armed_home",
+      "dot": "3:1",
+      "vv": {
+       "1": 1,
+       "3": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 9000,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   },
+   "takes": [
+    [
+     {
+      "state": "disarmed",
+      "dot": "4:1",
+      "vv": {
+       "1": 1,
+       "2": 1,
+       "3": 1,
+       "4": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 12000,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   ],
+   "want": {
+    "heads": [
+     "4:1"
+    ],
+    "state": "disarmed",
+    "dot": "4:1",
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 12000,
+    "vv": {
+     "1": 1,
+     "2": 1,
+     "3": 1,
+     "4": 1
+    },
+    "digest": "a4d10002",
+    "changed": true
+   }
+  },
+  {
+   "name": "the same action in two forms keeps the one in the older timeline, the larger mark",
+   "anyOrder": true,
+   "node": {
+    "id": 4,
+    "ctr": 0,
+    "heads": [
+     {
+      "state": "disarmed",
+      "dot": "2:1",
+      "vv": {
+       "1": 1,
+       "2": 1
+      },
+      "timeline": [
+       2,
+       2
+      ],
+      "mark": 500,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   },
+   "takes": [
+    [
+     {
+      "state": "disarmed",
+      "dot": "2:1",
+      "vv": {
+       "1": 1,
+       "2": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 900500,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   ],
+   "want": {
+    "heads": [
+     "2:1"
+    ],
+    "state": "disarmed",
+    "dot": "2:1",
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 900500,
+    "vv": {
+     "1": 1,
+     "2": 1
+    },
+    "digest": "a4a5ce52",
+    "changed": true
+   }
+  },
+  {
+   "name": "a later action of the same node is above the earlier one, whatever its vector says of the others",
+   "anyOrder": false,
+   "node": {
+    "id": 4,
+    "ctr": 0,
+    "heads": [
+     {
+      "state": "disarmed",
+      "dot": "2:2",
+      "vv": {
+       "1": 1,
+       "2": 2
+      },
+      "timeline": [
+       9,
+       9
+      ],
+      "mark": 5,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   },
+   "takes": [
+    [
+     {
+      "state": "armed_away",
+      "dot": "2:3",
+      "vv": {
+       "2": 3
+      },
+      "timeline": [
+       8,
+       8
+      ],
+      "mark": 1,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   ],
+   "want": {
+    "heads": [
+     "2:3"
+    ],
+    "state": "armed_away",
+    "dot": "2:3",
+    "timeline": [
+     8,
+     8
+    ],
+    "mark": 1,
+    "vv": {
+     "2": 3
+    },
+    "digest": "d8465f71",
+    "changed": true
+   }
+  },
+  {
+   "name": "an ancestor of a head is not added back, and nothing changes",
+   "anyOrder": false,
+   "node": {
+    "id": 4,
+    "ctr": 0,
+    "heads": [
+     {
+      "state": "armed_home",
+      "dot": "3:1",
+      "vv": {
+       "1": 2,
+       "3": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 105000,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   },
+   "takes": [
+    [
+     {
+      "state": "disarmed",
+      "dot": "1:2",
+      "vv": {
+       "1": 2
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 104000,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   ],
+   "want": {
+    "heads": [
+     "3:1"
+    ],
+    "state": "armed_home",
+    "dot": "3:1",
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 105000,
+    "vv": {
+     "1": 2,
+     "3": 1
+    },
+    "digest": "4a8e60b5",
+    "changed": false
+   }
+  },
+  {
+   "name": "acting replaces the heads that were shown: the new record is the only head and its vector is the join of theirs",
+   "anyOrder": false,
+   "node": {
+    "id": 4,
+    "ctr": 0,
+    "heads": [
+     {
+      "state": "armed_away",
+      "dot": "2:1",
+      "vv": {
+       "1": 1,
+       "2": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 500,
+      "trusted": true,
+      "lost": 0
+     },
+     {
+      "state": "disarmed",
+      "dot": "3:1",
+      "vv": {
+       "1": 2,
+       "3": 1
+      },
+      "timeline": [
+       1,
+       1
+      ],
+      "mark": 9000,
+      "trusted": true,
+      "lost": 0
+     }
+    ]
+   },
+   "takes": [],
+   "act": {
+    "kind": "armed_home",
+    "up": 60000
+   },
+   "want": {
+    "heads": [
+     "4:1"
+    ],
+    "state": "armed_home",
+    "dot": "4:1",
+    "timeline": [
+     1,
+     1
+    ],
+    "mark": 600,
+    "vv": {
+     "1": 2,
+     "2": 1,
+     "3": 1,
+     "4": 1
+    },
+    "digest": "f53f44e6",
+    "changed": true
+   }
+  }
+ ],
+ "situations": [
+  {
+   "id": "S1",
+   "title": "a copy comes back from a power cut with an old 'disarmed'; the house was armed meanwhile",
+   "base": "disarmed",
+   "nodes": [
+    "A",
+    "B",
+    "C"
+   ],
+   "steps": [
+    [
+     "boot",
+     "C",
+     100
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     200
+    ],
+    [
+     "hear",
+     "B",
+     "A",
+     200
+    ],
+    [
+     "meetAll",
+     300
+    ]
+   ],
+   "want": "armed_away",
+   "final": [
+    {
+     "node": "A",
+     "state": "armed_away",
+     "dot": "1:2",
+     "timeline": "1.1",
+     "mark": 102000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 2
+     },
+     "heads": [
+      "1:2"
+     ],
+     "wire": "06100002010000000100018e70000000200000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "armed_away",
+     "dot": "1:2",
+     "timeline": "1.1",
+     "mark": 102000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 2
+     },
+     "heads": [
+      "1:2"
+     ],
+     "wire": "06100002010000000100018e70000000200000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "C",
+     "state": "armed_away",
+     "dot": "1:2",
+     "timeline": "1.1",
+     "mark": 102000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 2
+     },
+     "heads": [
+      "1:2"
+     ],
+     "wire": "06100002010000000100018e70000000200000000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S2",
+   "title": "armed; in a split someone disarms on one side, nothing else",
+   "base": "armed_away",
+   "nodes": [
+    "A",
+    "B"
+   ],
+   "steps": [
+    [
+     "act",
+     "B",
+     "disarmed",
+     150
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "A",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 101500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "04200001010000000100018c7c000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 101500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "04200001010000000100018c7c000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S3",
+   "title": "armed; one side disarms at 150; the other disarms at 160 and arms again at 240",
+   "base": "armed_away",
+   "nodes": [
+    "A",
+    "B"
+   ],
+   "steps": [
+    [
+     "act",
+     "B",
+     "disarmed",
+     150
+    ],
+    [
+     "act",
+     "A",
+     "disarmed",
+     160
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     240
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "armed_away",
+   "final": [
+    {
+     "node": "A",
+     "state": "armed_away",
+     "dot": "1:3",
+     "timeline": "1.1",
+     "mark": 102400,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 3
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "06100003010000000100019000000000300000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "armed_away",
+     "dot": "1:3",
+     "timeline": "1.1",
+     "mark": 102400,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 3
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "06100003010000000100019000000000300000000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S4",
+   "title": "armed; a node restarts with no clock, alone, and the owner disarms there; nothing else happens",
+   "base": "armed_away",
+   "nodes": [
+    "A",
+    "C"
+   ],
+   "steps": [
+    [
+     "boot",
+     "C",
+     100
+    ],
+    [
+     "act",
+     "C",
+     "disarmed",
+     150
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "A",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 101500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "04200001010000000100018c7c000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "C",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 101500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "04200001010000000100018c7c000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S5",
+   "title": "as S4, but the rest of the house disarmed at 120 and armed again at 200; the owner at the lone node disarms at 250",
+   "base": "armed_away",
+   "nodes": [
+    "A",
+    "C"
+   ],
+   "steps": [
+    [
+     "boot",
+     "C",
+     100
+    ],
+    [
+     "act",
+     "A",
+     "disarmed",
+     120
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     200
+    ],
+    [
+     "act",
+     "C",
+     "disarmed",
+     250
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "A",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 102500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "04200001010000000100019064000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "C",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 102500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "04200001010000000100019064000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S6",
+   "title": "a node whose clock is 10 minutes ahead arms; the owner, in contact, disarms two seconds later",
+   "base": "disarmed",
+   "nodes": [
+    "A",
+    "D"
+   ],
+   "skew": {
+    "D": 600
+   },
+   "steps": [
+    [
+     "act",
+     "D",
+     "armed_away",
+     200
+    ],
+    [
+     "hear",
+     "A",
+     "D",
+     200
+    ],
+    [
+     "act",
+     "A",
+     "disarmed",
+     202
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "A",
+     "state": "disarmed",
+     "dot": "1:2",
+     "timeline": "1.1",
+     "mark": 102020,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 2,
+      "2": 1
+     },
+     "heads": [
+      "1:2"
+     ],
+     "wire": "04100002010000000100018e84000000200001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "D",
+     "state": "disarmed",
+     "dot": "1:2",
+     "timeline": "1.1",
+     "mark": 102020,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 2,
+      "2": 1
+     },
+     "heads": [
+      "1:2"
+     ],
+     "wire": "04100002010000000100018e84000000200001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S7",
+   "title": "a node whose clock is 10 minutes behind disarms an armed house",
+   "base": "armed_away",
+   "nodes": [
+    "A",
+    "E"
+   ],
+   "skew": {
+    "E": -600
+   },
+   "steps": [
+    [
+     "act",
+     "E",
+     "disarmed",
+     300
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "A",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 103000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "04200001010000000100019258000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "E",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 103000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "04200001010000000100019258000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S8",
+   "title": "the whole house boots with no clock after a power cut; B boots later, hears A, which armed, and disarms",
+   "base": "disarmed",
+   "nodes": [
+    "A",
+    "B"
+   ],
+   "steps": [
+    [
+     "boot",
+     "A",
+     50
+    ],
+    [
+     "boot",
+     "B",
+     250
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     150
+    ],
+    [
+     "hear",
+     "B",
+     "A",
+     250
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     300
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "A",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.2",
+     "mark": 2500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 2,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "042000010100000002000009c4000000200001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.2",
+     "mark": 2500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 2,
+      "2": 1
+     },
+     "heads": [
+      "2:1"
+     ],
+     "wire": "042000010100000002000009c4000000200001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S9",
+   "title": "half the house loses power at 100 and returns at 300; the other half disarmed at 150 and armed again at 250",
+   "base": "armed_away",
+   "nodes": [
+    "Y",
+    "X"
+   ],
+   "steps": [
+    [
+     "boot",
+     "X",
+     300
+    ],
+    [
+     "act",
+     "Y",
+     "disarmed",
+     150
+    ],
+    [
+     "act",
+     "Y",
+     "armed_away",
+     250
+    ],
+    [
+     "meetAll",
+     320
+    ]
+   ],
+   "want": "armed_away",
+   "final": [
+    {
+     "node": "Y",
+     "state": "armed_away",
+     "dot": "1:3",
+     "timeline": "1.1",
+     "mark": 102500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 3
+     },
+     "heads": [
+      "1:3"
+     ],
+     "wire": "06100003010000000100019064000000300000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "X",
+     "state": "armed_away",
+     "dot": "1:3",
+     "timeline": "1.1",
+     "mark": 102500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 3
+     },
+     "heads": [
+      "1:3"
+     ],
+     "wire": "06100003010000000100019064000000300000000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S10",
+   "title": "the half that came back is alone and the owner there DISARMS at 320; the other half disarmed at 150 and armed at 250",
+   "base": "armed_away",
+   "nodes": [
+    "Y",
+    "X"
+   ],
+   "steps": [
+    [
+     "boot",
+     "X",
+     300
+    ],
+    [
+     "act",
+     "Y",
+     "disarmed",
+     150
+    ],
+    [
+     "act",
+     "Y",
+     "armed_away",
+     250
+    ],
+    [
+     "act",
+     "X",
+     "disarmed",
+     320
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "Y",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 103200,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "04200001010000000100019320000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "X",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "1.1",
+     "mark": 103200,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "04200001010000000100019320000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S11",
+   "title": "the half that came back is alone and disarms at 320 (a copy still showed armed); the other half had disarmed at 150 and ARMS at 350",
+   "base": "armed_away",
+   "nodes": [
+    "Y",
+    "X"
+   ],
+   "steps": [
+    [
+     "boot",
+     "X",
+     300
+    ],
+    [
+     "act",
+     "Y",
+     "disarmed",
+     150
+    ],
+    [
+     "act",
+     "X",
+     "disarmed",
+     320
+    ],
+    [
+     "act",
+     "Y",
+     "armed_away",
+     350
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "armed_away",
+   "final": [
+    {
+     "node": "Y",
+     "state": "armed_away",
+     "dot": "1:3",
+     "timeline": "1.1",
+     "mark": 103500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 3
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "0610000301000000010001944c000000300000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "X",
+     "state": "armed_away",
+     "dot": "1:3",
+     "timeline": "1.1",
+     "mark": 103500,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 3
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "0610000301000000010001944c000000300000000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  },
+  {
+   "id": "S12",
+   "title": "as S11, but the lone node restarted again at 330 before meeting anyone: its disarm cannot be placed in time",
+   "base": "armed_away",
+   "nodes": [
+    "Y",
+    "X"
+   ],
+   "steps": [
+    [
+     "boot",
+     "X",
+     300
+    ],
+    [
+     "act",
+     "Y",
+     "disarmed",
+     150
+    ],
+    [
+     "act",
+     "X",
+     "disarmed",
+     320
+    ],
+    [
+     "boot",
+     "X",
+     330
+    ],
+    [
+     "act",
+     "Y",
+     "armed_away",
+     350
+    ],
+    [
+     "meetAll",
+     400
+    ]
+   ],
+   "want": "disarmed",
+   "final": [
+    {
+     "node": "Y",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 200,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "042000010200000002000000c8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "X",
+     "state": "disarmed",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 200,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "1:3",
+      "2:1"
+     ],
+     "wire": "042000010200000002000000c8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ]
+  }
+ ],
+ "hazards": [
+  {
+   "id": "F1-shelf-9",
+   "title": "a bridge that sat out nine actions returns with its old 'disarmed' after the house restarted: the first design ends the house DISARMED",
+   "base": "disarmed",
+   "nodes": [
+    "Z",
+    "A",
+    "B"
+   ],
+   "steps": [
+    [
+     "boot",
+     "A",
+     100
+    ],
+    [
+     "boot",
+     "B",
+     101
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     120
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     200
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     201
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     210
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     211
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     220
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     221
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     230
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     231
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     240
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     241
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     250
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     251
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     260
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     261
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     270
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     271
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     280
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     281
+    ],
+    [
+     "boot",
+     "Z",
+     1000
+    ],
+    [
+     "meet",
+     "Z",
+     "A",
+     1020
+    ],
+    [
+     "meetAll",
+     1100
+    ]
+   ],
+   "decided": [
+    {
+     "node": "Z",
+     "state": "armed_away",
+     "dot": "2:5",
+     "timeline": "2.2",
+     "mark": 1800,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 5,
+      "3": 4
+     },
+     "heads": [
+      "2:5"
+     ],
+     "wire": "06200005020000000200000708000000100005000040000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "A",
+     "state": "armed_away",
+     "dot": "2:5",
+     "timeline": "2.2",
+     "mark": 1800,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 5,
+      "3": 4
+     },
+     "heads": [
+      "2:5"
+     ],
+     "wire": "06200005020000000200000708000000100005000040000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "armed_away",
+     "dot": "2:5",
+     "timeline": "2.2",
+     "mark": 1800,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 5,
+      "3": 4
+     },
+     "heads": [
+      "2:5"
+     ],
+     "wire": "06200005020000000200000708000000100005000040000000000000000000000000000000000000000000000000000000000000"
+    }
+   ],
+   "old": {
+    "states": [
+     "disarmed",
+     "disarmed",
+     "disarmed"
+    ],
+    "note": "the first design (8 points of history, one record): a control that is NOT to be ported, here to show what the rule replaced"
+   },
+   "want": {
+    "decided": "armed_away",
+    "old": "disarmed"
+   }
+  },
+  {
+   "id": "F1-shelf-arms-only-9",
+   "title": "nine ARMS and no disarm anywhere, a house restart, and the bridge from the shelf comes back with the initial 'disarmed': the first design ends the house disarmed, with no one having disarmed it",
+   "base": "disarmed",
+   "nodes": [
+    "Z",
+    "A",
+    "B"
+   ],
+   "steps": [
+    [
+     "boot",
+     "A",
+     100
+    ],
+    [
+     "boot",
+     "B",
+     101
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     120
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     200
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     201
+    ],
+    [
+     "act",
+     "B",
+     "armed_home",
+     210
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     211
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     220
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     221
+    ],
+    [
+     "act",
+     "B",
+     "armed_home",
+     230
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     231
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     240
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     241
+    ],
+    [
+     "act",
+     "B",
+     "armed_home",
+     250
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     251
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     260
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     261
+    ],
+    [
+     "act",
+     "B",
+     "armed_home",
+     270
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     271
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     280
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     281
+    ],
+    [
+     "boot",
+     "Z",
+     1000
+    ],
+    [
+     "meet",
+     "Z",
+     "A",
+     1020
+    ],
+    [
+     "meetAll",
+     1100
+    ]
+   ],
+   "decided": [
+    {
+     "node": "Z",
+     "state": "armed_away",
+     "dot": "2:5",
+     "timeline": "2.2",
+     "mark": 1800,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 5,
+      "3": 4
+     },
+     "heads": [
+      "2:5"
+     ],
+     "wire": "06200005020000000200000708000000100005000040000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "A",
+     "state": "armed_away",
+     "dot": "2:5",
+     "timeline": "2.2",
+     "mark": 1800,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 5,
+      "3": 4
+     },
+     "heads": [
+      "2:5"
+     ],
+     "wire": "06200005020000000200000708000000100005000040000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "armed_away",
+     "dot": "2:5",
+     "timeline": "2.2",
+     "mark": 1800,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 5,
+      "3": 4
+     },
+     "heads": [
+      "2:5"
+     ],
+     "wire": "06200005020000000200000708000000100005000040000000000000000000000000000000000000000000000000000000000000"
+    }
+   ],
+   "old": {
+    "states": [
+     "disarmed",
+     "disarmed",
+     "disarmed"
+    ],
+    "note": "the first design (8 points of history, one record): a control that is NOT to be ported, here to show what the rule replaced"
+   },
+   "want": {
+    "decided": "armed_away",
+    "old": "disarmed"
+   }
+  },
+  {
+   "id": "F1-shelf-7",
+   "title": "the same with seven actions: the eight points still reach back to the old copy, and the house stays armed",
+   "base": "disarmed",
+   "nodes": [
+    "Z",
+    "A",
+    "B"
+   ],
+   "steps": [
+    [
+     "boot",
+     "A",
+     100
+    ],
+    [
+     "boot",
+     "B",
+     101
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     120
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     200
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     201
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     210
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     211
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     220
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     221
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     230
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     231
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     240
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     241
+    ],
+    [
+     "act",
+     "B",
+     "disarmed",
+     250
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     251
+    ],
+    [
+     "act",
+     "A",
+     "armed_away",
+     260
+    ],
+    [
+     "meet",
+     "A",
+     "B",
+     261
+    ],
+    [
+     "boot",
+     "Z",
+     1000
+    ],
+    [
+     "meet",
+     "Z",
+     "A",
+     1020
+    ],
+    [
+     "meetAll",
+     1100
+    ]
+   ],
+   "decided": [
+    {
+     "node": "Z",
+     "state": "armed_away",
+     "dot": "2:4",
+     "timeline": "2.2",
+     "mark": 1600,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 4,
+      "3": 3
+     },
+     "heads": [
+      "2:4"
+     ],
+     "wire": "06200004020000000200000640000000100004000030000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "A",
+     "state": "armed_away",
+     "dot": "2:4",
+     "timeline": "2.2",
+     "mark": 1600,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 4,
+      "3": 3
+     },
+     "heads": [
+      "2:4"
+     ],
+     "wire": "06200004020000000200000640000000100004000030000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "armed_away",
+     "dot": "2:4",
+     "timeline": "2.2",
+     "mark": 1600,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 4,
+      "3": 3
+     },
+     "heads": [
+      "2:4"
+     ],
+     "wire": "06200004020000000200000640000000100004000030000000000000000000000000000000000000000000000000000000000000"
+    }
+   ],
+   "old": {
+    "states": [
+     "armed_away",
+     "armed_away",
+     "armed_away"
+    ],
+    "note": "the first design (8 points of history, one record): a control that is NOT to be ported, here to show what the rule replaced"
+   },
+   "want": {
+    "decided": "armed_away",
+    "old": "armed_away"
+   }
+  },
+  {
+   "id": "F2-order-alpha",
+   "title": "B restarts twice alone and arms in between; A disarms; C arms home after A. Joins B-C first: the first design ends DISARMED, and C's later arm is lost",
+   "base": "disarmed",
+   "nodes": [
+    "A",
+    "B",
+    "C"
+   ],
+   "steps": [
+    [
+     "boot",
+     "B",
+     100
+    ],
+    [
+     "act",
+     "B",
+     "armed_away",
+     200
+    ],
+    [
+     "boot",
+     "B",
+     300
+    ],
+    [
+     "act",
+     "A",
+     "disarmed",
+     400
+    ],
+    [
+     "hear",
+     "C",
+     "A",
+     401
+    ],
+    [
+     "act",
+     "C",
+     "armed_home",
+     500
+    ],
+    [
+     "meet",
+     "B",
+     "C",
+     600
+    ],
+    [
+     "meet",
+     "B",
+     "A",
+     601
+    ],
+    [
+     "meet",
+     "A",
+     "C",
+     602
+    ],
+    [
+     "meetAll",
+     700
+    ]
+   ],
+   "decided": [
+    {
+     "node": "A",
+     "state": "armed_away",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 1000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1",
+      "3:1"
+     ],
+     "wire": "062000010200000002000003e8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "armed_away",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 1000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1",
+      "3:1"
+     ],
+     "wire": "062000010200000002000003e8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "C",
+     "state": "armed_away",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 1000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1",
+      "3:1"
+     ],
+     "wire": "062000010200000002000003e8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ],
+   "old": {
+    "states": [
+     "disarmed",
+     "disarmed",
+     "disarmed"
+    ],
+    "note": "the first design (8 points of history, one record): a control that is NOT to be ported, here to show what the rule replaced"
+   },
+   "want": {
+    "decided": "armed_away",
+    "old": "disarmed"
+   }
+  },
+  {
+   "id": "F2-order-beta",
+   "title": "the same events, joins B-A first: the first design ends armed home; the decided rule gives the same state as in the other order",
+   "base": "disarmed",
+   "nodes": [
+    "A",
+    "B",
+    "C"
+   ],
+   "steps": [
+    [
+     "boot",
+     "B",
+     100
+    ],
+    [
+     "act",
+     "B",
+     "armed_away",
+     200
+    ],
+    [
+     "boot",
+     "B",
+     300
+    ],
+    [
+     "act",
+     "A",
+     "disarmed",
+     400
+    ],
+    [
+     "hear",
+     "C",
+     "A",
+     401
+    ],
+    [
+     "act",
+     "C",
+     "armed_home",
+     500
+    ],
+    [
+     "meet",
+     "B",
+     "A",
+     600
+    ],
+    [
+     "meet",
+     "A",
+     "C",
+     601
+    ],
+    [
+     "meet",
+     "B",
+     "C",
+     602
+    ],
+    [
+     "meetAll",
+     700
+    ]
+   ],
+   "decided": [
+    {
+     "node": "A",
+     "state": "armed_away",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 1000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1",
+      "3:1"
+     ],
+     "wire": "062000010200000002000003e8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "B",
+     "state": "armed_away",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 1000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1",
+      "3:1"
+     ],
+     "wire": "062000010200000002000003e8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+     "node": "C",
+     "state": "armed_away",
+     "dot": "2:1",
+     "timeline": "2.2",
+     "mark": 1000,
+     "trusted": true,
+     "lost": 0,
+     "vv": {
+      "1": 1,
+      "2": 1
+     },
+     "heads": [
+      "2:1",
+      "3:1"
+     ],
+     "wire": "062000010200000002000003e8000000100001000000000000000000000000000000000000000000000000000000000000000000"
+    }
+   ],
+   "old": {
+    "states": [
+     "armed_home",
+     "armed_home",
+     "armed_home"
+    ],
+    "note": "the first design (8 points of history, one record): a control that is NOT to be ported, here to show what the rule replaced"
+   },
+   "want": {
+    "decided": "armed_away",
+    "old": "armed_home"
+   }
+  }
+ ],
+ "freshness": {
+  "cases": [
+   {
+    "name": "a command a moment old is taken",
+    "issuerUp": 50000000,
+    "ownerUp": 50000400,
+    "want": {
+     "ok": true,
+     "reason": "ok",
+     "ageMs": 400
+    }
+   },
+   {
+    "name": "the window is closed at 3 s: 3000 ms old is taken",
+    "issuerUp": 50000000,
+    "ownerUp": 50003000,
+    "want": {
+     "ok": true,
+     "reason": "ok",
+     "ageMs": 3000
+    }
+   },
+   {
+    "name": "... and 3010 ms is not",
+    "issuerUp": 50000000,
+    "ownerUp": 50003010,
+    "want": {
+     "ok": false,
+     "reason": "stale",
+     "ageMs": 3010
+    }
+   },
+   {
+    "name": "stuck in a TCP socket that closed 15 s late (U19): refused",
+    "issuerUp": 50000000,
+    "ownerUp": 50015000,
+    "want": {
+     "ok": false,
+     "reason": "stale",
+     "ageMs": 15000
+    }
+   },
+   {
+    "name": "a stamp a little ahead is the error of two relative clocks: taken",
+    "issuerUp": 50000000,
+    "ownerUp": 49999900,
+    "want": {
+     "ok": true,
+     "reason": "ok",
+     "ageMs": -100
+    }
+   },
+   {
+    "name": "a stamp far ahead is refused",
+    "issuerUp": 50000000,
+    "ownerUp": 49999600,
+    "want": {
+     "ok": false,
+     "reason": "from-the-future",
+     "ageMs": -400
+    }
+   },
+   {
+    "name": "a replay INSIDE the window is not the window's business (the mesh counter stops it): taken",
+    "issuerUp": 50000000,
+    "ownerUp": 50001000,
+    "want": {
+     "ok": true,
+     "reason": "ok",
+     "ageMs": 1000
+    }
+   },
+   {
+    "name": "the stamp wraps in 497 days and the age is still right across it",
+    "issuerUp": 42949672900,
+    "ownerUp": 42949673000,
+    "want": {
+     "ok": true,
+     "reason": "ok",
+     "ageMs": 100
+    }
+   }
+  ],
+  "scripts": [
+   {
+    "name": "a recorded retransmission after the owner restarted: refused while it listens, then in another timeline",
+    "issuerUp": 50000000,
+    "steps": [
+     {
+      "ownerUp": 50000500,
+      "want": {
+       "ok": true,
+       "reason": "ok",
+       "ageMs": 500
+      }
+     },
+     {
+      "ownerRestarts": true
+     },
+     {
+      "ownerUp": 2000,
+      "want": {
+       "ok": false,
+       "reason": "owner-not-synced"
+      }
+     },
+     {
+      "ownerUp": 20000,
+      "want": {
+       "ok": false,
+       "reason": "other-timeline"
+      }
+     }
+    ]
+   },
+   {
+    "name": "an issuer that is not synced issues no stamp",
+    "issuerRestarts": true,
+    "issuerUp": 5000,
+    "want": null
+   }
+  ]
+ },
+ "reconcile": [
+  {
+   "name": "a trigger is repeated until the siren confirms, and only then applied",
+   "sirenMs": 300000,
+   "devices": [
+    {
+     "id": "s",
+     "kind": "siren"
+    }
+   ],
+   "desired": {
+    "state": "triggered",
+    "dot": "2:3"
+   },
+   "passes": [
+    {
+     "up": 20000,
+     "synced": true,
+     "drive": [
+      false
+     ],
+     "want": {
+      "held": false,
+      "sent": 1,
+      "pending": 1,
+      "applied": "0:0"
+     }
+    },
+    {
+     "up": 23000,
+     "synced": true,
+     "drive": [
+      false
+     ],
+     "want": {
+      "held": false,
+      "sent": 1,
+      "pending": 1,
+      "applied": "0:0"
+     }
+    },
+    {
+     "up": 26000,
+     "synced": true,
+     "drive": [
+      true
+     ],
+     "want": {
+      "held": false,
+      "sent": 1,
+      "pending": 0,
+      "applied": "2:3"
+     }
+    },
+    {
+     "up": 29000,
+     "synced": true,
+     "drive": [],
+     "want": {
+      "held": false,
+      "sent": 0,
+      "pending": 0,
+      "applied": "2:3"
+     }
+    }
+   ]
+  },
+  {
+   "name": "a bridge that is not synced holds: it sends nothing and applies nothing",
+   "sirenMs": 300000,
+   "devices": [
+    {
+     "id": "s",
+     "kind": "siren"
+    }
+   ],
+   "desired": {
+    "state": "triggered",
+    "dot": "2:3"
+   },
+   "passes": [
+    {
+     "up": 5000,
+     "synced": false,
+     "drive": [],
+     "want": {
+      "held": true,
+      "sent": 0,
+      "pending": 0,
+      "applied": "0:0"
+     }
+    }
+   ]
+  },
+  {
+   "name": "a siren that never heard the disarm stops at its own time, and the trigger is not re-sounded",
+   "sirenMs": 60000,
+   "devices": [
+    {
+     "id": "s",
+     "kind": "siren"
+    }
+   ],
+   "desired": {
+    "state": "triggered",
+    "dot": "2:3"
+   },
+   "passes": [
+    {
+     "up": 20000,
+     "synced": true,
+     "drive": [
+      true
+     ],
+     "want": {
+      "held": false,
+      "sent": 1,
+      "pending": 0,
+      "applied": "2:3"
+     }
+    },
+    {
+     "up": 79000,
+     "synced": true,
+     "drive": [],
+     "want": {
+      "held": false,
+      "sent": 0,
+      "pending": 0,
+      "applied": "2:3"
+     }
+    },
+    {
+     "up": 80000,
+     "synced": true,
+     "drive": [
+      true
+     ],
+     "want": {
+      "held": false,
+      "sent": 1,
+      "pending": 0,
+      "applied": "2:3"
+     }
+    },
+    {
+     "up": 83000,
+     "synced": true,
+     "drive": [],
+     "want": {
+      "held": false,
+      "sent": 0,
+      "pending": 0,
+      "applied": "2:3"
+     }
+    }
+   ]
+  },
+  {
+   "name": "a restart forgets what the devices confirmed: the first pass asserts the target even when it is OFF (A01)",
+   "sirenMs": 300000,
+   "devices": [
+    {
+     "id": "s",
+     "kind": "siren"
+    },
+    {
+     "id": "z",
+     "kind": "sensor"
+    }
+   ],
+   "desired": {
+    "state": "disarmed",
+    "dot": "3:1"
+   },
+   "passes": [
+    {
+     "up": 12000,
+     "synced": true,
+     "drive": [
+      true
+     ],
+     "want": {
+      "held": false,
+      "sent": 1,
+      "pending": 0,
+      "applied": "3:1"
+     }
+    },
+    {
+     "up": 15000,
+     "synced": true,
+     "drive": [],
+     "want": {
+      "held": false,
+      "sent": 0,
+      "pending": 0,
+      "applied": "3:1"
+     }
+    }
+   ]
+  }
+ ],
+ "reach": [
+  {
+   "name": "everybody applied the current dot",
+   "cur": "2:3",
+   "owners": [
+    1,
+    2,
+    3
+   ],
+   "applied": {
+    "1": "2:3",
+    "2": "2:3",
+    "3": "2:3"
+   },
+   "want": {
+    "total": 3,
+    "confirmed": 3,
+    "missing": [],
+    "complete": true
+   }
+  },
+  {
+   "name": "one applied an older dot and one is not heard",
+   "cur": "2:3",
+   "owners": [
+    1,
+    2,
+    3
+   ],
+   "applied": {
+    "1": "2:3",
+    "2": "2:2"
+   },
+   "want": {
+    "total": 3,
+    "confirmed": 1,
+    "missing": [
+     2,
+     3
+    ],
+    "complete": false
+   }
+  },
+  {
+   "name": "no owners: nothing is out of reach",
+   "cur": "2:3",
+   "owners": [],
+   "applied": {},
+   "want": {
+    "total": 0,
+    "confirmed": 0,
+    "missing": [],
+    "complete": true
+   }
+  }
+ ],
+ "headline": [
+  {
+   "state": "disarmed",
+   "lost": 0,
+   "reach": {
+    "total": 12,
+    "confirmed": 12,
+    "missing": []
+   },
+   "want": {
+    "kind": "complete",
+    "text": "Disarmed, 12 of 12"
+   }
+  },
+  {
+   "state": "disarmed",
+   "lost": 0,
+   "reach": {
+    "total": 12,
+    "confirmed": 9,
+    "missing": [
+     3,
+     7,
+     9
+    ]
+   },
+   "want": {
+    "kind": "partial",
+    "text": "Disarmed here, 3 parts out of reach",
+    "missing": [
+     3,
+     7,
+     9
+    ]
+   }
+  },
+  {
+   "state": "armed_away",
+   "lost": 0,
+   "reach": {
+    "total": 3,
+    "confirmed": 3,
+    "missing": []
+   },
+   "want": {
+    "kind": "complete",
+    "text": "Armed away, 3 of 3"
+   }
+  },
+  {
+   "state": "armed_home",
+   "lost": 0,
+   "reach": {
+    "total": 3,
+    "confirmed": 1,
+    "missing": [
+     2,
+     3
+    ]
+   },
+   "want": {
+    "kind": "partial",
+    "text": "Armed only here",
+    "unprotected": [
+     2,
+     3
+    ]
+   }
+  },
+  {
+   "state": "armed_away",
+   "lost": 2,
+   "reach": {
+    "total": 3,
+    "confirmed": 3,
+    "missing": []
+   },
+   "want": {
+    "kind": "complete",
+    "text": "Armed away, 3 of 3, 2 without protection"
+   }
+  },
+  {
+   "state": "armed_away",
+   "lost": 2,
+   "reach": {
+    "total": 3,
+    "confirmed": 2,
+    "missing": [
+     3
+    ]
+   },
+   "want": {
+    "kind": "partial",
+    "text": "Armed only here, 2 without protection",
+    "unprotected": [
+     3
+    ]
+   }
+  },
+  {
+   "state": "triggered",
+   "lost": 0,
+   "reach": {
+    "total": 3,
+    "confirmed": 2,
+    "missing": [
+     3
+    ]
+   },
+   "want": {
+    "kind": "partial",
+    "text": "Triggered here, 1 part out of reach",
+    "missing": [
+     3
+    ]
+   }
+  }
+ ]
+}

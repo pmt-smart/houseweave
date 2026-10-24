@@ -1,0 +1,750 @@
+{
+  "schemaVersion": 7,
+  "id": "lovelace-jobr99",
+  "name": "Lovelace joBr99",
+  "description": "joBr99/nspanel-lovelace-ui as HE ships it, measured rather than eyeballed. Until 2026-09-13 six of the nine colours here were guessed from screenshots and carried our own taste; they are now read out of his compiled pages (fixtures/cache/jobr99/nspanel.HMI) and out of the defaults in his backend, and every one cites where. The difference is not cosmetic: his text is pure white and ours was off-white, his accent is #00aaf7 and ours was a different blue, and he draws no card fill and no borders at all.",
+  "drawing": [
+    "READ docs/09-drawing-for-the-glass.md before drawing for this theme. The short form, each line measured:",
+    "colour    RGB565: 32 levels of R/B, 64 of G; no alpha, shadow, blur or gradient attribute",
+    "text      five font roles, fixed sizes; no tracking, leading or synthetic weight",
+    "shape     a rectangle with sides >= 2 px; a border IS a component; radius only inside a picture",
+    "pictures  the codec pays per run: flat rows and vertical change are cheap, dither is 4x, hue is rich",
+    "touch     7-12 mm = 46-78 px of target; the box may be bigger than the drawing",
+    "budget    3 584 B of RAM a page; a Text costs 10 + txt_maxl, a Slider 28, an icon glyph nothing"
+  ],
+  "colors": [
+    {
+      "id": "background",
+      "rgb565": 6371,
+      "provenance": "exact",
+      "origin": "the bco of every card page in his compiled .HMI (288 occurrences), and defaultBackgroundColor \"ha-dark\" = 6371 in mqtt-manager/panel.py",
+      "use": [
+        "screen ground",
+        "caption on an accent key"
+      ]
+    },
+    {
+      "id": "background-screensaver",
+      "rgb565": 0,
+      "provenance": "exact",
+      "origin": "the bco of pages 7.pa and 19.pa (screensaver, screensaver2), and \"background\": \"0\" in luibackend/theme.py. His screensaver is BLACK, not ha-dark",
+      "use": [
+        "screensaver ground"
+      ]
+    },
+    {
+      "id": "card-background",
+      "rgb565": 6371,
+      "provenance": "exact",
+      "origin": "the same as the page: his cards have no fill of their own, every Button and Text carries bco 6371",
+      "use": [
+        "card fill",
+        "same as the ground"
+      ]
+    },
+    {
+      "id": "plan-card",
+      "rgb565": 10597,
+      "provenance": "ours",
+      "origin": "ours, not joBr99's: his cards have no fill, and a card drawn on a plan needs one -- the page colour lifted a few steps, to be judged on the glass",
+      "use": [
+        "plan card fill",
+        "key face",
+        "keyboard field"
+      ]
+    },
+    {
+      "id": "card-border",
+      "rgb565": 6371,
+      "provenance": "exact",
+      "origin": "he draws no borders at all. The token exists because a renderer slot exists; cardStyle \"plain\" means nothing ever paints it",
+      "use": [
+        "card border — never painted"
+      ]
+    },
+    {
+      "id": "text-primary",
+      "rgb565": 65535,
+      "provenance": "exact",
+      "origin": "the pco of every Text and Button on his card pages (252 occurrences), and every text entry of theme.py is 65535. Pure white",
+      "use": [
+        "title",
+        "button label",
+        "reading"
+      ]
+    },
+    {
+      "id": "text-secondary",
+      "rgb565": 50712,
+      "provenance": "exact",
+      "origin": "#c6c3c6, the grey he fills a dual-state button with (btOnOff*, bco 50712) and uses on instruments",
+      "use": [
+        "caption",
+        "date",
+        "weekday"
+      ]
+    },
+    {
+      "id": "divider",
+      "rgb565": 65535,
+      "provenance": "exact",
+      "origin": "\"bar\": \"65535\" in luibackend/theme.py -- the screensaver's rule is white, drawn at reduced opacity",
+      "use": [
+        "screensaver rule"
+      ]
+    },
+    {
+      "id": "accent-blue",
+      "rgb565": 1374,
+      "provenance": "exact",
+      "origin": "#00aaf7, the pco of his interactive Buttons (cardAlarm's keypad, popupTimer)",
+      "use": [
+        "current value",
+        "active control"
+      ]
+    },
+    {
+      "id": "accent-red",
+      "rgb565": 63488,
+      "provenance": "exact",
+      "origin": "rgb_dec565([255,0,0]) in generate_unlock_page (luibackend/pages.py:742) — the one place his backend paints a control red, for the page that asks before it lets you in. Pure red, #ff0000",
+      "use": [
+        "cancel",
+        "destructive action",
+        "label of a row that destroys"
+      ]
+    },
+    {
+      "id": "signal-good",
+      "rgb565": 19818,
+      "provenance": "ours",
+      "origin": "#4caf50, green: a signal's value, by its dBm",
+      "use": [
+        "a signal from -67 dBm"
+      ]
+    },
+    {
+      "id": "signal-fair",
+      "rgb565": 65024,
+      "provenance": "ours",
+      "origin": "#ffc107, yellow: a signal's value, by its dBm",
+      "use": [
+        "a signal from -80 to -67 dBm"
+      ]
+    },
+    {
+      "id": "signal-poor",
+      "rgb565": 63488,
+      "provenance": "ours",
+      "origin": "this theme's accent-red: a signal's value, by its dBm",
+      "use": [
+        "a signal below -80 dBm"
+      ]
+    },
+    {
+      "id": "icon-off",
+      "rgb565": 17299,
+      "provenance": "exact",
+      "origin": "default_color_off = [68, 115, 158] in mqtt-manager/ha_colors.py, and the pco of tIcon* on cardEntities",
+      "use": [
+        "icon, light off",
+        "a list row's glyph",
+        "page rail groove"
+      ]
+    },
+    {
+      "id": "icon-low-sat",
+      "rgb565": 65222,
+      "provenance": "exact",
+      "origin": "default_color_on = [253, 216, 53] in mqtt-manager/ha_colors.py. In his UI it is simply \"on\"; berry/light.be reuses it as the low-saturation fallback",
+      "use": [
+        "icon, light on"
+      ]
+    },
+    {
+      "id": "icon-heating",
+      "rgb565": 64325,
+      "provenance": "ours",
+      "origin": "ours, not joBr99's: his UI has no thermostat. The orange (#FF6B2C -> #ff6929), the tone of a thermostat that is heating, between the yellow of lit and the red of a destructive action; it lights an icon in a zone's rows and counters as it does the plan's",
+      "use": [
+        "icon, thermostat heating"
+      ]
+    },
+    {
+      "id": "icon-open",
+      "rgb565": 19818,
+      "provenance": "ours",
+      "origin": "ours, not joBr99's: his UI has no blind. Material green 500 (#4caf50 -> #4aae52), the active green of Home Assistant's cards, well off the yellow of lit and the orange of heating: a blind all the way up, in a zone's rows and counters as in the plan",
+      "use": [
+        "icon, blind all the way up"
+      ]
+    },
+    {
+      "id": "plan-icon-on",
+      "rgb565": 65222,
+      "provenance": "exact",
+      "origin": "his lit icon colour (icon-low-sat), for a lamp lit that says no colour of its own",
+      "use": [
+        "plan icon, lit, no colour of its own"
+      ]
+    },
+    {
+      "id": "plan-icon-off",
+      "rgb565": 21525,
+      "provenance": "ours",
+      "origin": "his unlit blue (icon-off, #42719C) lifted to #5282AD, which stands 3.47:1 over the plan card: his own stood 2.74:1",
+      "use": [
+        "plan icon, unlit"
+      ]
+    },
+    {
+      "id": "plan-icon-no-answer",
+      "rgb565": 21525,
+      "provenance": "ours",
+      "origin": "the unlit colour: the lamp with a question mark is what says it, and a colour alone is lost on who does not tell colours apart",
+      "use": [
+        "plan icon, no communication"
+      ]
+    },
+    {
+      "id": "plan-icon-no-power",
+      "rgb565": 21525,
+      "provenance": "ours",
+      "origin": "the unlit colour: the dashed outline is what says it",
+      "use": [
+        "plan icon, no power"
+      ]
+    },
+    {
+      "id": "plan-icon-pending",
+      "rgb565": 1374,
+      "provenance": "exact",
+      "origin": "his accent blue (accent-blue), the tone of a command on its way, 5.44:1 over the plan card",
+      "use": [
+        "plan icon, a command on its way"
+      ]
+    },
+    {
+      "id": "plan-icon-heating",
+      "rgb565": 64325,
+      "provenance": "ours",
+      "origin": "ours, not joBr99's: the thermostat's heating tone (icon-heating), 4.91:1 over the plan card",
+      "use": [
+        "plan icon, thermostat heating"
+      ]
+    },
+    {
+      "id": "plan-icon-open",
+      "rgb565": 19818,
+      "provenance": "ours",
+      "origin": "ours, not joBr99's: the blind's open tone (icon-open), 5.02:1 over the plan card",
+      "use": [
+        "plan icon, blind all the way up"
+      ]
+    },
+    {
+      "id": "pressed",
+      "rgb565": 23275,
+      "provenance": "ours",
+      "origin": "ours, not joBr99's: his keys and rows show no press. The plan card lifted to #5A5D5A, 2.12:1 over a key face and 2.58:1 over the page, white text 6.67:1 on it",
+      "use": [
+        "key under the finger",
+        "list row under the finger"
+      ]
+    }
+  ],
+  "fonts": [
+    {
+      "id": "text-24",
+      "file": "fonts/noto-sans-24.zi",
+      "height": 24,
+      "encoding": "utf-8",
+      "use": [
+        "body text",
+        "card label"
+      ],
+      "source": {
+        "fixture": "jobr99/nspanel.HMI",
+        "entry": "3.zi"
+      },
+      "include": {
+        "ranges": [
+          "U+0020..U+007E",
+          "U+00A0..U+00FF"
+        ]
+      },
+      "weight": 400,
+      "role": "body"
+    },
+    {
+      "id": "text-32",
+      "file": "fonts/noto-sans-32.zi",
+      "height": 32,
+      "encoding": "utf-8",
+      "use": [
+        "title"
+      ],
+      "source": {
+        "fixture": "jobr99/nspanel.HMI",
+        "entry": "2.zi"
+      },
+      "include": {
+        "ranges": [
+          "U+0020..U+007E",
+          "U+00A0..U+00FF"
+        ]
+      },
+      "weight": 400,
+      "role": "title"
+    },
+    {
+      "id": "clock-80",
+      "file": "fonts/noto-sans-bold-80.zi",
+      "height": 80,
+      "encoding": "utf-8",
+      "use": [
+        "screensaver clock"
+      ],
+      "source": {
+        "fixture": "jobr99/nspanel.HMI",
+        "entry": "1.zi"
+      },
+      "include": {
+        "ranges": [
+          "U+0020",
+          "U+0030..U+003A"
+        ]
+      },
+      "notes": "Digits and a colon, nothing else: at 80 pixels a glyph costs about a kilobyte.",
+      "weight": 700,
+      "role": "display"
+    },
+    {
+      "id": "icons-32",
+      "file": "fonts/icons-32.zi",
+      "height": 32,
+      "encoding": "utf-8",
+      "use": [
+        "status icon",
+        "nav arrow"
+      ],
+      "source": {
+        "fixture": "jobr99/nspanel.HMI",
+        "entry": "4.zi"
+      },
+      "include": {
+        "iconRoles": true
+      },
+      "notes": "An icon IS a glyph on this panel, and a Nextion Text draws a font at ITS height — there is no scale attribute. So a theme carries the sizes it needs and a component picks the largest that fits its box.",
+      "weight": 400,
+      "role": "icon"
+    },
+    {
+      "id": "icons-48",
+      "file": "fonts/icons-48.zi",
+      "height": 48,
+      "encoding": "utf-8",
+      "use": [
+        "card icon",
+        "popup icon"
+      ],
+      "source": {
+        "fixture": "jobr99/nspanel.HMI",
+        "entry": "5.zi"
+      },
+      "include": {
+        "iconRoles": true
+      },
+      "notes": "An icon IS a glyph on this panel, and a Nextion Text draws a font at ITS height — there is no scale attribute. So a theme carries the sizes it needs and a component picks the largest that fits its box.",
+      "weight": 400,
+      "role": "icon-large"
+    }
+  ],
+  "typeface": {
+    "family": "Noto Sans",
+    "fallback": [
+      "system-ui",
+      "sans-serif"
+    ]
+  },
+  "style": {
+    "radius": 0,
+    "borderWidth": 0,
+    "cardStyle": "plain",
+    "density": "comfortable",
+    "displayWeight": 700,
+    "titleWeight": 400,
+    "iconScale": 0.75
+  },
+  "styleNotes": "Radius 0 and no border because that is what the hardware draws: the Nextion has no rounded-rectangle primitive -- a rounded corner is a picture -- and joBr99 draws none. The 4-pixel radius that was here was a browser habit of ours, not his. The font stack is Noto Sans because that is the face his project ships and the one our .zi are cut from; it used to say Roboto, which was ours. The two weights apply to the REACT column only: a .zi has no weight axis, so on the glass the weight is whatever the font was generated at.",
+  "icons": {
+    "fonts": [
+      "icons-32",
+      "icons-48"
+    ],
+    "roles": {
+      "navPrev": "arrow-left-bold",
+      "navNext": "arrow-right-bold",
+      "lightOn": "lightbulb",
+      "lightOff": "lightbulb",
+      "colorMode": "palette",
+      "brightness": "brightness-6",
+      "colorTemp": "temperature-celsius",
+      "power": "power",
+      "backspace": "backspace-outline",
+      "lightNoAnswer": "lightbulb-question",
+      "lightNoPower": "lightbulb-outline:dashed",
+      "add": "plus",
+      "confirm": "check",
+      "more": "dots-horizontal",
+      "refresh": "refresh",
+      "dotOff": "circle-outline",
+      "dotOn": "circle",
+      "plugOn": "power-plug",
+      "plugOff": "power-plug-off",
+      "switchOn": "toggle-switch",
+      "switchOff": "toggle-switch-off",
+      "fanOn": "fan",
+      "fanOff": "fan-off",
+      "coverOn": "roller-shade",
+      "coverOff": "roller-shade-closed",
+      "plugNoAnswer": "power-plug-outline:question",
+      "plugNoPower": "power-plug-outline:dashed-outline",
+      "switchNoAnswer": "toggle-switch-off-outline:question",
+      "switchNoPower": "toggle-switch-off-outline:dashed-outline",
+      "fanNoAnswer": "fan:question",
+      "fanNoPower": "fan:dashed-outline",
+      "coverNoAnswer": "roller-shade-closed:question",
+      "coverNoPower": "roller-shade-closed:dashed-silhouette",
+      "windowOn": "window-open-variant",
+      "windowOff": "window-closed-variant",
+      "windowNoAnswer": "window-closed-variant:question",
+      "windowNoPower": "window-closed-variant:dashed-outline",
+      "gateOn": "garage-open",
+      "gateOff": "garage",
+      "gateNoAnswer": "garage:question",
+      "gateNoPower": "garage:dashed-silhouette",
+      "thermostatOn": "heating-coil",
+      "thermostatOff": "heating-coil",
+      "thermostatNoAnswer": "heating-coil:question",
+      "thermostatNoPower": "heating-coil:dashed-silhouette",
+      "minus": "minus",
+      "sensor": "motion-sensor",
+      "remote": "remote",
+      "hotspot": "access-point",
+      "cancel": "close",
+      "alarmSignal": "shield-alert",
+      "noticeSignal": "bell",
+      "wifi": "wifi",
+      "mesh": "graph-outline",
+      "schedule": "calendar-clock",
+      "coverUp": "arrow-up-bold",
+      "coverStop": "stop",
+      "coverDown": "arrow-down-bold",
+      "identify": "alert-circle-outline",
+      "settings": "cog"
+    }
+  },
+  "iconNotes": "Seven of these nine are read off the txt of his compiled components: arrow-left-bold (U+E730) and arrow-right-bold (U+E733) for navigation -- NOT the chevrons we had --, close (U+E155), palette (U+E3D7), temperature-celsius (U+E503) -- not thermometer --, and lightbulb (U+E334) for BOTH light states, because on his panel only the colour changes. The two exceptions are stated rather than hidden: his compiled pages contain no glyph for a brightness or a power role, so brightness-6 and power are OUR choices filling a slot the renderers need.",
+  "rules": {
+    "minTouchMm": {
+      "w": 12,
+      "h": 12
+    },
+    "allowedPrimitives": [
+      "Text",
+      "Number",
+      "Button",
+      "Picture",
+      "PictureCrop",
+      "Hotspot",
+      "Slider",
+      "Prog",
+      "Timer",
+      "Vari",
+      "Qrcode"
+    ]
+  },
+  "components": [
+    {
+      "id": "label",
+      "render": "Label",
+      "primitives": [
+        "Text"
+      ],
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "Words on the screen. Compiles to a Text, and every character it shows has to exist in the font the theme declares - which is why the Type section says what a subset does not contain.",
+      "requires": [
+        "text"
+      ]
+    },
+    {
+      "id": "clock",
+      "render": "Clock",
+      "primitives": [
+        "Text"
+      ],
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "Text only, no interaction - low risk of not carrying over to hardware.",
+      "requires": [
+        "time",
+        "date"
+      ]
+    },
+    {
+      "id": "weather-row",
+      "render": "WeatherRow",
+      "primitives": [
+        "Text",
+        "Picture"
+      ],
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "Text and icons only, no interaction.",
+      "requires": [
+        "items"
+      ]
+    },
+    {
+      "id": "status-icon",
+      "render": "StatusIconView",
+      "primitives": [
+        "Text"
+      ],
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "A coloured icon only. It is a glyph of the icon font, which is why it compiles to a Text.",
+      "requires": [
+        "color",
+        "side"
+      ]
+    },
+    {
+      "id": "nav-header",
+      "render": "NavHeader",
+      "primitives": [
+        "Text",
+        "Hotspot"
+      ],
+      "minTouchMm": {
+        "w": 12,
+        "h": 12
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "The title, with optional arrows either side of it, and an action slot at the right end. The title's tap leaves the screen -- on a plan it opens the Screens list -- and its long press renames what the screen shows. The action, + or the check, is there only when the view has one (shownBy): drawn and touchable, or neither, since 2026-09-25, when an empty plate that pressed nothing was drawn on half the screens. Its touch runs to the visible edge and its glyph sits on the page rail's axis; the title gets the rest of the width. A status glyph may stand left of the action (statusIcon, 2026-09-29), there only while the runtime names a role: the Home's hotspot while the panel is open to a phone. It takes a rail's width from the title wherever it is bound.",
+      "requires": [
+        "title"
+      ]
+    },
+    {
+      "id": "page-rail",
+      "render": "PageRail",
+      "primitives": [
+        "Picture",
+        "Slider"
+      ],
+      "minTouchMm": {
+        "w": 12,
+        "h": 12
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "A paged list's scrollbar, in the right-hand column under nav-header, flush with the visible edge (until then inside the margin, in the column its X had until 2026-09-23): one vertical Slider whose maxval is the list's last page, so the pointer lands on whole pages with no script, and whose pointer is one page's share of the track. The groove is a generated picture of the whole touch box -- page colour but for a 6 px stripe in `icon-off` -- so the eye gets a thin bar and the finger 48 px (7.4 mm) of glass and the bezel past it, where the part of a finger that lands presses nothing else: the funnel counts that edge as 5 mm of the 12 (EDGE_CREDIT_MM). Reports the page on release; the runtime writes that page's rows into the same slots. Draws nothing on a list that fits one page, whose view goes to the list's twin without it.",
+      "requires": [
+        "page",
+        "pageCount"
+      ]
+    },
+    {
+      "id": "light-card",
+      "render": "LightCard",
+      "primitives": [
+        "Picture",
+        "Text",
+        "Hotspot"
+      ],
+      "minTouchMm": {
+        "w": 15,
+        "h": 15
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "One target, two gestures: a short tap toggles, a long press opens the detail. Needs BOTH Touch Press and Touch Release enabled on the component - two separate checkboxes in the Editor, and only one is usually on. Validate the pair before the gesture, or the detail screen is unreachable.",
+      "requires": [
+        "light",
+        "onToggle",
+        "onOpenDetail"
+      ]
+    },
+    {
+      "id": "list-row",
+      "render": "ListRow",
+      "primitives": [
+        "Text",
+        "Hotspot",
+        "Button"
+      ],
+      "minTouchMm": {
+        "w": 15,
+        "h": 12
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default",
+        "flush",
+        "device",
+        "stacked",
+        "button"
+      ],
+      "notes": "A row of the generic list and of a zone's devices: the name in the primary text colour, in the accent when lit, and in the destructive colour (accent-red) on a row that destroys; a muted value; and an icon. The row is one target: a short tap is its action, a long press its secondary one. The flush variant is the generic list's: the name from the row's own left edge, under the title, the value right-aligned, and the row's glyph at its very end, which says what the tap does -- a chevron where it opens another view, a switch where it toggles, a dot where it chooses, and nothing where the action simply happens (2026-09-25; until then the glyph's column sat blank between the name and the value on nearly every row). The device variant is a zone's device row: the name at the left and the icon at the right end, under the counter above; the icon has a touch of its own, whose tap switches the device and whose long press opens its detail, while the name's tap opens its options and its long press renames it. 15 mm wide at least: the zone's top card gives its word beside the counters 100 px, which is a word and not a name. The stacked variant is the tall list's (2026-09-29): the name on the top line and the value on the line under it, both as wide as the row but for the glyph at its end, which stands in the middle -- for the Wireless settings' views on the US portrait, where a flush row gave the value 98 px. The button variant is a row that is a button, the thermostat's modes side by side: one Nextion Button, its face the cards' with the name in the primary text colour, and lit, the accent with the name in the page's dark, as the keyboard's OK key; the face is the touch, and the glass paints the press itself in `pressed` (its bco2), whatever face the runtime last wrote.",
+      "requires": [
+        "label",
+        "on"
+      ]
+    },
+    {
+      "id": "zone-counter",
+      "render": "ZoneCounter",
+      "primitives": [
+        "Text",
+        "Hotspot",
+        "Button"
+      ],
+      "minTouchMm": {
+        "w": 12,
+        "h": 12
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default",
+        "face"
+      ],
+      "notes": "One counter of a zone's top card: how many devices of a kind, and the kind's icon, one target. A tap toggles only that kind, a long press opens its joint mode. Blank when the zone has no kind for it. Placed right to left from the page rail's column, the zone's most common kind first, against it: a device row's icon sits under that first counter (2026-09-25). The face variant is the thermostat's - and +: one Nextion Button, the icon alone on the cards' face, with no number, and the press painted by the glass in `pressed`.",
+      "requires": [
+        "count",
+        "icon"
+      ]
+    },
+    {
+      "id": "pattern-pad",
+      "render": "PatternPad",
+      "primitives": [
+        "Text"
+      ],
+      "minTouchMm": {
+        "w": 12,
+        "h": 12
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "The lock's nine dots. The page's gesture Timer follows the finger: it lights each dot it reaches and draws the line to it, on the glass; only the release reports, with the dots as one number. A wrong pattern paints every dot red, and loading the page again clears them.",
+      "requires": [
+        "wrong"
+      ]
+    },
+    {
+      "id": "qr-code",
+      "render": "QrCode",
+      "primitives": [
+        "Qrcode"
+      ],
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "A QR code a phone's camera reads: a Nextion Qrcode, square in its box, whose symbol the glass encodes and draws from the text the runtime writes. Dark on light whatever the theme -- the background colour on the lightest text colour -- because a camera reads a code that way, and the box is the quiet zone around it. Its capacity is 134 bytes unless the placement says, a version 6 QR, over the 113 of the longest WIFI: string: a Qrcode reserves page RAM by the QR version its capacity needs, at most 2 712 bytes at 134, where 154 holds back 2 823 and does not fit the US portrait QR page. Which version, mask and module size the Nextion draws has not been measured; the simulator draws the standard's smallest version at level L, the level whose byte capacities the Nextion's limits are.",
+      "requires": [
+        "code"
+      ]
+    },
+    {
+      "id": "toggle-switch",
+      "render": "ToggleSwitch",
+      "primitives": [
+        "Picture",
+        "Hotspot"
+      ],
+      "minTouchMm": {
+        "w": 15,
+        "h": 15
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default"
+      ],
+      "notes": "The native equivalent is a dual-state button.",
+      "requires": [
+        "on",
+        "onChange"
+      ]
+    },
+    {
+      "id": "gradient-slider",
+      "render": "GradientSlider",
+      "primitives": [
+        "Picture",
+        "Slider",
+        "Hotspot"
+      ],
+      "minTouchMm": {
+        "w": 40,
+        "h": 12
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default",
+        "compact"
+      ],
+      "notes": "Brightness, colour temperature and hue. The Nextion sends nothing by itself during a drag (Touch Move has no Send Component ID, 1024 B serial buffer), so the slider reports by hand: on release always, and during the drag when the placement or the panel setting says (input.live), gated by a 100 ms Timer. Touch minimum lowered from 15 to 12 mm on 2026-09-17: 12 mm is ISO/TS 9241-411 for a bare finger, and it is what lets a detail page carry a nav-header and three rails on 320 px (78 + 3 x 78 = 312). Validate carefully before promoting. The Slider is the placement's whole box, and its picture paints the rail as a band with the page's colour around it, so a finger a little off the rail still moves it (2026-09-25; until then the Slider was the rail alone, and a touch 16 to 27 px off it did nothing).",
+      "requires": [
+        "pct",
+        "ramp",
+        "onChange"
+      ]
+    },
+    {
+      "id": "keyboard",
+      "render": "Keyboard",
+      "primitives": [
+        "Text",
+        "Button",
+        "Vari",
+        "Hotspot"
+      ],
+      "minTouchMm": {
+        "w": 45,
+        "h": 40
+      },
+      "hardwareValidated": false,
+      "variants": [
+        "default",
+        "t9",
+        "symbols"
+      ],
+      "notes": "QWERTY over the whole screen, on key faces a step off the page (plan-card, 2026-09-26: on the page's own colour a key was a letter floating in the dark). The map and the four instructions behind it come from the keyboard Nextion ships with the Editor for this resolution (keyboarden/480320/1.page, page keybdA): txt+= to append, txt-=1 to delete, btlen to measure against the slot capacity, and a Hotspot clicked from code to rewrite every cap when CAPS flips. Keys are 41x44 px = 6.3 x 6.8 mm, below this theme every other target, because ten letters have to cross a 69 mm window; the vendor draws them at 40x45. Alphabet: letters, digits, space, comma and full stop; the signs are on the symbols variant. The minimum is the ROOM ten columns need, not a key: 45x40 mm is what the narrowest panel we build for (320x480, 48.9 mm across) can give, and there a key is 4.1x5.4 mm - small, and exactly what Nextion own portrait keyboard draws. On the EU landscape unit the same map gives 6.2x6.8 mm. A line longer than the field shows its tail, after \"..\", the mark every other cut on the panel carries (2026-09-26; until then the tail showed bare, and read as a name of its own). The two keys that leave the keyboard have the accent faces, and their captions are the page's colour: white on a light accent was 2 to 2.6:1. The t9 variant is the same alphabet on twelve keys: multi-tap, the digit last in each cycle, and a key on each layout that leads to the other; where the map stacks them, the digit is drawn over its letters. At 450x320 a key goes from 6.2 to 16 mm. The symbols variant (2026-09-29) is the letters frame with every printable ASCII sign but the double quote, which a Nextion string cannot carry, and the backtick, which this font draws blank: the digits across the top, three rows of ten signs, the full stop where CAPS was, and X, DEL and OK where they are on the letters. The letters reach it with the #+= key, and it goes back with ABC.",
+      "requires": [
+        "value",
+        "max"
+      ]
+    }
+  ]
+}

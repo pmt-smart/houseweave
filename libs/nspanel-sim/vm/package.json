@@ -1,0 +1,30 @@
+{
+  "name": "@nspanel-sim/vm",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "build:wasm": "node scripts/build-wasm.mjs",
+    "test": "tsc -p tsconfig.json && tsc -p ../layout/tsconfig.json && tsc -p ../export/tsconfig.json && tsc -p ../glass/tsconfig.json && tsc --noEmit -p ../sim/tsconfig.app.json && node --test \"test/*.test.mjs\""
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "@types/node": "^24.13.3",
+    "@nspanel-sim/glass": "*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "node": "./dist/index.js",
+      "default": "./src/index.ts"
+    },
+    "./node": {
+      "types": "./src/files-node.ts",
+      "node": "./dist/files-node.js"
+    }
+  }
+}

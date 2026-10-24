@@ -1,0 +1,414 @@
+{
+  "generated": "2026-09-08",
+  "note": "Public third-party .tft files used as read-only fixtures. Not redistributed here: fetch with scripts/fetch-fixtures.mjs, which verifies size and SHA-256. manifest.hmi lists Nextion Editor project sources (.HMI, ~7 MB each) with the compiled .tft they pair with.",
+  "files": [
+    {
+      "name": "blackymas/nspanel_blank.tft",
+      "url": "https://raw.githubusercontent.com/Blackymas/NSPanel_HA_Blueprint/main/hmi/nspanel_blank.tft",
+      "bytes": 408460,
+      "sha256": "a908c8ebc1601620760c0217083ad1ef0f607fca19ba3d378ee80c70cd5a20e7",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "blackymas"
+    },
+    {
+      "name": "blackymas/nspanel_eu.tft",
+      "url": "https://raw.githubusercontent.com/Blackymas/NSPanel_HA_Blueprint/main/hmi/nspanel_eu.tft",
+      "bytes": 7612860,
+      "sha256": "57aa1f8f6c2be638e9b3681d79ed76fad57da836f8b44aed97b65890120d6560",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "blackymas"
+    },
+    {
+      "name": "blackymas/nspanel_us.tft",
+      "url": "https://raw.githubusercontent.com/Blackymas/NSPanel_HA_Blueprint/main/hmi/nspanel_us.tft",
+      "bytes": 7621528,
+      "sha256": "4ebbb076f760837f947d0b10f4dca03ef90779214fe17ffea30accb7c2032a11",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "blackymas"
+    },
+    {
+      "name": "eseverson/01_orientation_flip.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/01_orientation_flip/01.tft",
+      "bytes": 507600,
+      "sha256": "716d7b6084c16e4bc1a6f0186e09e85abda5db4ae14e02a0fbfa14a436132094",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/04_red_val_deadbeef.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/04_red_val_deadbeef/04.tft",
+      "bytes": 507612,
+      "sha256": "dda7602d8f51447bbee09e39a71f4aec23ca3d4c0560f04a70294e7ca05c8e70",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/05_text_qqqqqqqq.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/05_text_qqqqqqqq/05.tft",
+      "bytes": 507612,
+      "sha256": "f67d6ddc5c58cf263fd697e832e355fffd539353db17c0d279c9336e2c81a790",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/06_bco_magenta.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/06_bco_magenta/06.tft",
+      "bytes": 507612,
+      "sha256": "d9d7dc8ed4ebc5fda05875f3a6d90348a642f6b2b62dc22b8a49ce0dcb045b80",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/07_add_hotspot.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/07_add_hotspot/07.tft",
+      "bytes": 508644,
+      "sha256": "79e170c605424a4143b90b40d64db125255721a3b6479d6c832528b5fd42fd08",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/08_delete_component.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/08_delete_component/08.tft",
+      "bytes": 507612,
+      "sha256": "d9d7dc8ed4ebc5fda05875f3a6d90348a642f6b2b62dc22b8a49ce0dcb045b80",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/09_program_s_page1.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/09_program_s_page1/09.tft",
+      "bytes": 507612,
+      "sha256": "5009b157dd72fc2b1a2f7e47bd2fc38d6be61e5f101ba21c2e69576a274e3fec",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/10_timer_extra_line.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/10_timer_extra_line/10.tft",
+      "bytes": 507624,
+      "sha256": "a7f02983cccddc23027ed198977bfb5f19bd5a799eda9af80646d505f2f69a1e",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/11_add_page.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/11_add_page/11.tft",
+      "bytes": 508780,
+      "sha256": "f4d9789cb573b889f76902280231a66ecd559a0734b41f44461de34b0d400f99",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/13_iter1.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/13_save_six_times/iter1.tft",
+      "bytes": 508780,
+      "sha256": "f4d9789cb573b889f76902280231a66ecd559a0734b41f44461de34b0d400f99",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/13_iter6.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/13_save_six_times/iter6.tft",
+      "bytes": 508780,
+      "sha256": "f4d9789cb573b889f76902280231a66ecd559a0734b41f44461de34b0d400f99",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/14_char_name.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/14_char_name.tft",
+      "bytes": 640660,
+      "sha256": "78ef539381fac213a72ede11ab0d4383758a2bdb840e7bc9df8d89e62a638beb",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/15_picture.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/15_picture/15.tft",
+      "bytes": 574124,
+      "sha256": "73b5622432107eed684ecc457cfc0bab8f13e58011007c98421365b612c3369e",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/16_loop.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/16_loop/16.tft",
+      "bytes": 507664,
+      "sha256": "f6f8d6d151eb957be4d579aaec3294cc6bcc70c4adc2e25a8cd617dd81d603a7",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/17_more_components.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/17_more_components/17.tft",
+      "bytes": 586732,
+      "sha256": "bcf647203468f3c946157487041ff490dc2e051716c76acba228908743b55bc7",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/230400_baud.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/230400%20baud.tft",
+      "bytes": 507600,
+      "sha256": "303e14699825734a2e687f4be2717067b7de4ae5a626069aa26dc6068ea28265",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/23_minimal_project.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/23_minimal_project/23.tft",
+      "bytes": 394564,
+      "sha256": "2044b7af52e838747e3f294d0a83317e67bae475a3ecd901ebc7eca9099785a3",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/base.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/base.tft",
+      "bytes": 507600,
+      "sha256": "303e14699825734a2e687f4be2717067b7de4ae5a626069aa26dc6068ea28265",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/dim_66.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/dim%2066.tft",
+      "bytes": 507612,
+      "sha256": "1968705769e226114bf24572ff68fb42ed66b19a09eec6397d741350c5fe8524",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/save_A.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/save%20A.tft",
+      "bytes": 507600,
+      "sha256": "2642bbc87d4e01b34427b3b07397b3056d715fa809fa0d6fa6afbf3b53723a55",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/save_C.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/save%20C.tft",
+      "bytes": 507600,
+      "sha256": "01c97191c9d7c5e4b821f3bb68482122f31c5e859fb9734a0d252d398f989abd",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/save_D.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/save%20D.tft",
+      "bytes": 507600,
+      "sha256": "9a35b7a3dcabaecac6f478d6a612e90a550145b7711aabf58c4a8735e86648bf",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/sleep_30.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/sleep%2030.tft",
+      "bytes": 507612,
+      "sha256": "28773d776fac0b01ec5fb198c70599c23f78f363a7684e64ccd254dbbb7e041e",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/source_nextion.hmi.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/source/nextion.hmi.tft",
+      "bytes": 504784,
+      "sha256": "41a8e2ae3ade41271ea9739153c3a995c1c8a9ad3b934ecd3176d134407854fa",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "eseverson/vertical.tft",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/vertical.tft",
+      "bytes": 508100,
+      "sha256": "53918c0d07994e249275d6400fd39ab0377f16f9b89fef6ead3595e9032dd843",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "eseverson"
+    },
+    {
+      "name": "gaggiuino/nextion-discovery-lcd.tft",
+      "url": "https://raw.githubusercontent.com/Zer0-bit/gaggiuino/release/stm32-blackpill/nextion-discovery-lcd.tft",
+      "bytes": 1821252,
+      "sha256": "4890da9e747c94c0764f6fd32ecc3a86d4059763b0451ea88465a39a67ca3937",
+      "model": "other Discovery (seed 0x5b49c1bc)",
+      "source": "gaggiuino"
+    },
+    {
+      "name": "jobr99/nspanel.tft",
+      "url": "https://raw.githubusercontent.com/joBr99/nspanel-lovelace-ui/main/HMI/nspanel.tft",
+      "bytes": 8373960,
+      "sha256": "fe3389915c4a62557bbd78044c2a3ab1d83f4d9fe70a8e75e31e1d2d1ef8c091",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "jobr99"
+    },
+    {
+      "name": "jobr99/nspanel_US_P.tft",
+      "url": "https://raw.githubusercontent.com/joBr99/nspanel-lovelace-ui/main/HMI/US/portrait/nspanel_US_P.tft",
+      "bytes": 8471124,
+      "sha256": "bf6c1297556510897983985c9052464a254727bb755a2086e3c90f4d3ca35016",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "jobr99"
+    },
+    {
+      "name": "lovejoy777/Thermo_01.tft",
+      "url": "https://raw.githubusercontent.com/lovejoy777/NSpanel/main/Thermo_01.tft",
+      "bytes": 4124696,
+      "sha256": "f186f27ced64aa242bc9de5ad3c1fe12e5cdf47651b4ae5bb09c3639b6fbf85f",
+      "model": "NX4832F035_011C (seed 0x1ce47603)",
+      "source": "lovejoy777"
+    }
+  ],
+  "hmi": [
+    {
+      "name": "eseverson-hmi/00_baseline_base.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/00_baseline/base.HMI",
+      "bytes": 8791552,
+      "sha256": "0b5664a7342949494f7d4573b56bf608c995c527407888e96bcb8879bb46bb01",
+      "source": "eseverson",
+      "pair": "eseverson/base.tft",
+      "pairExact": false,
+      "note": "Editor project source; the cached pair .tft is from a neighbouring revision (component counts differ), so only structural checks apply"
+    },
+    {
+      "name": "eseverson-hmi/05_text_qqqqqqqq_05.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/05_text_qqqqqqqq/05.HMI",
+      "bytes": 7473320,
+      "sha256": "b5afdbfa9b6b4bab31f1f776f809e64ae8305c855005950f93059fe6e1a89472",
+      "source": "eseverson",
+      "pair": "eseverson/05_text_qqqqqqqq.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/06_bco_magenta_06.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/06_bco_magenta/06.HMI",
+      "bytes": 7495448,
+      "sha256": "8fddea5e3ea95df605cd29e2c1bfd2420d0e1b0f1fc220502cece51927ccb53c",
+      "source": "eseverson",
+      "pair": "eseverson/06_bco_magenta.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/07_add_hotspot_07.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/07_add_hotspot/07.HMI",
+      "bytes": 7495448,
+      "sha256": "e8e797a23b336f15c05f853269f894f975bc636c986bbe1606ff7a5906b2a48e",
+      "source": "eseverson",
+      "pair": "eseverson/07_add_hotspot.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/11_add_page_11.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/11_add_page/11.HMI",
+      "bytes": 7495448,
+      "sha256": "623940fe4d3c153f4a3bd71580f684bd6b36fbf62f948d08a243cfe72603f491",
+      "source": "eseverson",
+      "pair": "eseverson/11_add_page.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/15_picture_15.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/15_picture/15.HMI",
+      "bytes": 8796092,
+      "sha256": "c4f5f123fb605aa2f87dcca1a0cdd9d861594714bdc483dd33e17cffcb4c2efe",
+      "source": "eseverson",
+      "pair": "eseverson/15_picture.tft",
+      "pairExact": false,
+      "note": "Editor project source; the cached pair .tft is from a neighbouring revision (component counts differ), so only structural checks apply"
+    },
+    {
+      "name": "eseverson-hmi/23_minimal_project_23.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/23_minimal_project/23.HMI",
+      "bytes": 7341700,
+      "sha256": "218ec31b176308a6bf4edd8e4eee01c86884a431ccadb636a6da5d600ffb4aa7",
+      "source": "eseverson",
+      "pair": "eseverson/23_minimal_project.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/source_nextion.hmi.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/source/nextion.hmi.HMI",
+      "bytes": 7505535,
+      "sha256": "074e0750a775a1786ccfe3fff9116eef8808448717e628b3f5ca9074288b8eed",
+      "source": "eseverson",
+      "pair": "eseverson/source_nextion.hmi.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/17_more_components_17.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/17_more_components/17.HMI",
+      "bytes": 8102606,
+      "sha256": "54a21ef7fbcdb5d11597a6fbdef394a38d083fb156ccd8bd932d3664e0db6cd9",
+      "source": "eseverson",
+      "pair": "eseverson/17_more_components.tft",
+      "pairExact": false,
+      "note": "Editor project source; the cached pair .tft is from a neighbouring revision, so only structural checks apply"
+    },
+    {
+      "name": "eseverson-hmi/16_loop_16.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/16_loop/16.HMI",
+      "bytes": 7495551,
+      "sha256": "a187c47d5a192280ff906cf2b5d5c8f0f17393da549722f192b36890e272ff58",
+      "source": "eseverson",
+      "pair": "eseverson/16_loop.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/09_program_s_page1_09.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/09_program_s_page1/09.HMI",
+      "bytes": 7495448,
+      "sha256": "8f62e3832b7c1f5f23f3de0c257bb56e940f078bcea2ee2937930db26c5b15a7",
+      "source": "eseverson",
+      "pair": "eseverson/09_program_s_page1.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/10_timer_extra_line_10.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/10_timer_extra_line/10.HMI",
+      "bytes": 7495448,
+      "sha256": "a598508683851cc0d36e4a480f7f3190a746a5296de865e8ecb22a74b9ea6668",
+      "source": "eseverson",
+      "pair": "eseverson/10_timer_extra_line.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/01_orientation_flip_01.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/01_orientation_flip/01.HMI",
+      "bytes": 7429280,
+      "sha256": "88098e005ac0fd59301047c7f9ec5a812056c0f7573c346a638e22e630750170",
+      "source": "eseverson",
+      "pair": "eseverson/01_orientation_flip.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "eseverson-hmi/04_red_val_deadbeef_04.HMI",
+      "url": "https://raw.githubusercontent.com/eseverson/nextion-hmi/main/tests/editor%20outputs/_old/04_red_val_deadbeef/04.HMI",
+      "bytes": 7451192,
+      "sha256": "eda1b2e657e3aabd807e651a1be06ba06d6a20651ed226da36340112e847c4a9",
+      "source": "eseverson",
+      "pair": "eseverson/04_red_val_deadbeef.tft",
+      "pairExact": true,
+      "note": "Editor project source; pair is the .tft the Editor compiled from it"
+    },
+    {
+      "name": "jobr99/nspanel.HMI",
+      "url": "https://raw.githubusercontent.com/joBr99/nspanel-lovelace-ui/main/HMI/nspanel.HMI",
+      "bytes": 15948382,
+      "sha256": "0c049e2184e301eafc7b1ff5fa02dd6572ac4b38bd10eb5b543220aa33719c2f",
+      "source": "jobr99",
+      "pair": "jobr99/nspanel.tft",
+      "pairExact": true,
+      "note": "The donor's own Editor project (Editor 1.65.1, UTF-8): 23 pages, 858 components, 8 fonts, 26 pictures; every page matches the donor .tft (type, id, geometry)"
+    }
+  ]
+}

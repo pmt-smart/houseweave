@@ -1,0 +1,4512 @@
+{
+ "about": "The store's cases (berry/panel_store.be), run by berry/test/test_panel_store.be: written by hand, with what each must answer. Scenarios start from a fresh copy of fixtures/living-room.json, and the document must still validate after every scenario.",
+ "parsePlaces": [
+  [
+   "2,5",
+   [
+    [
+     2,
+     5
+    ]
+   ]
+  ],
+  [
+   "2.5",
+   [
+    [
+     2,
+     5
+    ]
+   ]
+  ],
+  [
+   "2x5",
+   [
+    [
+     2,
+     5
+    ]
+   ]
+  ],
+  [
+   "l2c5",
+   [
+    [
+     2,
+     5
+    ]
+   ]
+  ],
+  [
+   "1,2 2,1 3,2",
+   [
+    [
+     1,
+     2
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     3,
+     2
+    ]
+   ]
+  ],
+  [
+   "1,11",
+   [
+    [
+     1,
+     11
+    ]
+   ]
+  ],
+  [
+   "8,8",
+   [
+    [
+     8,
+     8
+    ]
+   ]
+  ],
+  [
+   "25",
+   null
+  ],
+  [
+   "2,0",
+   null
+  ],
+  [
+   "0,5",
+   null
+  ],
+  [
+   "1,2,3",
+   null
+  ],
+  [
+   "2,5 2,5",
+   null
+  ],
+  [
+   "",
+   null
+  ]
+ ],
+ "parseSize": [
+  [
+   "3x4",
+   [
+    3,
+    4
+   ]
+  ],
+  [
+   "5x11",
+   [
+    5,
+    11
+   ]
+  ],
+  [
+   "3.4",
+   [
+    3,
+    4
+   ]
+  ],
+  [
+   "3x4 1x1",
+   null
+  ],
+  [
+   "3x0",
+   null
+  ],
+  [
+   "34",
+   null
+  ]
+ ],
+ "formatPlace": [
+  [
+   [
+    2,
+    5
+   ],
+   "2,5"
+  ],
+  [
+   [
+    1,
+    11
+   ],
+   "1,11"
+  ]
+ ],
+ "slotPlace": [
+  [
+   "middle",
+   101,
+   [
+    2,
+    5
+   ]
+  ],
+  [
+   "middle",
+   304,
+   [
+    4,
+    8
+   ]
+  ],
+  [
+   "hall",
+   102,
+   [
+    1,
+    2
+   ]
+  ],
+  [
+   "kitchen",
+   106,
+   [
+    5,
+    8
+   ]
+  ],
+  [
+   "wall",
+   104,
+   [
+    1,
+    8
+   ]
+  ]
+ ],
+ "placeSlot": [
+  [
+   "middle",
+   [
+    2,
+    5
+   ],
+   101
+  ],
+  [
+   "middle",
+   [
+    4,
+    8
+   ],
+   304
+  ],
+  [
+   "middle",
+   [
+    1,
+    5
+   ],
+   null
+  ],
+  [
+   "middle",
+   [
+    2,
+    9
+   ],
+   null
+  ],
+  [
+   "hall",
+   [
+    5,
+    2
+   ],
+   502
+  ],
+  [
+   "hall",
+   [
+    6,
+    1
+   ],
+   null
+  ]
+ ],
+ "toggleIntent": [
+  [
+   [
+    "on",
+    "off"
+   ],
+   "off"
+  ],
+  [
+   [
+    "off",
+    "off"
+   ],
+   "on"
+  ],
+  [
+   [
+    "nopower",
+    "nopower"
+   ],
+   null
+  ],
+  [
+   [
+    "off",
+    "nopower"
+   ],
+   "on"
+  ],
+  [
+   [
+    "unknown",
+    "off"
+   ],
+   "on"
+  ],
+  [
+   [
+    "noanswer",
+    "on"
+   ],
+   "off"
+  ],
+  [
+   [],
+   null
+  ]
+ ],
+ "placement": {
+  "about": "The Living room, created in a fixed order, on its own matrix of 8 × 5 cells, which the EU's 11 × 5 and the US's 8 × 8 take as it is. A size is [cols, rows]; each step places a block of that size by the reading-order rule and must land where the croqui has it.",
+  "matrix": [
+   8,
+   5
+  ],
+  "sequence": [
+   [
+    [
+     2,
+     5
+    ],
+    [
+     0,
+     0
+    ]
+   ],
+   [
+    [
+     2,
+     4
+    ],
+    [
+     2,
+     0
+    ]
+   ],
+   [
+    [
+     4,
+     1
+    ],
+    [
+     4,
+     0
+    ]
+   ],
+   [
+    [
+     4,
+     3
+    ],
+    [
+     4,
+     1
+    ]
+   ],
+   [
+    [
+     6,
+     1
+    ],
+    [
+     2,
+     4
+    ]
+   ]
+  ],
+  "ghostAfterFour": [
+   2,
+   4,
+   1,
+   1
+  ],
+  "nextAfterFour": [
+   [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     3,
+     4
+    ]
+   ],
+   [
+    [
+     1,
+     1
+    ],
+    [
+     7,
+     4
+    ],
+    [
+     2,
+     4
+    ]
+   ],
+   [
+    [
+     6,
+     1
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     2,
+     4
+    ]
+   ]
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "the Living room is valid",
+   "ops": [],
+   "expect": []
+  },
+  {
+   "name": "a full zone takes no more",
+   "ops": [
+    [
+     "registerDevice",
+     [
+      "0x00124B00000000A1",
+      "Light 31",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "addToZone",
+     "middle",
+     "0x00124B00000000A1"
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "refusal": "full"
+    }
+   ]
+  },
+  {
+   "name": "a hall lamp takes another place, one of its own",
+   "ops": [
+    [
+     "setSlot",
+     "hall",
+     "relay:1",
+     101,
+     false
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "slot",
+     "hall",
+     "relay:1",
+     101
+    ]
+   ]
+  },
+  {
+   "name": "a single-slot swap asks first",
+   "ops": [
+    [
+     "setSlot",
+     "middle",
+     "0x00124B0000E00001",
+     102,
+     false
+    ],
+    [
+     "setSlot",
+     "middle",
+     "0x00124B0000E00001",
+     102,
+     true
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "slot_taken",
+     "detail": {
+      "other": "0x00124B0000E00002",
+      "swapTo": 101
+     }
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "slot",
+     "middle",
+     "0x00124B0000E00001",
+     102
+    ],
+    [
+     "slot",
+     "middle",
+     "0x00124B0000E00002",
+     101
+    ]
+   ]
+  },
+  {
+   "name": "a slot outside the grid is refused",
+   "ops": [
+    [
+     "setSlot",
+     "middle",
+     "0x00124B0000E00001",
+     105,
+     false
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "slot_outside"
+    }
+   ]
+  },
+  {
+   "name": "the Hall's lamps swap places like any other (one device, one place)",
+   "ops": [
+    [
+     "setSlot",
+     "hall",
+     "relay:1",
+     201,
+     false
+    ],
+    [
+     "setSlot",
+     "hall",
+     "relay:1",
+     201,
+     true
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "slot_taken",
+     "detail": {
+      "other": "relay:2",
+      "swapTo": 102
+     }
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "slot",
+     "hall",
+     "relay:1",
+     201
+    ],
+    [
+     "slot",
+     "hall",
+     "relay:2",
+     102
+    ]
+   ]
+  },
+  {
+   "name": "moving a lamp to a zone with room",
+   "ops": [
+    [
+     "moveToZone",
+     "0x00124B0000C00001",
+     "hall"
+    ]
+   ],
+   "expect": [
+    {
+     "value": 101
+    }
+   ],
+   "probes": [
+    [
+     "zstate",
+     "corridor",
+     "0x00124B0000C00001",
+     "leaving"
+    ],
+    [
+     "zid",
+     "hall",
+     0
+    ],
+    [
+     "buttonState",
+     2,
+     "0x00124B0000C00001",
+     "leaving"
+    ],
+    [
+     "members",
+     "corridor",
+     7
+    ],
+    [
+     "members",
+     "hall",
+     5
+    ]
+   ]
+  },
+  {
+   "name": "a move to a full zone is refused",
+   "ops": [
+    [
+     "moveToZone",
+     "0x00124B0000C00001",
+     "middle"
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "full"
+    }
+   ]
+  },
+  {
+   "name": "deleting a zone deletes its devices",
+   "ops": [
+    [
+     "deleteZone",
+     "kitchen"
+    ]
+   ],
+   "expect": [
+    {
+     "actions": [
+      [
+       "leave",
+       "0x00124B0000F00001"
+      ],
+      [
+       "leave",
+       "0x00124B0000F00002"
+      ],
+      [
+       "leave",
+       "0x00124B0000F00003"
+      ],
+      [
+       "leave",
+       "0x00124B0000F00004"
+      ],
+      [
+       "leave",
+       "0x00124B0000F00005"
+      ],
+      [
+       "leave",
+       "0x00124B0000F00006"
+      ]
+     ]
+    }
+   ],
+   "probes": [
+    [
+     "devices",
+     28
+    ],
+    [
+     "cards",
+     "home",
+     4
+    ],
+    [
+     "buttonState",
+     2,
+     "0x00124B0000F00001",
+     null
+    ],
+    [
+     "zone",
+     "kitchen",
+     false
+    ]
+   ]
+  },
+  {
+   "name": "the home screen stays",
+   "ops": [
+    [
+     "deleteScreen",
+     "home"
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "home_screen"
+    }
+   ]
+  },
+  {
+   "name": "a screen with zones stays",
+   "ops": [
+    [
+     "addScreen",
+     "Externa"
+    ],
+    [
+     "createZone",
+     "s1",
+     "Jardim",
+     [
+      0,
+      0
+     ],
+     [
+      1,
+      2
+     ]
+    ],
+    [
+     "deleteScreen",
+     "s1"
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "value": "z2"
+    },
+    {
+     "refusal": "screen_has_zones"
+    }
+   ]
+  },
+  {
+   "name": "an empty screen can go",
+   "ops": [
+    [
+     "addScreen",
+     "Externa"
+    ],
+    [
+     "deleteScreen",
+     "s1"
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "screens",
+     1
+    ]
+   ]
+  },
+  {
+   "name": "the plan has no room left",
+   "ops": [
+    [
+     "createZone",
+     "home",
+     "X",
+     [
+      0,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "createZone",
+     "home",
+     "X",
+     [
+      7,
+      4
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "no_room"
+    },
+    {
+     "refusal": "no_room"
+    }
+   ]
+  },
+  {
+   "name": "a grid bigger than the matrix",
+   "ops": [
+    [
+     "addScreen",
+     "Externa"
+    ],
+    [
+     "createZone",
+     "s1",
+     "X",
+     [
+      0,
+      0
+     ],
+     [
+      6,
+      2
+     ]
+    ],
+    [
+     "createZone",
+     "s1",
+     "X",
+     [
+      0,
+      0
+     ],
+     [
+      100,
+      1
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "refusal": "no_room"
+    },
+    {
+     "refusal": "grid_bounds"
+    }
+   ]
+  },
+  {
+   "name": "a relay device from the +: the zone's next place, the first relay:k free, and none on a relay that powers Zigbee devices",
+   "ops": [
+    [
+     "addRelayDevice",
+     "hall",
+     1
+    ],
+    [
+     "addRelayDevice",
+     "hall",
+     2
+    ],
+    [
+     "addRelayDevice",
+     "hall",
+     3
+    ],
+    [
+     "addRelayDevice",
+     "nowhere",
+     1
+    ]
+   ],
+   "expect": [
+    {
+     "value": "relay:5"
+    },
+    {
+     "refusal": "mixed_relay"
+    },
+    {
+     "refusal": "bad_relay"
+    },
+    {
+     "refusal": "no_such_zone"
+    }
+   ],
+   "probes": [
+    [
+     "slot",
+     "hall",
+     "relay:5",
+     101
+    ],
+    [
+     "relay",
+     "relay:5",
+     1
+    ],
+    [
+     "kind",
+     "relay:5",
+     "light"
+    ],
+    [
+     "devices",
+     35
+    ]
+   ]
+  },
+  {
+   "name": "the Hall's card switches relay 1 only while all that hangs on it is in the Hall",
+   "ops": [
+    [
+     "zonePlan",
+     "hall",
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "removeDevice",
+     "0x00124B0000C00001"
+    ],
+    [
+     "addRelayDevice",
+     "corridor",
+     1
+    ],
+    [
+     "zonePlan",
+     "hall",
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "hall"
+     ],
+     {},
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "moveToZone",
+     "relay:5",
+     "hall"
+    ],
+    [
+     "zonePlan",
+     "hall",
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "hall"
+     ],
+     {},
+     [
+      false,
+      true
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [
+       1
+      ],
+      "skipped": []
+     }
+    },
+    {
+     "actions": [
+      [
+       "leave",
+       "0x00124B0000C00001"
+      ]
+     ]
+    },
+    {
+     "value": "relay:5"
+    },
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [],
+      "skipped": []
+     }
+    },
+    {
+     "value": null
+    },
+    {
+     "ok": true
+    },
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [
+       1
+      ],
+      "skipped": []
+     }
+    },
+    {
+     "value": "on"
+    }
+   ],
+   "probes": [
+    [
+     "relay",
+     "relay:5",
+     1
+    ]
+   ]
+  },
+  {
+   "name": "a lamp powered by relay 2 has no power while it is open, each on its own",
+   "ops": [
+    [
+     "setRelay",
+     "0x00124B0000E00001",
+     0
+    ],
+    [
+     "zonePlan",
+     "middle",
+     [
+      true,
+      false
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "middle"
+     ],
+     {
+      "0x00124B0000E00001": "on"
+     },
+     [
+      true,
+      false
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "kitchen"
+     ],
+     {},
+     [
+      true,
+      false
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "value": {
+      "zids": [
+       3
+      ],
+      "unicast": [],
+      "relays": [],
+      "skipped": [
+       "0x00124B0000E00002",
+       "0x00124B0000E00003",
+       "0x00124B0000E00004",
+       "0x00124B0000E00005",
+       "0x00124B0000E00006",
+       "0x00124B0000E00007",
+       "0x00124B0000E00008",
+       "0x00124B0000E00009",
+       "0x00124B0000E0000A",
+       "0x00124B0000E0000B",
+       "0x00124B0000E0000C"
+      ]
+     }
+    },
+    {
+     "value": "off"
+    },
+    {
+     "value": null
+    }
+   ]
+  },
+  {
+   "name": "a relay is 1 or 2, a relay device always has one, and a relay holds one kind of device",
+   "ops": [
+    [
+     "setRelay",
+     "relay:1",
+     0
+    ],
+    [
+     "setRelay",
+     "0x00124B0000E00001",
+     3
+    ],
+    [
+     "setRelay",
+     "0xNOWHERE",
+     1
+    ],
+    [
+     "setRelay",
+     "relay:1",
+     2
+    ],
+    [
+     "setRelay",
+     "0x00124B0000E00001",
+     1
+    ],
+    [
+     "setRelay",
+     "relay:1",
+     1
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "bad_relay"
+    },
+    {
+     "refusal": "bad_relay"
+    },
+    {
+     "refusal": "no_such_device"
+    },
+    {
+     "refusal": "mixed_relay"
+    },
+    {
+     "refusal": "mixed_relay"
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "relay",
+     "relay:1",
+     1
+    ],
+    [
+     "relay",
+     "0x00124B0000E00001",
+     2
+    ]
+   ]
+  },
+  {
+   "name": "removing a relay device takes it from the store, and nothing leaves the network",
+   "ops": [
+    [
+     "removeDevice",
+     "relay:1"
+    ]
+   ],
+   "expect": [
+    {
+     "actions": []
+    }
+   ],
+   "probes": [
+    [
+     "members",
+     "hall",
+     3
+    ],
+    [
+     "devices",
+     33
+    ]
+   ]
+  },
+  {
+   "name": "relinking a button clears its marks",
+   "ops": [
+    [
+     "clearButtonMarks",
+     2
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "buttons",
+     "middle",
+     []
+    ],
+    [
+     "buttonState",
+     2,
+     "0x00124B0000E00001",
+     "leaving"
+    ]
+   ]
+  },
+  {
+   "name": "a zone in its group is one command",
+   "ops": [
+    [
+     "zonePlan",
+     "middle",
+     [
+      true,
+      true
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": {
+      "zids": [
+       3
+      ],
+      "unicast": [],
+      "relays": [],
+      "skipped": []
+     }
+    }
+   ]
+  },
+  {
+   "name": "a zone without power is skipped",
+   "ops": [
+    [
+     "zonePlan",
+     "wall",
+     [
+      true,
+      false
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [],
+      "skipped": [
+       "0x00124B0000D00001",
+       "0x00124B0000D00002",
+       "0x00124B0000D00003",
+       "0x00124B0000D00004"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "the hall is its relay",
+   "ops": [
+    [
+     "zonePlan",
+     "hall",
+     [
+      true,
+      true
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [
+       1
+      ],
+      "skipped": []
+     }
+    }
+   ]
+  },
+  {
+   "name": "the button goes through its own group",
+   "ops": [
+    [
+     "buttonPlan",
+     2,
+     [
+      true,
+      true
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": {
+      "zids": [
+       5
+      ],
+      "unicast": [],
+      "relays": [],
+      "skipped": []
+     }
+    }
+   ]
+  },
+  {
+   "name": "a joining lamp falls back to a direct command",
+   "ops": [
+    [
+     "removeDevice",
+     "0x00124B0000D00004"
+    ],
+    [
+     "registerDevice",
+     [
+      "0x00124B00000000A1",
+      "Light 31",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "addToZone",
+     "wall",
+     "0x00124B00000000A1"
+    ],
+    [
+     "buttonPlan",
+     2,
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "zonePlan",
+     "wall",
+     [
+      true,
+      true
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "actions": [
+      [
+       "leave",
+       "0x00124B0000D00004"
+      ]
+     ]
+    },
+    {
+     "ok": true
+    },
+    {
+     "value": 104
+    },
+    {
+     "value": {
+      "zids": [
+       5
+      ],
+      "unicast": [
+       "0x00124B00000000A1"
+      ],
+      "relays": [],
+      "skipped": []
+     }
+    },
+    {
+     "value": {
+      "zids": [
+       2
+      ],
+      "unicast": [
+       "0x00124B00000000A1"
+      ],
+      "relays": [],
+      "skipped": []
+     }
+    }
+   ]
+  },
+  {
+   "name": "the toggle rule",
+   "ops": [
+    [
+     "toggle",
+     [
+      "middle"
+     ],
+     {
+      "0x00124B0000E00001": "on"
+     },
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "middle"
+     ],
+     {},
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "middle"
+     ],
+     {
+      "0x00124B0000E00001": "on"
+     },
+     [
+      true,
+      false
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "hall"
+     ],
+     {},
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "toggle",
+     [
+      "hall"
+     ],
+     {},
+     [
+      false,
+      true
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": "off"
+    },
+    {
+     "value": "on"
+    },
+    {
+     "value": null
+    },
+    {
+     "value": "off"
+    },
+    {
+     "value": "on"
+    }
+   ]
+  },
+  {
+   "name": "a zone grows into a group",
+   "ops": [
+    [
+     "addScreen",
+     "Externa"
+    ],
+    [
+     "createZone",
+     "s1",
+     "Jardim",
+     [
+      0,
+      0
+     ],
+     [
+      2,
+      2
+     ]
+    ],
+    [
+     "registerDevice",
+     [
+      "0x00124B00000000B1",
+      "Jardim 1",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "registerDevice",
+     [
+      "0x00124B00000000B2",
+      "Jardim 2",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "registerDevice",
+     [
+      "0x00124B00000000B3",
+      "Jardim 3",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "registerDevice",
+     [
+      "0x00124B00000000B4",
+      "Jardim 4",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "addToZone",
+     "z2",
+     "0x00124B00000000B1"
+    ],
+    [
+     "addToZone",
+     "z2",
+     "0x00124B00000000B2"
+    ],
+    [
+     "addToZone",
+     "z2",
+     "0x00124B00000000B3"
+    ],
+    [
+     "addToZone",
+     "z2",
+     "0x00124B00000000B4"
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "value": "z2"
+    },
+    {
+     "ok": true
+    },
+    {
+     "ok": true
+    },
+    {
+     "ok": true
+    },
+    {
+     "ok": true
+    },
+    {
+     "value": 101
+    },
+    {
+     "value": 102
+    },
+    {
+     "value": 201
+    },
+    {
+     "value": 202
+    }
+   ],
+   "probes": [
+    [
+     "zid",
+     "z2",
+     6
+    ],
+    [
+     "nextZid",
+     7
+    ],
+    [
+     "zstate",
+     "z2",
+     "0x00124B00000000B1",
+     "joining"
+    ],
+    [
+     "zstate",
+     "z2",
+     "0x00124B00000000B4",
+     "joining"
+    ]
+   ]
+  },
+  {
+   "name": "a grid that shrinks keeps its devices",
+   "ops": [
+    [
+     "resizeZone",
+     "middle",
+     [
+      2,
+      4
+     ]
+    ],
+    [
+     "resizeZone",
+     "corridor",
+     [
+      4,
+      1
+     ]
+    ],
+    [
+     "resizeZone",
+     "kitchen",
+     [
+      1,
+      5
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "grid_drops_member"
+    },
+    {
+     "refusal": "grid_drops_member"
+    },
+    {
+     "refusal": "grid_drops_member"
+    }
+   ]
+  },
+  {
+   "name": "a grid grows where the card is, around a card in its way",
+   "ops": [
+    [
+     "addScreen",
+     "Externa"
+    ],
+    [
+     "createZone",
+     "s1",
+     "Jardim",
+     [
+      0,
+      0
+     ],
+     [
+      1,
+      2
+     ]
+    ],
+    [
+     "createZone",
+     "s1",
+     "Garage",
+     [
+      2,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "resizeZone",
+     "z2",
+     [
+      2,
+      2
+     ]
+    ],
+    [
+     "resizeZone",
+     "z2",
+     [
+      1,
+      3
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "value": "z2"
+    },
+    {
+     "value": "z3"
+    },
+    {
+     "ok": true
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "holes",
+     "z2",
+     [
+      103
+     ]
+    ]
+   ]
+  },
+  {
+   "name": "a card made around another takes the rest of its grid",
+   "ops": [
+    [
+     "addScreen",
+     "Externa"
+    ],
+    [
+     "createZone",
+     "s1",
+     "Poste",
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "createZone",
+     "s1",
+     "Jardim",
+     [
+      0,
+      0
+     ],
+     [
+      3,
+      3
+     ]
+    ],
+    [
+     "registerDevice",
+     [
+      "0x00124B00000000C1",
+      "Jardim 1",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "addToZone",
+     "z3",
+     "0x00124B00000000C1"
+    ],
+    [
+     "setSlot",
+     "z3",
+     "0x00124B00000000C1",
+     202,
+     false
+    ],
+    [
+     "setSlot",
+     "z3",
+     "0x00124B00000000C1",
+     203,
+     false
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "value": "z2"
+    },
+    {
+     "value": "z3"
+    },
+    {
+     "ok": true
+    },
+    {
+     "value": 101
+    },
+    {
+     "refusal": "slot_outside",
+     "detail": 202
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "holes",
+     "z3",
+     [
+      202
+     ]
+    ],
+    [
+     "slot",
+     "z3",
+     "0x00124B00000000C1",
+     203
+    ]
+   ]
+  },
+  {
+   "name": "a card may be in pieces, and one with no free cell is refused",
+   "ops": [
+    [
+     "addScreen",
+     "Externa"
+    ],
+    [
+     "createZone",
+     "s1",
+     "Muro",
+     [
+      1,
+      0
+     ],
+     [
+      3,
+      1
+     ]
+    ],
+    [
+     "createZone",
+     "s1",
+     "Faixa",
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      3
+     ]
+    ],
+    [
+     "createZone",
+     "s1",
+     "Poste",
+     [
+      1,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "value": "z2"
+    },
+    {
+     "value": "z3"
+    },
+    {
+     "refusal": "no_room"
+    }
+   ]
+  },
+  {
+   "name": "a plan is renamed by its title, and a name of nothing is refused",
+   "ops": [
+    [
+     "renameScreen",
+     "home",
+     "Family room"
+    ],
+    [
+     "renameScreen",
+     "home",
+     "   "
+    ],
+    [
+     "renameScreen",
+     "nowhere",
+     "X"
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "refusal": "no_name"
+    },
+    {
+     "refusal": "no_such_screen"
+    }
+   ],
+   "probes": [
+    [
+     "title",
+     "home",
+     "Family room"
+    ]
+   ]
+  },
+  {
+   "name": "a zone and a device renamed, and a blank name refused",
+   "ops": [
+    [
+     "renameZone",
+     "middle",
+     "Centre"
+    ],
+    [
+     "renameZone",
+     "middle",
+     "  "
+    ],
+    [
+     "renameDevice",
+     "relay:1",
+     "Hall lights"
+    ],
+    [
+     "renameDevice",
+     "0xNOWHERE",
+     "X"
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "refusal": "no_name"
+    },
+    {
+     "ok": true
+    },
+    {
+     "refusal": "no_such_device"
+    }
+   ],
+   "probes": [
+    [
+     "zoneName",
+     "middle",
+     "Centre"
+    ],
+    [
+     "deviceName",
+     "relay:1",
+     "Hall lights"
+    ]
+   ]
+  },
+  {
+   "name": "a zone's display: Adaptive and Uniform kept, Summary and an unknown mode refused, Places drops the field",
+   "ops": [
+    [
+     "setDisplay",
+     "middle",
+     "uniform"
+    ],
+    [
+     "setDisplay",
+     "middle",
+     "wide"
+    ],
+    [
+     "setDisplay",
+     "nowhere",
+     "adaptive"
+    ],
+    [
+     "setDisplay",
+     "kitchen",
+     "adaptive"
+    ],
+    [
+     "setDisplay",
+     "kitchen",
+     "places"
+    ],
+    [
+     "setDisplay",
+     "kitchen",
+     "summary"
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "refusal": "no_such_display"
+    },
+    {
+     "refusal": "no_such_zone"
+    },
+    {
+     "ok": true
+    },
+    {
+     "ok": true
+    },
+    {
+     "refusal": "no_such_display"
+    }
+   ],
+   "probes": [
+    [
+     "display",
+     "middle",
+     "uniform"
+    ],
+    [
+     "display",
+     "kitchen",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "a zone's colour: a hue at a level kept, an unknown one refused, the theme's own drops the field",
+   "ops": [
+    [
+     "setColor",
+     "middle",
+     4
+    ],
+    [
+     "setColor",
+     "middle",
+     15
+    ],
+    [
+     "setColor",
+     "nowhere",
+     1
+    ],
+    [
+     "setColor",
+     "kitchen",
+     14
+    ],
+    [
+     "setColor",
+     "kitchen",
+     0
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "refusal": "no_such_color"
+    },
+    {
+     "refusal": "no_such_zone"
+    },
+    {
+     "ok": true
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "color",
+     "middle",
+     4
+    ],
+    [
+     "color",
+     "kitchen",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "a device's kind, among the ones what it does allows; a relay device's are a light, a switch or other",
+   "ops": [
+    [
+     "setKind",
+     "relay:1",
+     "switch"
+    ],
+    [
+     "setKind",
+     "relay:2",
+     "plug"
+    ],
+    [
+     "setKind",
+     "0x00124B0000E00001",
+     "plug"
+    ],
+    [
+     "setKind",
+     "relay:1",
+     "cover"
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "refusal": "kind_incompatible",
+     "detail": [
+      "light",
+      "switch",
+      "generic"
+     ]
+    },
+    {
+     "refusal": "kind_incompatible",
+     "detail": [
+      "light"
+     ]
+    },
+    {
+     "refusal": "kind_incompatible",
+     "detail": [
+      "light",
+      "switch",
+      "generic"
+     ]
+    }
+   ],
+   "probes": [
+    [
+     "kind",
+     "relay:1",
+     "switch"
+    ],
+    [
+     "kind",
+     "0x00124B0000E00001",
+     "light"
+    ]
+   ]
+  },
+  {
+   "name": "the carousel's order: the Home stays first",
+   "ops": [
+    [
+     "addScreen",
+     "A"
+    ],
+    [
+     "addScreen",
+     "B"
+    ],
+    [
+     "moveScreen",
+     "s2",
+     -1
+    ],
+    [
+     "moveScreen",
+     "s2",
+     -1
+    ],
+    [
+     "moveScreen",
+     "home",
+     1
+    ],
+    [
+     "moveScreen",
+     "s1",
+     1
+    ]
+   ],
+   "expect": [
+    {
+     "value": "s1"
+    },
+    {
+     "value": "s2"
+    },
+    {
+     "ok": true
+    },
+    {
+     "refusal": "screen_end"
+    },
+    {
+     "refusal": "home_screen"
+    },
+    {
+     "refusal": "screen_end"
+    }
+   ],
+   "probes": [
+    [
+     "screenOrder",
+     [
+      "home",
+      "s2",
+      "s1"
+     ]
+    ]
+   ]
+  },
+  {
+   "name": "reorganize: the Living room placed again by the rule lands where it was",
+   "ops": [
+    [
+     "reorganizeScreen",
+     "home"
+    ],
+    [
+     "reorganizeScreen",
+     "nowhere"
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "refusal": "no_such_screen"
+    }
+   ],
+   "probes": [
+    [
+     "card",
+     "home",
+     "z:kitchen",
+     [
+      2,
+      4
+     ]
+    ],
+    [
+     "card",
+     "home",
+     "z:middle",
+     [
+      4,
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "name": "a group of a zone, a kind with its relay, and a device alone",
+   "ops": [
+    [
+     "groupPlan",
+     "middle",
+     "light",
+     2,
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "groupPlan",
+     "hall",
+     "light",
+     1,
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "groupPlan",
+     "middle",
+     "light",
+     1,
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "devicePlan",
+     "relay:1",
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "devicePlan",
+     "0x00124B0000E00001",
+     [
+      true,
+      true
+     ]
+    ],
+    [
+     "devicePlan",
+     "0x00124B0000E00001",
+     [
+      true,
+      false
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": {
+      "zids": [
+       3
+      ],
+      "unicast": [],
+      "relays": [],
+      "skipped": []
+     }
+    },
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [
+       1
+      ],
+      "skipped": []
+     }
+    },
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [],
+      "skipped": []
+     }
+    },
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [
+       1
+      ],
+      "skipped": []
+     }
+    },
+    {
+     "value": {
+      "zids": [],
+      "unicast": [
+       "0x00124B0000E00001"
+      ],
+      "relays": [],
+      "skipped": []
+     }
+    },
+    {
+     "value": {
+      "zids": [],
+      "unicast": [],
+      "relays": [],
+      "skipped": [
+       "0x00124B0000E00001"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "groups: a lamp moved out leaves its zone's group and the button's, and the answers settle it",
+   "ops": [
+    [
+     "moveToZone",
+     "0x00124B0000D00001",
+     "hall"
+    ],
+    [
+     "groupWork"
+    ],
+    [
+     "groupAnswer",
+     "remove",
+     "0x00124B0000D00001",
+     2,
+     0
+    ],
+    [
+     "groupAnswer",
+     "remove",
+     "0x00124B0000D00001",
+     5,
+     139
+    ],
+    [
+     "groupWork"
+    ]
+   ],
+   "expect": [
+    {
+     "value": 101
+    },
+    {
+     "value": [
+      [
+       "remove",
+       "0x00124B0000D00001",
+       2
+      ],
+      [
+       "remove",
+       "0x00124B0000D00001",
+       5
+      ]
+     ]
+    },
+    {
+     "value": true
+    },
+    {
+     "value": true
+    },
+    {
+     "value": []
+    }
+   ],
+   "probes": [
+    [
+     "zstate",
+     "wall",
+     "0x00124B0000D00001",
+     null
+    ],
+    [
+     "buttonState",
+     2,
+     "0x00124B0000D00001",
+     null
+    ],
+    [
+     "stale",
+     []
+    ]
+   ]
+  },
+  {
+   "name": "groups: a lamp that leaves and does not answer moves its group to a new address",
+   "ops": [
+    [
+     "moveToZone",
+     "0x00124B0000D00001",
+     "hall"
+    ],
+    [
+     "groupAnswer",
+     "remove",
+     "0x00124B0000D00001",
+     2,
+     1
+    ],
+    [
+     "moveGroup",
+     2
+    ],
+    [
+     "groupWork"
+    ],
+    [
+     "groupAnswer",
+     "add",
+     "0x00124B0000D00002",
+     6,
+     0
+    ],
+    [
+     "groupAnswer",
+     "remove",
+     "0x00124B0000D00002",
+     2,
+     0
+    ],
+    [
+     "moveGroup",
+     99
+    ]
+   ],
+   "expect": [
+    {
+     "value": 101
+    },
+    {
+     "value": false
+    },
+    {
+     "value": 6
+    },
+    {
+     "value": [
+      [
+       "remove",
+       "0x00124B0000D00001",
+       5
+      ],
+      [
+       "remove",
+       "0x00124B0000D00002",
+       2
+      ],
+      [
+       "remove",
+       "0x00124B0000D00003",
+       2
+      ],
+      [
+       "remove",
+       "0x00124B0000D00004",
+       2
+      ],
+      [
+       "add",
+       "0x00124B0000D00002",
+       6
+      ],
+      [
+       "add",
+       "0x00124B0000D00003",
+       6
+      ],
+      [
+       "add",
+       "0x00124B0000D00004",
+       6
+      ]
+     ]
+    },
+    {
+     "value": true
+    },
+    {
+     "value": true
+    },
+    {
+     "refusal": "no_such_group"
+    }
+   ],
+   "probes": [
+    [
+     "zid",
+     "wall",
+     6
+    ],
+    [
+     "nextZid",
+     7
+    ],
+    [
+     "zstate",
+     "wall",
+     "0x00124B0000D00001",
+     null
+    ],
+    [
+     "zstate",
+     "wall",
+     "0x00124B0000D00002",
+     "in"
+    ],
+    [
+     "zstate",
+     "wall",
+     "0x00124B0000D00003",
+     "joining"
+    ],
+    [
+     "stale",
+     [
+      [
+       "0x00124B0000D00003",
+       2
+      ],
+      [
+       "0x00124B0000D00004",
+       2
+      ]
+     ]
+    ]
+   ]
+  },
+  {
+   "name": "groups: reconciling, a lost group is joined again and a membership nobody expects is removed",
+   "ops": [
+    [
+     "reconcile",
+     "0x00124B0000E00001",
+     [
+      5
+     ]
+    ],
+    [
+     "reconcile",
+     "0x00124B0000E00002",
+     [
+      1,
+      3,
+      5
+     ]
+    ],
+    [
+     "reconcile",
+     "0x00124B0000E00003",
+     [
+      3,
+      5
+     ]
+    ],
+    [
+     "reconcile",
+     "0x00124B0000E00004",
+     [
+      3,
+      5,
+      99
+     ]
+    ],
+    [
+     "groupWork"
+    ],
+    [
+     "reconcile",
+     "0x00124B0000E00002",
+     [
+      3,
+      5
+     ]
+    ]
+   ],
+   "expect": [
+    {
+     "value": true
+    },
+    {
+     "value": true
+    },
+    {
+     "value": false
+    },
+    {
+     "value": false
+    },
+    {
+     "value": [
+      [
+       "remove",
+       "0x00124B0000E00002",
+       1
+      ],
+      [
+       "add",
+       "0x00124B0000E00001",
+       3
+      ]
+     ]
+    },
+    {
+     "value": true
+    }
+   ],
+   "probes": [
+    [
+     "zstate",
+     "middle",
+     "0x00124B0000E00001",
+     "joining"
+    ],
+    [
+     "zstate",
+     "middle",
+     "0x00124B0000E00002",
+     "in"
+    ],
+    [
+     "stale",
+     []
+    ]
+   ]
+  },
+  {
+   "name": "groups: a full table fails the join, and a retry tries it again",
+   "ops": [
+    [
+     "reconcile",
+     "0x00124B0000E00001",
+     [
+      5
+     ]
+    ],
+    [
+     "groupAnswer",
+     "add",
+     "0x00124B0000E00001",
+     3,
+     137
+    ],
+    [
+     "groupWork"
+    ],
+    [
+     "retryFailed"
+    ],
+    [
+     "groupWork"
+    ],
+    [
+     "groupAnswer",
+     "add",
+     "0x00124B0000E00001",
+     3,
+     138
+    ]
+   ],
+   "expect": [
+    {
+     "value": true
+    },
+    {
+     "value": true
+    },
+    {
+     "value": []
+    },
+    {
+     "value": 1
+    },
+    {
+     "value": [
+      [
+       "add",
+       "0x00124B0000E00001",
+       3
+      ]
+     ]
+    },
+    {
+     "value": true
+    }
+   ],
+   "probes": [
+    [
+     "zstate",
+     "middle",
+     "0x00124B0000E00001",
+     "in"
+    ]
+   ]
+  },
+  {
+   "name": "groups: a device removed from the panel takes its old addresses with it",
+   "ops": [
+    [
+     "reconcile",
+     "0x00124B0000E00002",
+     [
+      1,
+      3,
+      5
+     ]
+    ],
+    [
+     "removeDevice",
+     "0x00124B0000E00002"
+    ]
+   ],
+   "expect": [
+    {
+     "value": true
+    },
+    {
+     "actions": [
+      [
+       "leave",
+       "0x00124B0000E00002"
+      ]
+     ]
+    }
+   ],
+   "probes": [
+    [
+     "stale",
+     []
+    ]
+   ]
+  },
+  {
+   "name": "a name of blanks only is no name, whichever blanks they are",
+   "ops": [
+    [
+     "renameDevice",
+     "relay:1",
+     "\t "
+    ],
+    [
+     "renameScreen",
+     "home",
+     " "
+    ],
+    [
+     "renameZone",
+     "hall",
+     " \n"
+    ]
+   ],
+   "expect": [
+    {
+     "refusal": "no_name"
+    },
+    {
+     "refusal": "no_name"
+    },
+    {
+     "refusal": "no_name"
+    }
+   ]
+  },
+  {
+   "name": "the schedule's events go with what they act on, a deleted zone's too, and a device in another's place takes its own",
+   "ops": [
+    [
+     "setEvents",
+     [
+      [
+       "e101",
+       "0x00124B0000C00001",
+       20731,
+       600,
+       660,
+       null,
+       [],
+       [
+        60,
+        null,
+        null
+       ]
+      ],
+      [
+       "e102",
+       "0x00124B0000C00002",
+       20731,
+       600,
+       660,
+       [
+        1,
+        1,
+        0,
+        0
+       ],
+       [],
+       null
+      ],
+      [
+       "e103",
+       [
+        "corridor",
+        "light",
+        2
+       ],
+       20731,
+       1200,
+       1260,
+       [
+        2,
+        1,
+        31,
+        0
+       ],
+       [],
+       null
+      ],
+      [
+       "e104",
+       [
+        "hall",
+        "light",
+        1
+       ],
+       20731,
+       1080,
+       1380,
+       null,
+       [],
+       null
+      ],
+      [
+       "e105",
+       "relay:1",
+       20731,
+       420,
+       480,
+       null,
+       [],
+       null
+      ],
+      [
+       "e106",
+       [
+        "hall",
+        "thermostat",
+        0
+       ],
+       20731,
+       600,
+       660,
+       null,
+       [],
+       210
+      ]
+     ],
+     [
+      "0x00124B0000C00001",
+      "0x00124B0000C00002",
+      "relay:1"
+     ]
+    ],
+    [
+     "removeDevice",
+     "0x00124B0000C00001"
+    ],
+    [
+     "replaceDevice",
+     "0x00124B0000C00002",
+     [
+      "0x00124B0000C00009",
+      "",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    [
+     "deleteZone",
+     "hall"
+    ]
+   ],
+   "expect": [
+    {
+     "ok": true
+    },
+    {
+     "actions": [
+      [
+       "leave",
+       "0x00124B0000C00001"
+      ]
+     ]
+    },
+    {
+     "value": "0x00124B0000C00009",
+     "actions": [
+      [
+       "leave",
+       "0x00124B0000C00002"
+      ]
+     ]
+    },
+    {
+     "ok": true
+    }
+   ],
+   "probes": [
+    [
+     "events",
+     [
+      [
+       "e102",
+       "0x00124B0000C00009"
+      ],
+      [
+       "e103",
+       [
+        "corridor",
+        "light",
+        2
+       ]
+      ]
+     ]
+    ],
+    [
+     "scheduleOff",
+     [
+      "0x00124B0000C00009"
+     ]
+    ]
+   ]
+  }
+ ],
+ "formatSize": [
+  [
+   [
+    3,
+    4
+   ],
+   "3x4"
+  ],
+  [
+   [
+    5,
+    11
+   ],
+   "5x11"
+  ]
+ ],
+ "placementUS": {
+  "about": "The Living room built on a matrix of 5 × 8 cells, the US's until 2026-09-24, the tall ones first: in this order the reading-order rule lands every card where the turned croqui has it (fixtures/living-room-us.json), with no tap on the dashed card.",
+  "matrix": [
+   5,
+   8
+  ],
+  "sequence": [
+   [
+    [
+     5,
+     2
+    ],
+    [
+     0,
+     0
+    ]
+   ],
+   [
+    [
+     1,
+     6
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   [
+    [
+     4,
+     2
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   [
+    [
+     3,
+     4
+    ],
+    [
+     1,
+     4
+    ]
+   ],
+   [
+    [
+     1,
+     4
+    ],
+    [
+     4,
+     4
+    ]
+   ]
+  ]
+ },
+ "turn": {
+  "about": "fixtures/living-room-us.json is fixtures/living-room.json turned a quarter clockwise, written by hand. fitMatrix fits a configuration to the panel it is on: it takes the panel's matrix when its cards fit (the Living room, 8 x 5, on the EU's 11 x 5 and the US's 8 x 8), turns it when they only fit turned, and refuses otherwise. The value is the turn: 1 clockwise, -1 counterclockwise, 0 none.",
+  "fit": [
+   [
+    [
+     11,
+     5
+    ],
+    0
+   ],
+   [
+    [
+     8,
+     8
+    ],
+    0
+   ],
+   [
+    [
+     5,
+     8
+    ],
+    1
+   ],
+   [
+    [
+     8,
+     5
+    ],
+    0
+   ],
+   [
+    [
+     6,
+     6
+    ],
+    "matrix_mismatch"
+   ]
+  ]
+ },
+ "deviceProfile": [
+  [
+   [
+    260,
+    269,
+    [
+     0,
+     3,
+     4,
+     5,
+     6,
+     8,
+     768
+    ]
+   ],
+   [
+    "light",
+    15
+   ]
+  ],
+  [
+   [
+    260,
+    268,
+    [
+     0,
+     3,
+     4,
+     5,
+     6,
+     8,
+     768
+    ]
+   ],
+   [
+    "light",
+    7
+   ]
+  ],
+  [
+   [
+    260,
+    257,
+    [
+     0,
+     3,
+     4,
+     5,
+     6,
+     8
+    ]
+   ],
+   [
+    "light",
+    3
+   ]
+  ],
+  [
+   [
+    260,
+    256,
+    [
+     0,
+     3,
+     4,
+     5,
+     6
+    ]
+   ],
+   [
+    "light",
+    1
+   ]
+  ],
+  [
+   [
+    49246,
+    528,
+    [
+     0,
+     3,
+     4,
+     5,
+     6,
+     8,
+     768
+    ]
+   ],
+   [
+    "light",
+    15
+   ]
+  ],
+  [
+   [
+    49246,
+    544,
+    [
+     0,
+     3,
+     4,
+     5,
+     6,
+     8,
+     768
+    ]
+   ],
+   [
+    "light",
+    7
+   ]
+  ],
+  [
+   [
+    49246,
+    512,
+    [
+     0,
+     3,
+     4,
+     5,
+     6,
+     8,
+     768
+    ]
+   ],
+   [
+    "light",
+    11
+   ]
+  ],
+  [
+   [
+    260,
+    81,
+    [
+     0,
+     3,
+     4,
+     5,
+     6,
+     1794
+    ]
+   ],
+   [
+    "plug",
+    1
+   ]
+  ],
+  [
+   [
+    260,
+    2,
+    [
+     0,
+     3,
+     4,
+     5,
+     6
+    ]
+   ],
+   [
+    "switch",
+    1
+   ]
+  ],
+  [
+   [
+    260,
+    514,
+    [
+     0,
+     3,
+     4,
+     5,
+     258
+    ]
+   ],
+   [
+    "cover",
+    0
+   ]
+  ],
+  [
+   [
+    260,
+    260,
+    [
+     0,
+     3
+    ]
+   ],
+   [
+    "remote",
+    0
+   ]
+  ],
+  [
+   [
+    260,
+    1026,
+    [
+     0,
+     1,
+     3,
+     1280
+    ]
+   ],
+   [
+    "sensor",
+    0
+   ]
+  ],
+  [
+   [
+    260,
+    4660,
+    [
+     0,
+     6,
+     8,
+     768
+    ]
+   ],
+   [
+    "light",
+    15
+   ]
+  ],
+  [
+   [
+    260,
+    4660,
+    [
+     0,
+     6
+    ]
+   ],
+   [
+    "generic",
+    1
+   ]
+  ]
+ ],
+ "autoName": [
+  [
+   "light",
+   "Light 1"
+  ],
+  [
+   "plug",
+   "Plug 1"
+  ],
+  [
+   "generic",
+   "Device 1"
+  ],
+  [
+   "thermostat",
+   "Thermostat 1"
+  ]
+ ],
+ "configProfile": [
+  [
+   [
+    "L01.5"
+   ],
+   [
+    "light",
+    15,
+    1
+   ]
+  ],
+  [
+   [
+    "L01.2"
+   ],
+   [
+    "light",
+    7,
+    1
+   ]
+  ],
+  [
+   [
+    "L0B.1"
+   ],
+   [
+    "light",
+    3,
+    11
+   ]
+  ],
+  [
+   [
+    "L01"
+   ],
+   [
+    "light",
+    3,
+    1
+   ]
+  ],
+  [
+   [
+    "O01",
+    "L02.3"
+   ],
+   [
+    "light",
+    11,
+    2
+   ]
+  ],
+  [
+   [
+    "P01"
+   ],
+   [
+    "plug",
+    1,
+    1
+   ]
+  ],
+  [
+   [
+    "O01"
+   ],
+   [
+    "switch",
+    1,
+    1
+   ]
+  ],
+  [
+   [
+    "I01.1"
+   ],
+   [
+    "sensor",
+    0,
+    1
+   ]
+  ],
+  [
+   [
+    "?01"
+   ],
+   null
+  ],
+  [
+   [],
+   null
+  ]
+ ],
+ "shapes": {
+  "about": "Cards of irregular shape. Two cards on an 8 x 5 plan, a cell at 2,2 and a column of three at 1,5; holesAt is a block [col,row,cols,rows] and its holes [dc,dr], in one piece or in several, or the refusal; ghostTo a free cell touched, the dashed card's [cols,rows] and where it goes; ghostResized the dashed card and the grid typed, [cols,rows], cut at the plan's edge.",
+  "matrix": [
+   8,
+   5
+  ],
+  "blocks": [
+   [
+    1,
+    1,
+    1,
+    1
+   ],
+   [
+    4,
+    0,
+    1,
+    3
+   ]
+  ],
+  "holesAt": [
+   [
+    [
+     0,
+     0,
+     3,
+     3
+    ],
+    [
+     [
+      1,
+      1
+     ]
+    ]
+   ],
+   [
+    [
+     3,
+     0,
+     3,
+     1
+    ],
+    [
+     [
+      1,
+      0
+     ]
+    ]
+   ],
+   [
+    [
+     1,
+     1,
+     1,
+     1
+    ],
+    "taken"
+   ],
+   [
+    [
+     6,
+     4,
+     3,
+     1
+    ],
+    "outside"
+   ],
+   [
+    [
+     5,
+     0,
+     2,
+     2
+    ],
+    []
+   ],
+   [
+    [
+     3,
+     0,
+     2,
+     3
+    ],
+    [
+     [
+      1,
+      0
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      2
+     ]
+    ]
+   ]
+  ],
+  "ghostTo": [
+   [
+    [
+     7,
+     4
+    ],
+    [
+     3,
+     2
+    ],
+    [
+     5,
+     3,
+     3,
+     2
+    ]
+   ],
+   [
+    [
+     0,
+     0
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     0,
+     0,
+     3,
+     3
+    ]
+   ],
+   [
+    [
+     3,
+     1
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     3,
+     1,
+     3,
+     1
+    ]
+   ],
+   [
+    [
+     6,
+     2
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     6,
+     2,
+     2,
+     2
+    ]
+   ],
+   [
+    [
+     2,
+     2
+    ],
+    [
+     4,
+     3
+    ],
+    [
+     2,
+     2,
+     4,
+     3
+    ]
+   ]
+  ],
+  "ghostResized": [
+   [
+    [
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     0,
+     0,
+     3,
+     3
+    ]
+   ],
+   [
+    [
+     3,
+     0,
+     1,
+     1
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     3,
+     0,
+     3,
+     1
+    ]
+   ],
+   [
+    [
+     6,
+     4,
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     6,
+     4,
+     2,
+     1
+    ]
+   ],
+   [
+    [
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     8,
+     5
+    ],
+    [
+     0,
+     0,
+     8,
+     5
+    ]
+   ]
+  ]
+ },
+ "upgrade": [
+  [
+   {
+    "v": 3,
+    "matrix": [
+     8,
+     5
+    ],
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "0x00124B00000000A1",
+      "Lamp",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    "zones": [
+     {
+      "id": "hall",
+      "members": [
+       [
+        "relay:1",
+        [
+         102,
+         201,
+         302,
+         402
+        ]
+       ],
+       [
+        "0x00124B00000000A1",
+        [
+         101,
+         202
+        ]
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "v": 7,
+    "matrix": 508,
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "0x00124B00000000A1",
+      "Lamp",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ],
+     [
+      "relay:2",
+      "Light 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "relay:3",
+      "Light 2",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "relay:4",
+      "Light 3",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ]
+    ],
+    "zones": [
+     {
+      "id": "hall",
+      "members": {
+       "relay:1": 102,
+       "relay:2": 201,
+       "relay:3": 302,
+       "relay:4": 402,
+       "0x00124B00000000A1": 101
+      }
+     }
+    ]
+   }
+  ],
+  [
+   {
+    "v": 2,
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0
+     ]
+    ],
+    "zones": [
+     {
+      "id": "z",
+      "members": [
+       [
+        "relay:1",
+        [
+         101,
+         102
+        ]
+       ]
+      ],
+      "power": []
+     }
+    ],
+    "relays": [
+     "light",
+     "light"
+    ]
+   },
+   {
+    "v": 7,
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "relay:2",
+      "Light 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ]
+    ],
+    "zones": [
+     {
+      "id": "z",
+      "members": {
+       "relay:1": 101,
+       "relay:2": 102
+      }
+     }
+    ]
+   }
+  ],
+  [
+   {
+    "v": 3,
+    "matrix": [
+     8,
+     5
+    ],
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "relay:1",
+      "Plug 1",
+      "plug",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      2
+     ]
+    ],
+    "zones": [
+     {
+      "id": "a",
+      "members": [
+       [
+        "relay:1",
+        [
+         101,
+         102
+        ]
+       ]
+      ]
+     },
+     {
+      "id": "b",
+      "members": [
+       [
+        "relay:2",
+        [
+         101
+        ]
+       ]
+      ]
+     },
+     {
+      "id": "c"
+     }
+    ]
+   },
+   {
+    "v": 7,
+    "matrix": 508,
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "relay:1",
+      "Plug 1",
+      "plug",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      2
+     ],
+     [
+      "relay:3",
+      "Light 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ]
+    ],
+    "zones": [
+     {
+      "id": "a",
+      "members": {
+       "relay:1": 101,
+       "relay:3": 102
+      }
+     },
+     {
+      "id": "b",
+      "members": {
+       "relay:2": 101
+      }
+     },
+     {
+      "id": "c",
+      "members": {}
+     }
+    ]
+   }
+  ],
+  [
+   {
+    "v": 4,
+    "matrix": [
+     8,
+     5
+    ],
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "0x00124B00000000A1",
+      "Lamp",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    "zones": [
+     {
+      "id": "hall",
+      "members": [
+       [
+        "relay:1",
+        [
+         102
+        ]
+       ],
+       [
+        "0x00124B00000000A1",
+        []
+       ]
+      ]
+     },
+     {
+      "id": "c"
+     }
+    ]
+   },
+   {
+    "v": 7,
+    "matrix": 508,
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "0x00124B00000000A1",
+      "Lamp",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    "zones": [
+     {
+      "id": "hall",
+      "members": {
+       "relay:1": 102,
+       "0x00124B00000000A1": 0
+      }
+     },
+     {
+      "id": "c",
+      "members": {}
+     }
+    ]
+   }
+  ],
+  [
+   {
+    "v": 5,
+    "matrix": [
+     8,
+     5
+    ],
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "0x00124B00000000A1",
+      "Lamp",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    "zones": [
+     {
+      "id": "hall",
+      "grid": [
+       2,
+       3
+      ],
+      "members": [
+       [
+        "relay:1",
+        102
+       ],
+       [
+        "0x00124B00000000A1",
+        0
+       ],
+       [
+        "relay:1",
+        203
+       ]
+      ]
+     },
+     {
+      "id": "c",
+      "grid": [
+       0,
+       3
+      ]
+     }
+    ]
+   },
+   {
+    "v": 7,
+    "matrix": 508,
+    "devices": [
+     [
+      "relay:1",
+      "Relay 1",
+      "light",
+      1,
+      0,
+      0,
+      "",
+      0,
+      0,
+      1
+     ],
+     [
+      "0x00124B00000000A1",
+      "Lamp",
+      "light",
+      15,
+      153,
+      500,
+      "CK-BL702-AL-01",
+      1,
+      1,
+      0
+     ]
+    ],
+    "zones": [
+     {
+      "id": "hall",
+      "grid": 203,
+      "members": {
+       "relay:1": 102,
+       "0x00124B00000000A1": 0
+      }
+     },
+     {
+      "id": "c",
+      "grid": 0,
+      "members": {}
+     }
+    ]
+   }
+  ],
+  [
+   {
+    "v": 6,
+    "matrix": 805,
+    "devices": [],
+    "zones": [
+     {
+      "id": "a",
+      "display": "summary"
+     },
+     {
+      "id": "b",
+      "display": "auto"
+     },
+     {
+      "id": "c",
+      "display": "uniform"
+     },
+     {
+      "id": "d"
+     }
+    ],
+    "screens": [
+     {
+      "id": "home",
+      "title": "Home",
+      "cards": []
+     }
+    ],
+    "buttonGroups": [],
+    "nextZid": 1,
+    "seq": 1,
+    "stale": []
+   },
+   {
+    "v": 7,
+    "matrix": 805,
+    "devices": [],
+    "zones": [
+     {
+      "id": "a",
+      "display": "adaptive"
+     },
+     {
+      "id": "b",
+      "display": "adaptive"
+     },
+     {
+      "id": "c",
+      "display": "uniform"
+     },
+     {
+      "id": "d"
+     }
+    ],
+    "screens": [
+     {
+      "id": "home",
+      "title": "Home",
+      "cards": []
+     }
+    ],
+    "buttonGroups": [],
+    "nextZid": 1,
+    "seq": 1,
+    "stale": []
+   }
+  ]
+ ],
+ "shapesAtTheEdge": {
+  "about": "A plan that once showed a defect: 11 x 5 cells, a card at columns 0 to 7 of rows 0 to 2, and one at columns 8 and 9 of row 1. The dashed card at 8,0: 4x4 typed is cut to three columns, around the second card, and never moved back over the first; 3x2 is two pieces.",
+  "matrix": [
+   11,
+   5
+  ],
+  "blocks": [
+   [
+    0,
+    0,
+    8,
+    3
+   ],
+   [
+    8,
+    1,
+    2,
+    1
+   ]
+  ],
+  "holesAt": [
+   [
+    [
+     8,
+     0,
+     3,
+     4
+    ],
+    [
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   ],
+   [
+    [
+     8,
+     0,
+     2,
+     3
+    ],
+    [
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   ]
+  ],
+  "ghostResized": [
+   [
+    [
+     8,
+     0,
+     1,
+     1
+    ],
+    [
+     4,
+     4
+    ],
+    [
+     8,
+     0,
+     3,
+     4
+    ]
+   ],
+   [
+    [
+     8,
+     0,
+     1,
+     1
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     8,
+     0,
+     2,
+     3
+    ]
+   ]
+  ]
+ }
+}

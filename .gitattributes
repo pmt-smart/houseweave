@@ -1,0 +1,20 @@
+# Binaries the project compares byte for byte. Auto-detection already gets these
+# right (they are full of NULs), but this repo's whole method is byte-exact
+# round trips against the Nextion Editor's output — a line-ending conversion
+# slipping into a .zi or a .tft would corrupt the evidence, not just a file.
+*.zi binary
+*.tft binary
+*.HMI binary
+*.png binary
+*.bin binary
+
+# A generated project is read by the byte offsets its first line gives
+# (berry/panel_runtime.be): an end-of-line conversion on checkout would move
+# every line after it, and the panel would refuse the file.
+*.jsonl text eol=lf
+
+# The brain's Berry, compiled into the firmware: Tasmota's solidification takes
+# the class name as the rest of the `#@ solidify:` line, carriage return
+# included, and a `Brain\r` breaks the build's modules.h (a checkout with
+# core.autocrlf).
+*.be text eol=lf

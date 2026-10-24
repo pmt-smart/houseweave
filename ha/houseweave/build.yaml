@@ -1,0 +1,5 @@
+# The image the add-on is built on: Node's own, on Alpine, for both
+# architectures the add-on names. The Supervisor passes it as BUILD_FROM.
+build_from:
+  aarch64: node:22-alpine
+  amd64: node:22-alpine

@@ -1,0 +1,31 @@
+{
+  "name": "@nspanel-sim/export",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "fetch-fixtures": "node scripts/fetch-fixtures.mjs",
+    "test": "tsc -p ../layout/tsconfig.json && tsc -p ../core/tsconfig.json && tsc -p tsconfig.json && node --test \"test/*.test.mjs\"",
+    "build-fonts": "node scripts/build-theme-fonts.mjs",
+    "check-fonts": "node scripts/build-theme-fonts.mjs --check"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "@mdi/js": "^7.4.47"
+  },
+  "dependencies": {
+    "@nspanel-sim/layout": "*",
+    "@nspanel-sim/core": "*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "node": "./dist/index.js",
+      "default": "./src/index.ts"
+    }
+  }
+}

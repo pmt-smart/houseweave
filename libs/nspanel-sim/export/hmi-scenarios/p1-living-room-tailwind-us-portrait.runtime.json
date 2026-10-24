@@ -1,0 +1,3565 @@
+{
+  "project": "living-room-tailwind",
+  "device": "us-portrait",
+  "theme": "tailwind-slate",
+  "scenario": "p1-living-room-tailwind-us-portrait",
+  "bindings": [
+    {
+      "page": "screensaver",
+      "objname": "tTime0",
+      "attribute": "txt",
+      "path": "$clock.time",
+      "maxl": 19,
+      "fit": {
+        "width": 290,
+        "font": "display"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tDate0",
+      "attribute": "txt",
+      "path": "$clock.date",
+      "maxl": 26,
+      "fit": {
+        "width": 131,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tNow1",
+      "attribute": "txt",
+      "path": "$weather.0.temp",
+      "maxl": 13,
+      "fit": {
+        "width": 81,
+        "font": "title"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tWd01",
+      "attribute": "txt",
+      "path": "$weather.1.label",
+      "maxl": 9,
+      "fit": {
+        "width": 48,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tTemp01",
+      "attribute": "txt",
+      "path": "$weather.1.temp",
+      "maxl": 9,
+      "fit": {
+        "width": 48,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tWd11",
+      "attribute": "txt",
+      "path": "$weather.2.label",
+      "maxl": 9,
+      "fit": {
+        "width": 48,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tTemp11",
+      "attribute": "txt",
+      "path": "$weather.2.temp",
+      "maxl": 9,
+      "fit": {
+        "width": 48,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tWd21",
+      "attribute": "txt",
+      "path": "$weather.3.label",
+      "maxl": 9,
+      "fit": {
+        "width": 48,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tTemp21",
+      "attribute": "txt",
+      "path": "$weather.3.temp",
+      "maxl": 9,
+      "fit": {
+        "width": 48,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tWd31",
+      "attribute": "txt",
+      "path": "$weather.4.label",
+      "maxl": 9,
+      "fit": {
+        "width": 49,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tTemp31",
+      "attribute": "txt",
+      "path": "$weather.4.temp",
+      "maxl": 9,
+      "fit": {
+        "width": 49,
+        "font": "body"
+      }
+    },
+    {
+      "page": "screensaver",
+      "objname": "tIcon2",
+      "attribute": "pco",
+      "path": "$status.alarm.color"
+    },
+    {
+      "page": "screensaver",
+      "objname": "tIcon3",
+      "attribute": "pco",
+      "path": "$status.notice.color"
+    },
+    {
+      "page": "screensaver",
+      "objname": "vaLive",
+      "attribute": "val",
+      "path": "$settings.liveSliderUpdate"
+    },
+    {
+      "page": "screensaver",
+      "objname": "kbIn",
+      "attribute": "txt",
+      "path": "$keyboard.value"
+    },
+    {
+      "page": "screensaver",
+      "objname": "kbMax",
+      "attribute": "val",
+      "path": "$keyboard.max"
+    },
+    {
+      "page": "home",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$screen.home.title",
+      "maxl": 32,
+      "fit": {
+        "width": 193,
+        "font": "title"
+      },
+      "initial": "Home"
+    },
+    {
+      "page": "home",
+      "objname": "tStatus0",
+      "attribute": "txt",
+      "path": "$plan.statusIcon",
+      "kind": "glyph"
+    },
+    {
+      "page": "home",
+      "objname": "tStatus0",
+      "attribute": "vis",
+      "path": "$plan.statusIcon",
+      "kind": "present"
+    },
+    {
+      "page": "home",
+      "objname": "tAction0",
+      "attribute": "txt",
+      "path": "$plan.actionIcon",
+      "kind": "glyph"
+    },
+    {
+      "page": "home",
+      "objname": "tAction0",
+      "attribute": "vis",
+      "path": "$plan.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "home",
+      "objname": "mAction0",
+      "attribute": "vis",
+      "path": "$plan.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$light.name",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount1",
+      "attribute": "txt",
+      "path": "$light.icons.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount1",
+      "attribute": "pco",
+      "path": "$light.icons.0.iconColor"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount1",
+      "attribute": "vis",
+      "path": "$light.icons.0.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount2",
+      "attribute": "txt",
+      "path": "$light.icons.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount2",
+      "attribute": "pco",
+      "path": "$light.icons.1.iconColor"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount2",
+      "attribute": "vis",
+      "path": "$light.icons.1.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount3",
+      "attribute": "txt",
+      "path": "$light.icons.2.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount3",
+      "attribute": "pco",
+      "path": "$light.icons.2.iconColor"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount3",
+      "attribute": "vis",
+      "path": "$light.icons.2.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bRow4",
+      "attribute": "txt",
+      "path": "$light.card.label",
+      "maxl": 19,
+      "fit": {
+        "width": 98,
+        "font": "body"
+      }
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bRow4",
+      "attribute": "vis",
+      "path": "$light.card.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h5",
+      "attribute": "val",
+      "path": "$light.brightnessPct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h5",
+      "attribute": "vis",
+      "path": "$light.brightnessVisible",
+      "kind": "vis"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h6",
+      "attribute": "val",
+      "path": "$light.colorTempPct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h6",
+      "attribute": "vis",
+      "path": "$light.colorTempVisible",
+      "kind": "vis"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h7",
+      "attribute": "val",
+      "path": "$light.huePct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h7",
+      "attribute": "vis",
+      "path": "$light.hueVisible",
+      "kind": "vis"
+    },
+    {
+      "page": "zone",
+      "objname": "hPage0",
+      "attribute": "maxval",
+      "path": "$zone.pageCount",
+      "kind": "pages"
+    },
+    {
+      "page": "zone",
+      "objname": "hPage0",
+      "attribute": "val",
+      "path": "$zone.page",
+      "kind": "flip",
+      "max": 2
+    },
+    {
+      "page": "zone",
+      "objname": "hPageEnd0",
+      "attribute": "vis",
+      "path": "$zone.pageCount",
+      "kind": "paged"
+    },
+    {
+      "page": "zone",
+      "objname": "tTitle1",
+      "attribute": "txt",
+      "path": "$zone.title",
+      "maxl": 40,
+      "fit": {
+        "width": 241,
+        "font": "title"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tAction1",
+      "attribute": "txt",
+      "path": "$zone.actionIcon",
+      "kind": "glyph"
+    },
+    {
+      "page": "zone",
+      "objname": "tAction1",
+      "attribute": "vis",
+      "path": "$zone.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "zone",
+      "objname": "mAction1",
+      "attribute": "vis",
+      "path": "$zone.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel2",
+      "attribute": "txt",
+      "path": "$zone.name.label",
+      "maxl": 20,
+      "fit": {
+        "width": 101,
+        "font": "body"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tCount3",
+      "attribute": "txt",
+      "path": "$zone.counts.0.count",
+      "maxl": 7,
+      "fit": {
+        "width": 39,
+        "font": "body"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tKind3",
+      "attribute": "txt",
+      "path": "$zone.counts.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "zone",
+      "objname": "tKind3",
+      "attribute": "pco",
+      "path": "$zone.counts.0.iconColor"
+    },
+    {
+      "page": "zone",
+      "objname": "tCount4",
+      "attribute": "txt",
+      "path": "$zone.counts.1.count",
+      "maxl": 7,
+      "fit": {
+        "width": 39,
+        "font": "body"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tKind4",
+      "attribute": "txt",
+      "path": "$zone.counts.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "zone",
+      "objname": "tKind4",
+      "attribute": "pco",
+      "path": "$zone.counts.1.iconColor"
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel5",
+      "attribute": "txt",
+      "path": "$zone.rows.0.label",
+      "maxl": 35,
+      "fit": {
+        "width": 179,
+        "font": "body"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel5",
+      "attribute": "pco",
+      "path": "$zone.rows.0.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon5",
+      "attribute": "txt",
+      "path": "$zone.rows.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon5",
+      "attribute": "pco",
+      "path": "$zone.rows.0.iconColor"
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel6",
+      "attribute": "txt",
+      "path": "$zone.rows.1.label",
+      "maxl": 35,
+      "fit": {
+        "width": 179,
+        "font": "body"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel6",
+      "attribute": "pco",
+      "path": "$zone.rows.1.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon6",
+      "attribute": "txt",
+      "path": "$zone.rows.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon6",
+      "attribute": "pco",
+      "path": "$zone.rows.1.iconColor"
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel7",
+      "attribute": "txt",
+      "path": "$zone.rows.2.label",
+      "maxl": 35,
+      "fit": {
+        "width": 179,
+        "font": "body"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel7",
+      "attribute": "pco",
+      "path": "$zone.rows.2.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon7",
+      "attribute": "txt",
+      "path": "$zone.rows.2.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon7",
+      "attribute": "pco",
+      "path": "$zone.rows.2.iconColor"
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel8",
+      "attribute": "txt",
+      "path": "$zone.rows.3.label",
+      "maxl": 35,
+      "fit": {
+        "width": 179,
+        "font": "body"
+      }
+    },
+    {
+      "page": "zone",
+      "objname": "tLabel8",
+      "attribute": "pco",
+      "path": "$zone.rows.3.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon8",
+      "attribute": "txt",
+      "path": "$zone.rows.3.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "zone",
+      "objname": "tIcon8",
+      "attribute": "pco",
+      "path": "$zone.rows.3.iconColor"
+    },
+    {
+      "page": "thermostat",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$thermostat.name",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount1",
+      "attribute": "txt",
+      "path": "$thermostat.icons.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount1",
+      "attribute": "pco",
+      "path": "$thermostat.icons.0.iconColor"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount1",
+      "attribute": "vis",
+      "path": "$thermostat.icons.0.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount2",
+      "attribute": "txt",
+      "path": "$thermostat.icons.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount2",
+      "attribute": "pco",
+      "path": "$thermostat.icons.1.iconColor"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount2",
+      "attribute": "vis",
+      "path": "$thermostat.icons.1.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow3",
+      "attribute": "txt",
+      "path": "$thermostat.card.label",
+      "maxl": 32,
+      "fit": {
+        "width": 162,
+        "font": "body"
+      }
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow3",
+      "attribute": "vis",
+      "path": "$thermostat.card.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount4",
+      "attribute": "txt",
+      "path": "$thermostat.minus.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount4",
+      "attribute": "pco",
+      "path": "$thermostat.minus.iconColor"
+    },
+    {
+      "page": "thermostat",
+      "objname": "t5",
+      "attribute": "txt",
+      "path": "$thermostat.target",
+      "maxl": 22,
+      "fit": {
+        "width": 134,
+        "font": "title"
+      }
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount6",
+      "attribute": "txt",
+      "path": "$thermostat.plus.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount6",
+      "attribute": "pco",
+      "path": "$thermostat.plus.iconColor"
+    },
+    {
+      "page": "thermostat",
+      "objname": "t7",
+      "attribute": "txt",
+      "path": "$thermostat.lines.0",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow8",
+      "attribute": "txt",
+      "path": "$thermostat.modes.0.label",
+      "maxl": 28,
+      "fit": {
+        "width": 141,
+        "font": "body"
+      }
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow8",
+      "attribute": "pco",
+      "path": "$thermostat.modes.0.on",
+      "kind": "switch",
+      "on": 34,
+      "off": 65503
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow8",
+      "attribute": "bco",
+      "path": "$thermostat.modes.0.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 2213
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow9",
+      "attribute": "txt",
+      "path": "$thermostat.modes.1.label",
+      "maxl": 28,
+      "fit": {
+        "width": 141,
+        "font": "body"
+      }
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow9",
+      "attribute": "pco",
+      "path": "$thermostat.modes.1.on",
+      "kind": "switch",
+      "on": 34,
+      "off": 65503
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow9",
+      "attribute": "bco",
+      "path": "$thermostat.modes.1.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 2213
+    },
+    {
+      "page": "cover",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$cover.name",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "cover",
+      "objname": "bCount1",
+      "attribute": "txt",
+      "path": "$cover.icons.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount1",
+      "attribute": "pco",
+      "path": "$cover.icons.0.iconColor"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount1",
+      "attribute": "vis",
+      "path": "$cover.icons.0.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount2",
+      "attribute": "txt",
+      "path": "$cover.icons.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount2",
+      "attribute": "pco",
+      "path": "$cover.icons.1.iconColor"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount2",
+      "attribute": "vis",
+      "path": "$cover.icons.1.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "cover",
+      "objname": "bRow3",
+      "attribute": "txt",
+      "path": "$cover.card.label",
+      "maxl": 24,
+      "fit": {
+        "width": 121,
+        "font": "body"
+      }
+    },
+    {
+      "page": "cover",
+      "objname": "bRow3",
+      "attribute": "vis",
+      "path": "$cover.card.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "cover",
+      "objname": "hPage4",
+      "attribute": "val",
+      "path": "$cover.page",
+      "kind": "flip",
+      "max": 20
+    },
+    {
+      "page": "cover",
+      "objname": "t5",
+      "attribute": "txt",
+      "path": "$cover.position",
+      "maxl": 27,
+      "fit": {
+        "width": 163,
+        "font": "title"
+      }
+    },
+    {
+      "page": "cover",
+      "objname": "t6",
+      "attribute": "txt",
+      "path": "$cover.state",
+      "maxl": 32,
+      "fit": {
+        "width": 163,
+        "font": "body"
+      }
+    },
+    {
+      "page": "cover",
+      "objname": "bCount7",
+      "attribute": "txt",
+      "path": "$cover.up.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount7",
+      "attribute": "pco",
+      "path": "$cover.up.iconColor"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount8",
+      "attribute": "txt",
+      "path": "$cover.stop.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount8",
+      "attribute": "pco",
+      "path": "$cover.stop.iconColor"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount9",
+      "attribute": "txt",
+      "path": "$cover.down.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount9",
+      "attribute": "pco",
+      "path": "$cover.down.iconColor"
+    },
+    {
+      "page": "cover",
+      "objname": "bRow10",
+      "attribute": "txt",
+      "path": "$cover.vent.label",
+      "maxl": 49,
+      "fit": {
+        "width": 249,
+        "font": "body"
+      }
+    },
+    {
+      "page": "cover",
+      "objname": "bRow10",
+      "attribute": "pco",
+      "path": "$cover.vent.on",
+      "kind": "switch",
+      "on": 34,
+      "off": 65503
+    },
+    {
+      "page": "cover",
+      "objname": "bRow10",
+      "attribute": "bco",
+      "path": "$cover.vent.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 2213
+    },
+    {
+      "page": "settings",
+      "objname": "hPage0",
+      "attribute": "maxval",
+      "path": "$list.pageCount",
+      "kind": "pages"
+    },
+    {
+      "page": "settings",
+      "objname": "hPage0",
+      "attribute": "val",
+      "path": "$list.page",
+      "kind": "flip",
+      "max": 2
+    },
+    {
+      "page": "settings",
+      "objname": "hPageEnd0",
+      "attribute": "vis",
+      "path": "$list.pageCount",
+      "kind": "paged"
+    },
+    {
+      "page": "settings",
+      "objname": "tTitle1",
+      "attribute": "txt",
+      "path": "$list.title",
+      "maxl": 40,
+      "fit": {
+        "width": 241,
+        "font": "title"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tAction1",
+      "attribute": "txt",
+      "path": "$list.actionIcon",
+      "kind": "glyph"
+    },
+    {
+      "page": "settings",
+      "objname": "tAction1",
+      "attribute": "vis",
+      "path": "$list.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "settings",
+      "objname": "mAction1",
+      "attribute": "vis",
+      "path": "$list.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel2",
+      "attribute": "txt",
+      "path": "$list.rows.0.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel2",
+      "attribute": "pco",
+      "path": "$list.rows.0.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "settings",
+      "objname": "tHint2",
+      "attribute": "txt",
+      "path": "$list.rows.0.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tHint2",
+      "attribute": "pco",
+      "path": "$list.rows.0.hintColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon2",
+      "attribute": "txt",
+      "path": "$list.rows.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon2",
+      "attribute": "pco",
+      "path": "$list.rows.0.iconColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel3",
+      "attribute": "txt",
+      "path": "$list.rows.1.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel3",
+      "attribute": "pco",
+      "path": "$list.rows.1.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "settings",
+      "objname": "tHint3",
+      "attribute": "txt",
+      "path": "$list.rows.1.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tHint3",
+      "attribute": "pco",
+      "path": "$list.rows.1.hintColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon3",
+      "attribute": "txt",
+      "path": "$list.rows.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon3",
+      "attribute": "pco",
+      "path": "$list.rows.1.iconColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel4",
+      "attribute": "txt",
+      "path": "$list.rows.2.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel4",
+      "attribute": "pco",
+      "path": "$list.rows.2.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "settings",
+      "objname": "tHint4",
+      "attribute": "txt",
+      "path": "$list.rows.2.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tHint4",
+      "attribute": "pco",
+      "path": "$list.rows.2.hintColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon4",
+      "attribute": "txt",
+      "path": "$list.rows.2.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon4",
+      "attribute": "pco",
+      "path": "$list.rows.2.iconColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel5",
+      "attribute": "txt",
+      "path": "$list.rows.3.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel5",
+      "attribute": "pco",
+      "path": "$list.rows.3.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "settings",
+      "objname": "tHint5",
+      "attribute": "txt",
+      "path": "$list.rows.3.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tHint5",
+      "attribute": "pco",
+      "path": "$list.rows.3.hintColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon5",
+      "attribute": "txt",
+      "path": "$list.rows.3.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon5",
+      "attribute": "pco",
+      "path": "$list.rows.3.iconColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel6",
+      "attribute": "txt",
+      "path": "$list.rows.4.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tLabel6",
+      "attribute": "pco",
+      "path": "$list.rows.4.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "settings",
+      "objname": "tHint6",
+      "attribute": "txt",
+      "path": "$list.rows.4.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "settings",
+      "objname": "tHint6",
+      "attribute": "pco",
+      "path": "$list.rows.4.hintColor"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon6",
+      "attribute": "txt",
+      "path": "$list.rows.4.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "settings",
+      "objname": "tIcon6",
+      "attribute": "pco",
+      "path": "$list.rows.4.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "hPage0",
+      "attribute": "maxval",
+      "path": "$list.pageCount",
+      "kind": "pages"
+    },
+    {
+      "page": "house",
+      "objname": "hPage0",
+      "attribute": "val",
+      "path": "$list.page",
+      "kind": "flip",
+      "max": 2
+    },
+    {
+      "page": "house",
+      "objname": "hPageEnd0",
+      "attribute": "vis",
+      "path": "$list.pageCount",
+      "kind": "paged"
+    },
+    {
+      "page": "house",
+      "objname": "tTitle1",
+      "attribute": "txt",
+      "path": "$list.title",
+      "maxl": 40,
+      "fit": {
+        "width": 241,
+        "font": "title"
+      }
+    },
+    {
+      "page": "house",
+      "objname": "tAction1",
+      "attribute": "txt",
+      "path": "$list.actionIcon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "tAction1",
+      "attribute": "vis",
+      "path": "$list.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "house",
+      "objname": "mAction1",
+      "attribute": "vis",
+      "path": "$list.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "house",
+      "objname": "bCount2",
+      "attribute": "txt",
+      "path": "$house.icons.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "bCount2",
+      "attribute": "pco",
+      "path": "$house.icons.0.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "bCount2",
+      "attribute": "vis",
+      "path": "$house.icons.0.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "house",
+      "objname": "bCount3",
+      "attribute": "txt",
+      "path": "$house.icons.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "bCount3",
+      "attribute": "pco",
+      "path": "$house.icons.1.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "bCount3",
+      "attribute": "vis",
+      "path": "$house.icons.1.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "house",
+      "objname": "bCount4",
+      "attribute": "txt",
+      "path": "$house.icons.2.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "bCount4",
+      "attribute": "pco",
+      "path": "$house.icons.2.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "bCount4",
+      "attribute": "vis",
+      "path": "$house.icons.2.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "house",
+      "objname": "bCount5",
+      "attribute": "txt",
+      "path": "$house.icons.3.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "bCount5",
+      "attribute": "pco",
+      "path": "$house.icons.3.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "bCount5",
+      "attribute": "vis",
+      "path": "$house.icons.3.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "house",
+      "objname": "bCount6",
+      "attribute": "txt",
+      "path": "$house.icons.4.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "bCount6",
+      "attribute": "pco",
+      "path": "$house.icons.4.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "bCount6",
+      "attribute": "vis",
+      "path": "$house.icons.4.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "house",
+      "objname": "bCount7",
+      "attribute": "txt",
+      "path": "$house.icons.5.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "bCount7",
+      "attribute": "pco",
+      "path": "$house.icons.5.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "bCount7",
+      "attribute": "vis",
+      "path": "$house.icons.5.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "house",
+      "objname": "tLabel8",
+      "attribute": "txt",
+      "path": "$list.rows.0.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "house",
+      "objname": "tLabel8",
+      "attribute": "pco",
+      "path": "$list.rows.0.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "house",
+      "objname": "tHint8",
+      "attribute": "txt",
+      "path": "$list.rows.0.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "house",
+      "objname": "tIcon8",
+      "attribute": "txt",
+      "path": "$list.rows.0.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "tIcon8",
+      "attribute": "pco",
+      "path": "$list.rows.0.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "tLabel9",
+      "attribute": "txt",
+      "path": "$list.rows.1.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "house",
+      "objname": "tLabel9",
+      "attribute": "pco",
+      "path": "$list.rows.1.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "house",
+      "objname": "tHint9",
+      "attribute": "txt",
+      "path": "$list.rows.1.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "house",
+      "objname": "tIcon9",
+      "attribute": "txt",
+      "path": "$list.rows.1.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "tIcon9",
+      "attribute": "pco",
+      "path": "$list.rows.1.iconColor"
+    },
+    {
+      "page": "house",
+      "objname": "tLabel10",
+      "attribute": "txt",
+      "path": "$list.rows.2.label",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "house",
+      "objname": "tLabel10",
+      "attribute": "pco",
+      "path": "$list.rows.2.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "house",
+      "objname": "tHint10",
+      "attribute": "txt",
+      "path": "$list.rows.2.hint",
+      "maxl": 43,
+      "fit": {
+        "width": 218,
+        "font": "body"
+      }
+    },
+    {
+      "page": "house",
+      "objname": "tIcon10",
+      "attribute": "txt",
+      "path": "$list.rows.2.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "house",
+      "objname": "tIcon10",
+      "attribute": "pco",
+      "path": "$list.rows.2.iconColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "hPage0",
+      "attribute": "maxval",
+      "path": "$list.pageCount",
+      "kind": "pages"
+    },
+    {
+      "page": "mesh",
+      "objname": "hPage0",
+      "attribute": "val",
+      "path": "$list.page",
+      "kind": "flip",
+      "max": 2
+    },
+    {
+      "page": "mesh",
+      "objname": "hPageEnd0",
+      "attribute": "vis",
+      "path": "$list.pageCount",
+      "kind": "paged"
+    },
+    {
+      "page": "mesh",
+      "objname": "tTitle1",
+      "attribute": "txt",
+      "path": "$list.title",
+      "maxl": 40,
+      "fit": {
+        "width": 241,
+        "font": "title"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tAction1",
+      "attribute": "txt",
+      "path": "$list.actionIcon",
+      "kind": "glyph"
+    },
+    {
+      "page": "mesh",
+      "objname": "tAction1",
+      "attribute": "vis",
+      "path": "$list.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "mesh",
+      "objname": "mAction1",
+      "attribute": "vis",
+      "path": "$list.actionIcon",
+      "kind": "present"
+    },
+    {
+      "page": "mesh",
+      "objname": "bCount2",
+      "attribute": "txt",
+      "path": "$mesh.cog.icon",
+      "kind": "glyph"
+    },
+    {
+      "page": "mesh",
+      "objname": "bCount2",
+      "attribute": "pco",
+      "path": "$mesh.cog.iconColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel3",
+      "attribute": "txt",
+      "path": "$list.rows.0.label",
+      "maxl": 26,
+      "fit": {
+        "width": 131,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel3",
+      "attribute": "pco",
+      "path": "$list.rows.0.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail3",
+      "attribute": "txt",
+      "path": "$list.rows.0.tail",
+      "maxl": 25,
+      "fit": {
+        "width": 126,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail3",
+      "attribute": "pco",
+      "path": "$list.rows.0.tailColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint3",
+      "attribute": "txt",
+      "path": "$list.rows.0.hint",
+      "maxl": 51,
+      "fit": {
+        "width": 257,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint3",
+      "attribute": "pco",
+      "path": "$list.rows.0.hintColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel4",
+      "attribute": "txt",
+      "path": "$list.rows.1.label",
+      "maxl": 26,
+      "fit": {
+        "width": 131,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel4",
+      "attribute": "pco",
+      "path": "$list.rows.1.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail4",
+      "attribute": "txt",
+      "path": "$list.rows.1.tail",
+      "maxl": 25,
+      "fit": {
+        "width": 126,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail4",
+      "attribute": "pco",
+      "path": "$list.rows.1.tailColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint4",
+      "attribute": "txt",
+      "path": "$list.rows.1.hint",
+      "maxl": 51,
+      "fit": {
+        "width": 257,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint4",
+      "attribute": "pco",
+      "path": "$list.rows.1.hintColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel5",
+      "attribute": "txt",
+      "path": "$list.rows.2.label",
+      "maxl": 26,
+      "fit": {
+        "width": 131,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel5",
+      "attribute": "pco",
+      "path": "$list.rows.2.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail5",
+      "attribute": "txt",
+      "path": "$list.rows.2.tail",
+      "maxl": 25,
+      "fit": {
+        "width": 126,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail5",
+      "attribute": "pco",
+      "path": "$list.rows.2.tailColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint5",
+      "attribute": "txt",
+      "path": "$list.rows.2.hint",
+      "maxl": 51,
+      "fit": {
+        "width": 257,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint5",
+      "attribute": "pco",
+      "path": "$list.rows.2.hintColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel6",
+      "attribute": "txt",
+      "path": "$list.rows.3.label",
+      "maxl": 26,
+      "fit": {
+        "width": 131,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tLabel6",
+      "attribute": "pco",
+      "path": "$list.rows.3.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail6",
+      "attribute": "txt",
+      "path": "$list.rows.3.tail",
+      "maxl": 25,
+      "fit": {
+        "width": 126,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tTail6",
+      "attribute": "pco",
+      "path": "$list.rows.3.tailColor"
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint6",
+      "attribute": "txt",
+      "path": "$list.rows.3.hint",
+      "maxl": 51,
+      "fit": {
+        "width": 257,
+        "font": "body"
+      }
+    },
+    {
+      "page": "mesh",
+      "objname": "tHint6",
+      "attribute": "pco",
+      "path": "$list.rows.3.hintColor"
+    },
+    {
+      "page": "confirm",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$list.title",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "confirm",
+      "objname": "t1",
+      "attribute": "txt",
+      "path": "$dialog.lines.0",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "confirm",
+      "objname": "t2",
+      "attribute": "txt",
+      "path": "$dialog.lines.1",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "confirm",
+      "objname": "t3",
+      "attribute": "txt",
+      "path": "$dialog.lines.2",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "confirm",
+      "objname": "t4",
+      "attribute": "txt",
+      "path": "$dialog.lines.3",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "confirm",
+      "objname": "tLabel5",
+      "attribute": "txt",
+      "path": "$list.rows.0.label",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "confirm",
+      "objname": "tLabel5",
+      "attribute": "pco",
+      "path": "$list.rows.0.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "confirm",
+      "objname": "tLabel6",
+      "attribute": "txt",
+      "path": "$list.rows.1.label",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "confirm",
+      "objname": "tLabel6",
+      "attribute": "pco",
+      "path": "$list.rows.1.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "qr",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$list.title",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "qr",
+      "objname": "qCode1",
+      "attribute": "txt",
+      "path": "$qr.code",
+      "maxl": 134
+    },
+    {
+      "page": "qr",
+      "objname": "t2",
+      "attribute": "txt",
+      "path": "$qr.lines.0",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "qr",
+      "objname": "t3",
+      "attribute": "txt",
+      "path": "$qr.lines.1",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "qr",
+      "objname": "t4",
+      "attribute": "txt",
+      "path": "$qr.lines.2",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "qr",
+      "objname": "t5",
+      "attribute": "txt",
+      "path": "$qr.lines.3",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "qr",
+      "objname": "tLabel6",
+      "attribute": "txt",
+      "path": "$list.rows.0.label",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "qr",
+      "objname": "tLabel6",
+      "attribute": "pco",
+      "path": "$list.rows.0.on",
+      "kind": "switch",
+      "on": 15871,
+      "off": 65503,
+      "alt": 64398
+    },
+    {
+      "page": "help",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$help.title",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "help",
+      "objname": "t1",
+      "attribute": "txt",
+      "path": "$help.lines.0",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "help",
+      "objname": "t2",
+      "attribute": "txt",
+      "path": "$help.lines.1",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "help",
+      "objname": "t3",
+      "attribute": "txt",
+      "path": "$help.lines.2",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "help",
+      "objname": "t4",
+      "attribute": "txt",
+      "path": "$help.lines.3",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "help",
+      "objname": "t5",
+      "attribute": "txt",
+      "path": "$help.lines.4",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "lock",
+      "objname": "tTitle0",
+      "attribute": "txt",
+      "path": "$lock.title",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "lock",
+      "objname": "tDot1",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot2",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot3",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot4",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot5",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot6",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot7",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot8",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "lock",
+      "objname": "tDot9",
+      "attribute": "pco",
+      "path": "$lock.wrong",
+      "kind": "switch",
+      "on": 64398,
+      "off": 25521
+    },
+    {
+      "page": "safeboot",
+      "objname": "t0",
+      "attribute": "txt",
+      "path": "$safeboot.title",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t1",
+      "attribute": "txt",
+      "path": "$safeboot.node",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t2",
+      "attribute": "txt",
+      "path": "$safeboot.big",
+      "maxl": 48,
+      "fit": {
+        "width": 290,
+        "font": "title"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t2",
+      "attribute": "vis",
+      "path": "$safeboot.status.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t3",
+      "attribute": "vis",
+      "path": "$safeboot.status.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t4",
+      "attribute": "txt",
+      "path": "$safeboot.lines.0",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t4",
+      "attribute": "vis",
+      "path": "$safeboot.status.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t5",
+      "attribute": "txt",
+      "path": "$safeboot.lines.1",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t5",
+      "attribute": "vis",
+      "path": "$safeboot.status.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t6",
+      "attribute": "txt",
+      "path": "$safeboot.lines.2",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t6",
+      "attribute": "vis",
+      "path": "$safeboot.status.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t7",
+      "attribute": "txt",
+      "path": "$safeboot.lines.3",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t7",
+      "attribute": "vis",
+      "path": "$safeboot.status.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t8",
+      "attribute": "txt",
+      "path": "$safeboot.warn",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t8",
+      "attribute": "vis",
+      "path": "$safeboot.status.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "qCode9",
+      "attribute": "txt",
+      "path": "$safeboot.code",
+      "maxl": 64
+    },
+    {
+      "page": "safeboot",
+      "objname": "qCode9",
+      "attribute": "vis",
+      "path": "$safeboot.code.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t10",
+      "attribute": "txt",
+      "path": "$safeboot.network",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t10",
+      "attribute": "vis",
+      "path": "$safeboot.code.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "t11",
+      "attribute": "txt",
+      "path": "$safeboot.address",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "t11",
+      "attribute": "vis",
+      "path": "$safeboot.code.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "bRow12",
+      "attribute": "txt",
+      "path": "$safeboot.buttons.0.label",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "bRow12",
+      "attribute": "vis",
+      "path": "$safeboot.buttons.shown",
+      "kind": "vis"
+    },
+    {
+      "page": "safeboot",
+      "objname": "bRow13",
+      "attribute": "txt",
+      "path": "$safeboot.buttons.1.label",
+      "maxl": 58,
+      "fit": {
+        "width": 290,
+        "font": "body"
+      }
+    },
+    {
+      "page": "safeboot",
+      "objname": "bRow13",
+      "attribute": "vis",
+      "path": "$safeboot.buttons.shown",
+      "kind": "vis"
+    }
+  ],
+  "events": [
+    {
+      "page": "screensaver",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "screensaver",
+      "objname": "page",
+      "event": "panel.version",
+      "gesture": "version",
+      "text": true
+    },
+    {
+      "page": "home",
+      "objname": "mTitle0",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$screen.home.title"
+    },
+    {
+      "page": "home",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$screen.home.title"
+    },
+    {
+      "page": "home",
+      "objname": "mAction0",
+      "event": "header.action",
+      "gesture": "tap",
+      "subject": "$screen.home.title"
+    },
+    {
+      "page": "home",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "home",
+      "objname": "plan",
+      "event": "plan.tap",
+      "gesture": "tap",
+      "value": true
+    },
+    {
+      "page": "home",
+      "objname": "plan",
+      "event": "plan.hold",
+      "gesture": "hold",
+      "value": true
+    },
+    {
+      "page": "home",
+      "objname": "page",
+      "event": "nav.swipe",
+      "gesture": "left",
+      "subject": "left"
+    },
+    {
+      "page": "home",
+      "objname": "page",
+      "event": "nav.swipe",
+      "gesture": "right",
+      "subject": "right"
+    },
+    {
+      "page": "home",
+      "objname": "page",
+      "event": "nav.swipe",
+      "gesture": "up",
+      "subject": "up"
+    },
+    {
+      "page": "home",
+      "objname": "page",
+      "event": "nav.swipe",
+      "gesture": "down",
+      "subject": "down"
+    },
+    {
+      "page": "home",
+      "objname": "page",
+      "event": "plan.show",
+      "gesture": "show"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "mTitle0",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$light.name"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$light.name"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount1",
+      "event": "light.count",
+      "gesture": "tap",
+      "subject": "$light.icons.0.count"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount2",
+      "event": "light.count",
+      "gesture": "tap",
+      "subject": "$light.icons.1.count"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bCount3",
+      "event": "light.count",
+      "gesture": "tap",
+      "subject": "$light.icons.2.count"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "bRow4",
+      "event": "light.row",
+      "gesture": "tap",
+      "subject": "$light.card.label"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h5",
+      "event": "light.brightness",
+      "gesture": "change",
+      "value": true,
+      "subject": "$light.brightnessPct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h5",
+      "event": "light.brightness",
+      "gesture": "slide",
+      "value": true,
+      "subject": "$light.brightnessPct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h6",
+      "event": "light.colorTemp",
+      "gesture": "change",
+      "value": true,
+      "subject": "$light.colorTempPct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h6",
+      "event": "light.colorTemp",
+      "gesture": "slide",
+      "value": true,
+      "subject": "$light.colorTempPct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h7",
+      "event": "light.hue",
+      "gesture": "change",
+      "value": true,
+      "subject": "$light.huePct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "h7",
+      "event": "light.hue",
+      "gesture": "slide",
+      "value": true,
+      "subject": "$light.huePct"
+    },
+    {
+      "page": "lightdetail",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "zone",
+      "objname": "hPage0",
+      "event": "list.page",
+      "gesture": "change",
+      "value": true,
+      "subject": "$zone.page"
+    },
+    {
+      "page": "zone",
+      "objname": "mTitle1",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$zone.title"
+    },
+    {
+      "page": "zone",
+      "objname": "mTitle1",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$zone.title"
+    },
+    {
+      "page": "zone",
+      "objname": "mAction1",
+      "event": "header.action",
+      "gesture": "tap",
+      "subject": "$zone.title"
+    },
+    {
+      "page": "zone",
+      "objname": "mRow2",
+      "event": "zone.hold",
+      "gesture": "hold",
+      "subject": "$zone.name.label"
+    },
+    {
+      "page": "zone",
+      "objname": "mRow2",
+      "event": "zone.row",
+      "gesture": "tap",
+      "subject": "$zone.name.label"
+    },
+    {
+      "page": "zone",
+      "objname": "mCount3",
+      "event": "zone.countHold",
+      "gesture": "hold",
+      "subject": "$zone.counts.0.count"
+    },
+    {
+      "page": "zone",
+      "objname": "mCount3",
+      "event": "zone.count",
+      "gesture": "tap",
+      "subject": "$zone.counts.0.count"
+    },
+    {
+      "page": "zone",
+      "objname": "mCount4",
+      "event": "zone.countHold",
+      "gesture": "hold",
+      "subject": "$zone.counts.1.count"
+    },
+    {
+      "page": "zone",
+      "objname": "mCount4",
+      "event": "zone.count",
+      "gesture": "tap",
+      "subject": "$zone.counts.1.count"
+    },
+    {
+      "page": "zone",
+      "objname": "mRow5",
+      "event": "zone.hold",
+      "gesture": "hold",
+      "subject": "$zone.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mRow5",
+      "event": "zone.row",
+      "gesture": "tap",
+      "subject": "$zone.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon5",
+      "event": "zone.iconHold",
+      "gesture": "hold",
+      "subject": "$zone.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon5",
+      "event": "zone.icon",
+      "gesture": "tap",
+      "subject": "$zone.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mRow6",
+      "event": "zone.hold",
+      "gesture": "hold",
+      "subject": "$zone.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mRow6",
+      "event": "zone.row",
+      "gesture": "tap",
+      "subject": "$zone.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon6",
+      "event": "zone.iconHold",
+      "gesture": "hold",
+      "subject": "$zone.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon6",
+      "event": "zone.icon",
+      "gesture": "tap",
+      "subject": "$zone.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mRow7",
+      "event": "zone.hold",
+      "gesture": "hold",
+      "subject": "$zone.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mRow7",
+      "event": "zone.row",
+      "gesture": "tap",
+      "subject": "$zone.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon7",
+      "event": "zone.iconHold",
+      "gesture": "hold",
+      "subject": "$zone.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon7",
+      "event": "zone.icon",
+      "gesture": "tap",
+      "subject": "$zone.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mRow8",
+      "event": "zone.hold",
+      "gesture": "hold",
+      "subject": "$zone.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mRow8",
+      "event": "zone.row",
+      "gesture": "tap",
+      "subject": "$zone.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon8",
+      "event": "zone.iconHold",
+      "gesture": "hold",
+      "subject": "$zone.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "mIcon8",
+      "event": "zone.icon",
+      "gesture": "tap",
+      "subject": "$zone.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "zone",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "zone",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "up",
+      "subject": "up"
+    },
+    {
+      "page": "zone",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "down",
+      "subject": "down"
+    },
+    {
+      "page": "zone",
+      "objname": "page",
+      "event": "zone.show",
+      "gesture": "show",
+      "subject": "$zone.page"
+    },
+    {
+      "page": "thermostat",
+      "objname": "mTitle0",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$thermostat.name"
+    },
+    {
+      "page": "thermostat",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$thermostat.name"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount1",
+      "event": "thermostat.count",
+      "gesture": "tap",
+      "subject": "$thermostat.icons.0.count"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount2",
+      "event": "thermostat.count",
+      "gesture": "tap",
+      "subject": "$thermostat.icons.1.count"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow3",
+      "event": "thermostat.row",
+      "gesture": "tap",
+      "subject": "$thermostat.card.label"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount4",
+      "event": "thermostat.count",
+      "gesture": "tap",
+      "subject": "$thermostat.minus.count"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bCount6",
+      "event": "thermostat.count",
+      "gesture": "tap",
+      "subject": "$thermostat.plus.count"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow8",
+      "event": "thermostat.row",
+      "gesture": "tap",
+      "subject": "$thermostat.modes.0.label"
+    },
+    {
+      "page": "thermostat",
+      "objname": "bRow9",
+      "event": "thermostat.row",
+      "gesture": "tap",
+      "subject": "$thermostat.modes.1.label"
+    },
+    {
+      "page": "thermostat",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "thermostat",
+      "objname": "page",
+      "event": "thermostat.show",
+      "gesture": "show"
+    },
+    {
+      "page": "cover",
+      "objname": "mTitle0",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$cover.name"
+    },
+    {
+      "page": "cover",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$cover.name"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount1",
+      "event": "cover.count",
+      "gesture": "tap",
+      "subject": "$cover.icons.0.count"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount2",
+      "event": "cover.count",
+      "gesture": "tap",
+      "subject": "$cover.icons.1.count"
+    },
+    {
+      "page": "cover",
+      "objname": "bRow3",
+      "event": "cover.row",
+      "gesture": "tap",
+      "subject": "$cover.card.label"
+    },
+    {
+      "page": "cover",
+      "objname": "hPage4",
+      "event": "list.page",
+      "gesture": "change",
+      "value": true,
+      "subject": "$cover.page"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount7",
+      "event": "cover.count",
+      "gesture": "tap",
+      "subject": "$cover.up.count"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount8",
+      "event": "cover.count",
+      "gesture": "tap",
+      "subject": "$cover.stop.count"
+    },
+    {
+      "page": "cover",
+      "objname": "bCount9",
+      "event": "cover.count",
+      "gesture": "tap",
+      "subject": "$cover.down.count"
+    },
+    {
+      "page": "cover",
+      "objname": "bRow10",
+      "event": "cover.row",
+      "gesture": "tap",
+      "subject": "$cover.vent.label"
+    },
+    {
+      "page": "cover",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "cover",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "up",
+      "subject": "up"
+    },
+    {
+      "page": "cover",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "down",
+      "subject": "down"
+    },
+    {
+      "page": "cover",
+      "objname": "page",
+      "event": "cover.show",
+      "gesture": "show"
+    },
+    {
+      "page": "settings",
+      "objname": "hPage0",
+      "event": "list.page",
+      "gesture": "change",
+      "value": true,
+      "subject": "$list.page"
+    },
+    {
+      "page": "settings",
+      "objname": "mTitle1",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$list.title"
+    },
+    {
+      "page": "settings",
+      "objname": "mTitle1",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$list.title"
+    },
+    {
+      "page": "settings",
+      "objname": "mAction1",
+      "event": "header.action",
+      "gesture": "tap",
+      "subject": "$list.title"
+    },
+    {
+      "page": "settings",
+      "objname": "mRow2",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow2",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow3",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow3",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow4",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow4",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow5",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow5",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow6",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.4.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "mRow6",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.4.label",
+      "value": true
+    },
+    {
+      "page": "settings",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "settings",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "up",
+      "subject": "up"
+    },
+    {
+      "page": "settings",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "down",
+      "subject": "down"
+    },
+    {
+      "page": "settings",
+      "objname": "page",
+      "event": "list.show",
+      "gesture": "show",
+      "subject": "$list.page"
+    },
+    {
+      "page": "house",
+      "objname": "hPage0",
+      "event": "list.page",
+      "gesture": "change",
+      "value": true,
+      "subject": "$list.page"
+    },
+    {
+      "page": "house",
+      "objname": "mTitle1",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$list.title"
+    },
+    {
+      "page": "house",
+      "objname": "mTitle1",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$list.title"
+    },
+    {
+      "page": "house",
+      "objname": "mAction1",
+      "event": "header.action",
+      "gesture": "tap",
+      "subject": "$list.title"
+    },
+    {
+      "page": "house",
+      "objname": "bCount2",
+      "event": "house.count",
+      "gesture": "tap",
+      "subject": "$house.icons.0.count"
+    },
+    {
+      "page": "house",
+      "objname": "bCount3",
+      "event": "house.count",
+      "gesture": "tap",
+      "subject": "$house.icons.1.count"
+    },
+    {
+      "page": "house",
+      "objname": "bCount4",
+      "event": "house.count",
+      "gesture": "tap",
+      "subject": "$house.icons.2.count"
+    },
+    {
+      "page": "house",
+      "objname": "bCount5",
+      "event": "house.count",
+      "gesture": "tap",
+      "subject": "$house.icons.3.count"
+    },
+    {
+      "page": "house",
+      "objname": "bCount6",
+      "event": "house.count",
+      "gesture": "tap",
+      "subject": "$house.icons.4.count"
+    },
+    {
+      "page": "house",
+      "objname": "bCount7",
+      "event": "house.count",
+      "gesture": "tap",
+      "subject": "$house.icons.5.count"
+    },
+    {
+      "page": "house",
+      "objname": "mRow8",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "house",
+      "objname": "mRow8",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "house",
+      "objname": "mRow9",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "house",
+      "objname": "mRow9",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "house",
+      "objname": "mRow10",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "house",
+      "objname": "mRow10",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "house",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "house",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "up",
+      "subject": "up"
+    },
+    {
+      "page": "house",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "down",
+      "subject": "down"
+    },
+    {
+      "page": "house",
+      "objname": "page",
+      "event": "list.show",
+      "gesture": "show",
+      "subject": "$list.page"
+    },
+    {
+      "page": "mesh",
+      "objname": "hPage0",
+      "event": "list.page",
+      "gesture": "change",
+      "value": true,
+      "subject": "$list.page"
+    },
+    {
+      "page": "mesh",
+      "objname": "mTitle1",
+      "event": "text.edit",
+      "gesture": "hold",
+      "subject": "$list.title"
+    },
+    {
+      "page": "mesh",
+      "objname": "mTitle1",
+      "event": "nav.close",
+      "gesture": "tap",
+      "subject": "$list.title"
+    },
+    {
+      "page": "mesh",
+      "objname": "mAction1",
+      "event": "header.action",
+      "gesture": "tap",
+      "subject": "$list.title"
+    },
+    {
+      "page": "mesh",
+      "objname": "bCount2",
+      "event": "mesh.count",
+      "gesture": "tap",
+      "subject": "$mesh.cog.count"
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow3",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow3",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.0.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow4",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow4",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.1.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow5",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow5",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.2.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow6",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "mRow6",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.3.label",
+      "value": true
+    },
+    {
+      "page": "mesh",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "mesh",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "up",
+      "subject": "up"
+    },
+    {
+      "page": "mesh",
+      "objname": "page",
+      "event": "list.swipe",
+      "gesture": "down",
+      "subject": "down"
+    },
+    {
+      "page": "mesh",
+      "objname": "page",
+      "event": "list.show",
+      "gesture": "show",
+      "subject": "$list.page"
+    },
+    {
+      "page": "confirm",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap"
+    },
+    {
+      "page": "confirm",
+      "objname": "mRow5",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.0.label"
+    },
+    {
+      "page": "confirm",
+      "objname": "mRow5",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.0.label"
+    },
+    {
+      "page": "confirm",
+      "objname": "mRow6",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.1.label"
+    },
+    {
+      "page": "confirm",
+      "objname": "mRow6",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.1.label"
+    },
+    {
+      "page": "confirm",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "confirm",
+      "objname": "page",
+      "event": "list.show",
+      "gesture": "show",
+      "subject": "$list.page"
+    },
+    {
+      "page": "qr",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap"
+    },
+    {
+      "page": "qr",
+      "objname": "mRow6",
+      "event": "list.hold",
+      "gesture": "hold",
+      "subject": "$list.rows.0.label"
+    },
+    {
+      "page": "qr",
+      "objname": "mRow6",
+      "event": "list.row",
+      "gesture": "tap",
+      "subject": "$list.rows.0.label"
+    },
+    {
+      "page": "qr",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "qr",
+      "objname": "page",
+      "event": "list.show",
+      "gesture": "show",
+      "subject": "$list.page"
+    },
+    {
+      "page": "help",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap"
+    },
+    {
+      "page": "help",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "lock",
+      "objname": "mTitle0",
+      "event": "nav.close",
+      "gesture": "tap"
+    },
+    {
+      "page": "lock",
+      "objname": "pad1",
+      "event": "lock.try",
+      "gesture": "change",
+      "value": true
+    },
+    {
+      "page": "lock",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "lock",
+      "objname": "page",
+      "event": "lock.show",
+      "gesture": "show"
+    },
+    {
+      "page": "safeboot",
+      "objname": "bRow12",
+      "event": "safeboot.row",
+      "gesture": "tap",
+      "subject": "$safeboot.buttons.0.label"
+    },
+    {
+      "page": "safeboot",
+      "objname": "bRow13",
+      "event": "safeboot.row",
+      "gesture": "tap",
+      "subject": "$safeboot.buttons.1.label"
+    },
+    {
+      "page": "safeboot",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "safeboot",
+      "objname": "page",
+      "event": "safeboot.show",
+      "gesture": "show"
+    },
+    {
+      "page": "editpad",
+      "objname": "mkX0",
+      "event": "text.cancel",
+      "gesture": "tap"
+    },
+    {
+      "page": "editpad",
+      "objname": "mkOK0",
+      "event": "text.commit",
+      "gesture": "text",
+      "text": true
+    },
+    {
+      "page": "editpad",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    },
+    {
+      "page": "editsymbols",
+      "objname": "mkX0",
+      "event": "text.cancel",
+      "gesture": "tap"
+    },
+    {
+      "page": "editsymbols",
+      "objname": "mkOK0",
+      "event": "text.commit",
+      "gesture": "text",
+      "text": true
+    },
+    {
+      "page": "editsymbols",
+      "objname": "page",
+      "event": "panel.touch",
+      "gesture": "touch"
+    }
+  ]
+}

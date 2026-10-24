@@ -1,0 +1,19 @@
+{
+  "name": "@nspanel-sim/core",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "test": "tsc -p ../layout/tsconfig.json && tsc -p tsconfig.json && node --test \"test/*.test.mjs\""
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2"
+  },
+  "dependencies": {
+    "@nspanel-sim/layout": "*"
+  }
+}

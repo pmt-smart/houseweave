@@ -1,0 +1,3198 @@
+{
+  "schemaVersion": 14,
+  "id": "living-room-tailwind",
+  "name": "Living room (Tailwind)",
+  "description": "The same screens in Tailwind slate, every component from that one theme. Until 2026-09-23 the EU home took its navigation header from shadcn dark, to exercise mixing; a project draws with its own theme's design system.",
+  "themes": [
+    "tailwind-slate"
+  ],
+  "settings": {
+    "items": [
+      {
+        "label": "Live update",
+        "key": "liveSliderUpdate",
+        "help": [
+          "Changes the light while dragging the slider, not only on release.",
+          "",
+          "Off saves serial traffic."
+        ]
+      },
+      {
+        "label": "Keypad",
+        "key": "keyboardKind",
+        "help": [
+          "Renaming opens a 12-key pad instead of QWERTY.",
+          "",
+          "Faster with gloves on, slower past a few letters."
+        ]
+      },
+      {
+        "label": "Editing",
+        "key": "editing",
+        "help": [
+          "Off hides every edit.",
+          "",
+          "The devices still work."
+        ]
+      },
+      {
+        "label": "Button 1",
+        "key": "button1",
+        "help": [
+          "Relay: a tap toggles relay 1.",
+          "Panel: a tap is for its zones.",
+          "A hold toggles the relay."
+        ]
+      },
+      {
+        "label": "Button 2",
+        "key": "button2",
+        "help": [
+          "Relay: a tap toggles relay 2.",
+          "Panel: a tap is for its zones.",
+          "A hold toggles the relay."
+        ]
+      },
+      {
+        "label": "Relay 1",
+        "key": "relay1",
+        "help": [
+          "What it switches, and the Zigbee lamps it powers.",
+          "",
+          "Set on the + of a zone."
+        ]
+      },
+      {
+        "label": "Relay 2",
+        "key": "relay2",
+        "help": [
+          "What it switches, and the Zigbee lamps it powers.",
+          "",
+          "Set on the + of a zone."
+        ]
+      },
+      {
+        "label": "Pattern",
+        "key": "pattern",
+        "help": [
+          "Asks for a pattern before Main settings opens.",
+          "",
+          "Forgotten: press reset three times."
+        ]
+      },
+      {
+        "label": "Screensaver",
+        "key": "screensaver",
+        "help": [
+          "Starts after: untouched, until it",
+          "comes up. Turns off after: on it,",
+          "until the screen goes dark.",
+          "",
+          "A touch wakes it."
+        ]
+      },
+      {
+        "label": "Date & time",
+        "key": "clock",
+        "help": [
+          "The panel's own clock: the time,",
+          "the date and the time zone.",
+          "With Internet time on, the",
+          "internet corrects it."
+        ]
+      },
+      {
+        "label": "Location",
+        "key": "location",
+        "help": [
+          "Where the house is, for the",
+          "sunrise and the sunset a",
+          "schedule can follow."
+        ]
+      },
+      {
+        "label": "Info",
+        "key": "info",
+        "help": [
+          "What runs on the panel:",
+          "the firmware and the screen,",
+          "with their commits and dates."
+        ]
+      },
+      {
+        "label": "Factory reset",
+        "key": "factoryReset",
+        "help": [
+          "Back to the factory image:",
+          "zones, devices, Wi-Fi, MQTT",
+          "and the bridge's pairing go.",
+          "",
+          "The screen stays."
+        ]
+      }
+    ]
+  },
+  "layouts": {
+    "eu-landscape": {
+      "editor": "edit-board",
+      "screens": [
+        {
+          "id": "screensaver",
+          "title": "Screensaver",
+          "role": "rest",
+          "place": [
+            {
+              "component": "tailwind-slate/clock",
+              "x": 15,
+              "y": 48,
+              "w": 420,
+              "h": 150,
+              "bind": {
+                "time": "$clock.time",
+                "date": "$clock.date"
+              }
+            },
+            {
+              "component": "tailwind-slate/weather-row",
+              "x": 15,
+              "y": 205,
+              "w": 420,
+              "h": 90,
+              "bind": {
+                "items": "$weather"
+              }
+            },
+            {
+              "component": "tailwind-slate/status-icon",
+              "x": 395,
+              "y": 8,
+              "w": 40,
+              "h": 32,
+              "bind": {
+                "role": "alarmSignal",
+                "color": "$status.alarm.color",
+                "side": "right"
+              }
+            },
+            {
+              "component": "tailwind-slate/status-icon",
+              "x": 350,
+              "y": 8,
+              "w": 40,
+              "h": 32,
+              "bind": {
+                "role": "noticeSignal",
+                "color": "$status.notice.color",
+                "side": "right"
+              }
+            }
+          ],
+          "tap": "home"
+        },
+        {
+          "id": "home",
+          "title": "Home",
+          "role": "plan",
+          "plan": true,
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$screen.title",
+                "onEditTitle": "$screen.editTitle",
+                "actionIcon": "$plan.actionIcon",
+                "onAction": "$plan.onAction",
+                "statusIcon": "$plan.statusIcon",
+                "onClose": "$plan.onTitle"
+              }
+            }
+          ]
+        },
+        {
+          "id": "light-detail",
+          "title": "Light detail",
+          "role": "detail",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$light.name",
+                "onClose": "$nav.close",
+                "onEditTitle": "$light.editTitle"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$light.icons.0.count",
+                "icon": "$light.icons.0.icon",
+                "iconColor": "$light.icons.0.iconColor",
+                "onTap": "$light.icons.0.tap",
+                "visible": "$light.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$light.icons.1.count",
+                "icon": "$light.icons.1.icon",
+                "iconColor": "$light.icons.1.iconColor",
+                "onTap": "$light.icons.1.tap",
+                "visible": "$light.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 143,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$light.icons.2.count",
+                "icon": "$light.icons.2.icon",
+                "iconColor": "$light.icons.2.iconColor",
+                "onTap": "$light.icons.2.tap",
+                "visible": "$light.icons.2.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 207,
+              "y": 80,
+              "w": 228,
+              "h": 44,
+              "bind": {
+                "label": "$light.card.label",
+                "on": 0,
+                "onChange": "$light.card.tap",
+                "visible": "$light.card.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/gradient-slider",
+              "x": 15,
+              "y": 126,
+              "w": 420,
+              "h": 64,
+              "bind": {
+                "pct": "$light.brightnessPct",
+                "ramp": "brightness",
+                "onChange": "$light.setBrightnessPct",
+                "visible": "$light.brightnessVisible"
+              },
+              "input": {
+                "live": true
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/gradient-slider",
+              "x": 15,
+              "y": 190,
+              "w": 420,
+              "h": 64,
+              "bind": {
+                "pct": "$light.colorTempPct",
+                "ramp": "color-temp",
+                "onChange": "$light.setColorTempPct",
+                "visible": "$light.colorTempVisible"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/gradient-slider",
+              "x": 15,
+              "y": 254,
+              "w": 420,
+              "h": 64,
+              "bind": {
+                "pct": "$light.huePct",
+                "ramp": "hue",
+                "onChange": "$light.setHuePct",
+                "visible": "$light.hueVisible"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            }
+          ]
+        },
+        {
+          "id": "zone",
+          "title": "Zone",
+          "role": "zone",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 402,
+              "y": 164,
+              "w": 48,
+              "h": 156,
+              "bind": {
+                "page": "$zone.page",
+                "pageCount": "$zone.pageCount",
+                "onChange": "$zone.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$zone.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$zone.editTitle",
+                "actionIcon": "$zone.actionIcon",
+                "onAction": "$zone.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "x": 15,
+              "y": 86,
+              "w": 153,
+              "h": 78,
+              "bind": {
+                "label": "$zone.name.label",
+                "on": 0,
+                "onChange": "$zone.name.tap",
+                "onHold": "$zone.name.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "x": 324,
+              "y": 86,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$zone.counts.0.count",
+                "icon": "$zone.counts.0.icon",
+                "iconColor": "$zone.counts.0.iconColor",
+                "onTap": "$zone.counts.0.tap",
+                "onHold": "$zone.counts.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "x": 246,
+              "y": 86,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$zone.counts.1.count",
+                "icon": "$zone.counts.1.icon",
+                "iconColor": "$zone.counts.1.iconColor",
+                "onTap": "$zone.counts.1.tap",
+                "onHold": "$zone.counts.1.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "x": 168,
+              "y": 86,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$zone.counts.2.count",
+                "icon": "$zone.counts.2.icon",
+                "iconColor": "$zone.counts.2.iconColor",
+                "onTap": "$zone.counts.2.tap",
+                "onHold": "$zone.counts.2.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "device",
+              "x": 15,
+              "y": 164,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "icon": "$zone.rows.0.icon",
+                "iconColor": "$zone.rows.0.iconColor",
+                "label": "$zone.rows.0.label",
+                "on": "$zone.rows.0.on",
+                "onChange": "$zone.rows.0.tap",
+                "onHold": "$zone.rows.0.hold",
+                "onIconTap": "$zone.rows.0.iconTap",
+                "onIconHold": "$zone.rows.0.iconHold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "device",
+              "x": 15,
+              "y": 242,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "icon": "$zone.rows.1.icon",
+                "iconColor": "$zone.rows.1.iconColor",
+                "label": "$zone.rows.1.label",
+                "on": "$zone.rows.1.on",
+                "onChange": "$zone.rows.1.tap",
+                "onHold": "$zone.rows.1.hold",
+                "onIconTap": "$zone.rows.1.iconTap",
+                "onIconHold": "$zone.rows.1.iconHold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "thermostat",
+          "title": "Thermostat",
+          "role": "thermostat",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$thermostat.name",
+                "onClose": "$nav.close",
+                "onEditTitle": "$thermostat.editTitle"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$thermostat.icons.0.count",
+                "icon": "$thermostat.icons.0.icon",
+                "iconColor": "$thermostat.icons.0.iconColor",
+                "onTap": "$thermostat.icons.0.tap",
+                "visible": "$thermostat.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$thermostat.icons.1.count",
+                "icon": "$thermostat.icons.1.icon",
+                "iconColor": "$thermostat.icons.1.iconColor",
+                "onTap": "$thermostat.icons.1.tap",
+                "visible": "$thermostat.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 143,
+              "y": 80,
+              "w": 292,
+              "h": 44,
+              "bind": {
+                "label": "$thermostat.card.label",
+                "on": 0,
+                "onChange": "$thermostat.card.tap",
+                "visible": "$thermostat.card.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 128,
+              "w": 78,
+              "h": 72,
+              "bind": {
+                "count": "$thermostat.minus.count",
+                "icon": "$thermostat.minus.icon",
+                "iconColor": "$thermostat.minus.iconColor",
+                "onTap": "$thermostat.minus.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 93,
+              "y": 128,
+              "w": 264,
+              "h": 72,
+              "bind": {
+                "text": "$thermostat.target",
+                "tone": "title",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 357,
+              "y": 128,
+              "w": 78,
+              "h": 72,
+              "bind": {
+                "count": "$thermostat.plus.count",
+                "icon": "$thermostat.plus.icon",
+                "iconColor": "$thermostat.plus.iconColor",
+                "onTap": "$thermostat.plus.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 204,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$thermostat.lines.0",
+                "tone": "muted",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 15,
+              "y": 234,
+              "w": 206,
+              "h": 78,
+              "bind": {
+                "label": "$thermostat.modes.0.label",
+                "on": "$thermostat.modes.0.on",
+                "onChange": "$thermostat.modes.0.tap"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 229,
+              "y": 234,
+              "w": 206,
+              "h": 78,
+              "bind": {
+                "label": "$thermostat.modes.1.label",
+                "on": "$thermostat.modes.1.on",
+                "onChange": "$thermostat.modes.1.tap"
+              }
+            }
+          ]
+        },
+        {
+          "id": "cover",
+          "title": "Blind",
+          "role": "cover",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$cover.name",
+                "onClose": "$nav.close",
+                "onEditTitle": "$cover.editTitle"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$cover.icons.0.count",
+                "icon": "$cover.icons.0.icon",
+                "iconColor": "$cover.icons.0.iconColor",
+                "onTap": "$cover.icons.0.tap",
+                "visible": "$cover.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$cover.icons.1.count",
+                "icon": "$cover.icons.1.icon",
+                "iconColor": "$cover.icons.1.iconColor",
+                "onTap": "$cover.icons.1.tap",
+                "visible": "$cover.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 143,
+              "y": 80,
+              "w": 251,
+              "h": 44,
+              "bind": {
+                "label": "$cover.card.label",
+                "on": 0,
+                "onChange": "$cover.card.tap",
+                "visible": "$cover.card.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 402,
+              "y": 78,
+              "w": 48,
+              "h": 242,
+              "bind": {
+                "page": "$cover.page",
+                "pageCount": 21,
+                "onChange": "$cover.setPlace"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 128,
+              "w": 293,
+              "h": 64,
+              "bind": {
+                "text": "$cover.position",
+                "tone": "title",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 192,
+              "w": 293,
+              "h": 28,
+              "bind": {
+                "text": "$cover.state",
+                "tone": "muted",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 316,
+              "y": 128,
+              "w": 78,
+              "h": 64,
+              "bind": {
+                "count": "$cover.up.count",
+                "icon": "$cover.up.icon",
+                "iconColor": "$cover.up.iconColor",
+                "onTap": "$cover.up.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 316,
+              "y": 192,
+              "w": 78,
+              "h": 64,
+              "bind": {
+                "count": "$cover.stop.count",
+                "icon": "$cover.stop.icon",
+                "iconColor": "$cover.stop.iconColor",
+                "onTap": "$cover.stop.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 316,
+              "y": 256,
+              "w": 78,
+              "h": 64,
+              "bind": {
+                "count": "$cover.down.count",
+                "icon": "$cover.down.icon",
+                "iconColor": "$cover.down.iconColor",
+                "onTap": "$cover.down.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 15,
+              "y": 256,
+              "w": 293,
+              "h": 64,
+              "bind": {
+                "label": "$cover.vent.label",
+                "on": "$cover.vent.on",
+                "onChange": "$cover.vent.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            }
+          ]
+        },
+        {
+          "id": "settings",
+          "title": "Main settings",
+          "role": "list",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 402,
+              "y": 78,
+              "w": 48,
+              "h": 242,
+              "bind": {
+                "page": "$list.page",
+                "pageCount": "$list.pageCount",
+                "onChange": "$list.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$list.editTitle",
+                "actionIcon": "$list.actionIcon",
+                "onAction": "$list.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 86,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.0.icon",
+                "iconColor": "$list.rows.0.iconColor",
+                "label": "$list.rows.0.label",
+                "hint": "$list.rows.0.hint",
+                "hintColor": "$list.rows.0.hintColor",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 164,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.1.icon",
+                "iconColor": "$list.rows.1.iconColor",
+                "label": "$list.rows.1.label",
+                "hint": "$list.rows.1.hint",
+                "hintColor": "$list.rows.1.hintColor",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 242,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.2.icon",
+                "iconColor": "$list.rows.2.iconColor",
+                "label": "$list.rows.2.label",
+                "hint": "$list.rows.2.hint",
+                "hintColor": "$list.rows.2.hintColor",
+                "on": "$list.rows.2.on",
+                "onChange": "$list.rows.2.tap",
+                "onHold": "$list.rows.2.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "house",
+          "title": "House",
+          "role": "house",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 402,
+              "y": 126,
+              "w": 48,
+              "h": 194,
+              "bind": {
+                "page": "$list.page",
+                "pageCount": "$list.pageCount",
+                "onChange": "$list.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$list.editTitle",
+                "actionIcon": "$list.actionIcon",
+                "onAction": "$list.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.0.count",
+                "icon": "$house.icons.0.icon",
+                "iconColor": "$house.icons.0.iconColor",
+                "onTap": "$house.icons.0.tap",
+                "visible": "$house.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.1.count",
+                "icon": "$house.icons.1.icon",
+                "iconColor": "$house.icons.1.iconColor",
+                "onTap": "$house.icons.1.tap",
+                "visible": "$house.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 143,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.2.count",
+                "icon": "$house.icons.2.icon",
+                "iconColor": "$house.icons.2.iconColor",
+                "onTap": "$house.icons.2.tap",
+                "visible": "$house.icons.2.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 207,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.3.count",
+                "icon": "$house.icons.3.icon",
+                "iconColor": "$house.icons.3.iconColor",
+                "onTap": "$house.icons.3.tap",
+                "visible": "$house.icons.3.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 271,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.4.count",
+                "icon": "$house.icons.4.icon",
+                "iconColor": "$house.icons.4.iconColor",
+                "onTap": "$house.icons.4.tap",
+                "visible": "$house.icons.4.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 335,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.5.count",
+                "icon": "$house.icons.5.icon",
+                "iconColor": "$house.icons.5.iconColor",
+                "onTap": "$house.icons.5.tap",
+                "visible": "$house.icons.5.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 134,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.0.icon",
+                "iconColor": "$list.rows.0.iconColor",
+                "label": "$list.rows.0.label",
+                "hint": "$list.rows.0.hint",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 212,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.1.icon",
+                "iconColor": "$list.rows.1.iconColor",
+                "label": "$list.rows.1.label",
+                "hint": "$list.rows.1.hint",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "mesh",
+          "title": "Mesh",
+          "role": "mesh",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 402,
+              "y": 126,
+              "w": 48,
+              "h": 194,
+              "bind": {
+                "page": "$list.page",
+                "pageCount": "$list.pageCount",
+                "onChange": "$list.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$list.editTitle",
+                "actionIcon": "$list.actionIcon",
+                "onAction": "$list.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$mesh.cog.count",
+                "icon": "$mesh.cog.icon",
+                "iconColor": "$mesh.cog.iconColor",
+                "onTap": "$mesh.cog.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 134,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.0.label",
+                "hint": "$list.rows.0.hint",
+                "hintColor": "$list.rows.0.hintColor",
+                "tail": "$list.rows.0.tail",
+                "tailColor": "$list.rows.0.tailColor",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 212,
+              "w": 387,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.1.label",
+                "hint": "$list.rows.1.hint",
+                "hintColor": "$list.rows.1.hintColor",
+                "tail": "$list.rows.1.tail",
+                "tailColor": "$list.rows.1.tailColor",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "confirm",
+          "title": "Confirm",
+          "role": "dialog",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 86,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$dialog.lines.0"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 114,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$dialog.lines.1"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "flush",
+              "x": 15,
+              "y": 164,
+              "w": 420,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.0.label",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "flush",
+              "x": 15,
+              "y": 242,
+              "w": 420,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.1.label",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "qr",
+          "title": "Hotspot",
+          "role": "qr",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/qr-code",
+              "x": 15,
+              "y": 86,
+              "w": 202,
+              "h": 202,
+              "bind": {
+                "code": "$qr.code"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 232,
+              "y": 86,
+              "w": 203,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.0"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 232,
+              "y": 114,
+              "w": 203,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.1"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 232,
+              "y": 142,
+              "w": 203,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.2"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 232,
+              "y": 170,
+              "w": 203,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.3"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "flush",
+              "x": 232,
+              "y": 242,
+              "w": 203,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.0.label",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "help",
+          "title": "Help",
+          "role": "help",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$help.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 86,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.0",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 114,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.1",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 142,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.2",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 170,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.3",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 198,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.4",
+                "tone": "muted"
+              }
+            }
+          ]
+        },
+        {
+          "id": "lock",
+          "title": "Draw pattern",
+          "role": "lock",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 435,
+              "h": 78,
+              "bind": {
+                "title": "$lock.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/pattern-pad",
+              "x": 108,
+              "y": 86,
+              "w": 234,
+              "h": 234,
+              "bind": {
+                "wrong": "$lock.wrong",
+                "onTry": "$lock.try"
+              }
+            }
+          ]
+        },
+        {
+          "id": "safeboot",
+          "title": "Safeboot",
+          "role": "safeboot",
+          "place": [
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 4,
+              "w": 420,
+              "h": 48,
+              "bind": {
+                "text": "$safeboot.title",
+                "tone": "title"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 52,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.node",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 86,
+              "w": 420,
+              "h": 48,
+              "bind": {
+                "text": "$safeboot.big",
+                "tone": "title",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 138,
+              "w": 420,
+              "h": 12,
+              "bind": {
+                "text": "",
+                "tone": "accent",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 154,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.0",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 182,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.1",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 210,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.2",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 238,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.3",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 266,
+              "w": 420,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.warn",
+                "tone": "warn",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/qr-code",
+              "x": 15,
+              "y": 86,
+              "w": 148,
+              "h": 148,
+              "bind": {
+                "code": "$safeboot.code",
+                "capacity": 64,
+                "visible": "$safeboot.code.shown"
+              },
+              "alternate": "code"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 178,
+              "y": 86,
+              "w": 257,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.network",
+                "tone": "body",
+                "visible": "$safeboot.code.shown"
+              },
+              "alternate": "code"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 178,
+              "y": 114,
+              "w": 257,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.address",
+                "tone": "muted",
+                "visible": "$safeboot.code.shown"
+              },
+              "alternate": "code"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 15,
+              "y": 242,
+              "w": 202,
+              "h": 78,
+              "bind": {
+                "label": "$safeboot.buttons.0.label",
+                "on": 0,
+                "onChange": "$safeboot.buttons.0.tap",
+                "visible": "$safeboot.buttons.shown"
+              },
+              "alternate": "actions"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 232,
+              "y": 242,
+              "w": 203,
+              "h": 78,
+              "bind": {
+                "label": "$safeboot.buttons.1.label",
+                "on": 0,
+                "onChange": "$safeboot.buttons.1.tap",
+                "visible": "$safeboot.buttons.shown"
+              },
+              "alternate": "actions"
+            }
+          ]
+        },
+        {
+          "id": "edit-board",
+          "title": "EditBoard",
+          "role": "keyboard",
+          "place": [
+            {
+              "component": "tailwind-slate/keyboard",
+              "x": 0,
+              "y": 0,
+              "w": 450,
+              "h": 320,
+              "bind": {
+                "value": "$keyboard.value",
+                "max": "$keyboard.max",
+                "onCommit": "$keyboard.commit",
+                "onCancel": "$keyboard.cancel",
+                "onKeypad": "edit-pad",
+                "onSymbols": "edit-symbols"
+              }
+            }
+          ]
+        },
+        {
+          "id": "edit-pad",
+          "title": "EditPad",
+          "role": "keyboard",
+          "place": [
+            {
+              "component": "tailwind-slate/keyboard",
+              "variant": "t9",
+              "x": 0,
+              "y": 0,
+              "w": 450,
+              "h": 320,
+              "bind": {
+                "value": "$keyboard.value",
+                "max": "$keyboard.max",
+                "onCommit": "$keyboard.commit",
+                "onCancel": "$keyboard.cancel",
+                "onLetters": "edit-board"
+              }
+            }
+          ]
+        },
+        {
+          "id": "edit-symbols",
+          "title": "EditSymbols",
+          "role": "keyboard",
+          "place": [
+            {
+              "component": "tailwind-slate/keyboard",
+              "variant": "symbols",
+              "x": 0,
+              "y": 0,
+              "w": 450,
+              "h": 320,
+              "bind": {
+                "value": "$keyboard.value",
+                "max": "$keyboard.max",
+                "onCommit": "$keyboard.commit",
+                "onCancel": "$keyboard.cancel",
+                "onLetters": "edit-board",
+                "onKeypad": "edit-pad"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "us-portrait": {
+      "editor": "edit-pad",
+      "screens": [
+        {
+          "id": "screensaver",
+          "title": "Screensaver",
+          "role": "rest",
+          "tap": "home",
+          "place": [
+            {
+              "component": "tailwind-slate/clock",
+              "x": 15,
+              "y": 60,
+              "w": 290,
+              "h": 150,
+              "bind": {
+                "time": "$clock.time",
+                "date": "$clock.date"
+              }
+            },
+            {
+              "component": "tailwind-slate/weather-row",
+              "x": 15,
+              "y": 230,
+              "w": 290,
+              "h": 110,
+              "bind": {
+                "items": "$weather"
+              }
+            },
+            {
+              "component": "tailwind-slate/status-icon",
+              "x": 265,
+              "y": 14,
+              "w": 40,
+              "h": 32,
+              "bind": {
+                "role": "alarmSignal",
+                "color": "$status.alarm.color",
+                "side": "right"
+              }
+            },
+            {
+              "component": "tailwind-slate/status-icon",
+              "x": 220,
+              "y": 14,
+              "w": 40,
+              "h": 32,
+              "bind": {
+                "role": "noticeSignal",
+                "color": "$status.notice.color",
+                "side": "right"
+              }
+            }
+          ]
+        },
+        {
+          "id": "home",
+          "title": "Home",
+          "role": "plan",
+          "plan": true,
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$screen.title",
+                "onEditTitle": "$screen.editTitle",
+                "actionIcon": "$plan.actionIcon",
+                "onAction": "$plan.onAction",
+                "statusIcon": "$plan.statusIcon",
+                "onClose": "$plan.onTitle"
+              }
+            }
+          ]
+        },
+        {
+          "id": "light-detail",
+          "title": "Light detail",
+          "role": "detail",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$light.name",
+                "onClose": "$nav.close",
+                "onEditTitle": "$light.editTitle"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$light.icons.0.count",
+                "icon": "$light.icons.0.icon",
+                "iconColor": "$light.icons.0.iconColor",
+                "onTap": "$light.icons.0.tap",
+                "visible": "$light.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$light.icons.1.count",
+                "icon": "$light.icons.1.icon",
+                "iconColor": "$light.icons.1.iconColor",
+                "onTap": "$light.icons.1.tap",
+                "visible": "$light.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 143,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$light.icons.2.count",
+                "icon": "$light.icons.2.icon",
+                "iconColor": "$light.icons.2.iconColor",
+                "onTap": "$light.icons.2.tap",
+                "visible": "$light.icons.2.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 207,
+              "y": 80,
+              "w": 98,
+              "h": 44,
+              "bind": {
+                "label": "$light.card.label",
+                "on": 0,
+                "onChange": "$light.card.tap",
+                "visible": "$light.card.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/gradient-slider",
+              "x": 15,
+              "y": 126,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "pct": "$light.brightnessPct",
+                "ramp": "brightness",
+                "onChange": "$light.setBrightnessPct",
+                "visible": "$light.brightnessVisible"
+              },
+              "input": {
+                "live": true
+              }
+            },
+            {
+              "component": "tailwind-slate/gradient-slider",
+              "x": 15,
+              "y": 204,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "pct": "$light.colorTempPct",
+                "ramp": "color-temp",
+                "onChange": "$light.setColorTempPct",
+                "visible": "$light.colorTempVisible"
+              }
+            },
+            {
+              "component": "tailwind-slate/gradient-slider",
+              "x": 15,
+              "y": 282,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "pct": "$light.huePct",
+                "ramp": "hue",
+                "onChange": "$light.setHuePct",
+                "visible": "$light.hueVisible"
+              }
+            }
+          ]
+        },
+        {
+          "id": "zone",
+          "title": "Zone",
+          "role": "zone",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 272,
+              "y": 164,
+              "w": 48,
+              "h": 316,
+              "bind": {
+                "page": "$zone.page",
+                "pageCount": "$zone.pageCount",
+                "onChange": "$zone.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$zone.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$zone.editTitle",
+                "actionIcon": "$zone.actionIcon",
+                "onAction": "$zone.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "x": 15,
+              "y": 86,
+              "w": 101,
+              "h": 78,
+              "bind": {
+                "label": "$zone.name.label",
+                "on": 0,
+                "onChange": "$zone.name.tap",
+                "onHold": "$zone.name.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "x": 194,
+              "y": 86,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$zone.counts.0.count",
+                "icon": "$zone.counts.0.icon",
+                "iconColor": "$zone.counts.0.iconColor",
+                "onTap": "$zone.counts.0.tap",
+                "onHold": "$zone.counts.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "x": 116,
+              "y": 86,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$zone.counts.1.count",
+                "icon": "$zone.counts.1.icon",
+                "iconColor": "$zone.counts.1.iconColor",
+                "onTap": "$zone.counts.1.tap",
+                "onHold": "$zone.counts.1.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "device",
+              "x": 15,
+              "y": 164,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$zone.rows.0.icon",
+                "iconColor": "$zone.rows.0.iconColor",
+                "label": "$zone.rows.0.label",
+                "on": "$zone.rows.0.on",
+                "onChange": "$zone.rows.0.tap",
+                "onHold": "$zone.rows.0.hold",
+                "onIconTap": "$zone.rows.0.iconTap",
+                "onIconHold": "$zone.rows.0.iconHold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "device",
+              "x": 15,
+              "y": 242,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$zone.rows.1.icon",
+                "iconColor": "$zone.rows.1.iconColor",
+                "label": "$zone.rows.1.label",
+                "on": "$zone.rows.1.on",
+                "onChange": "$zone.rows.1.tap",
+                "onHold": "$zone.rows.1.hold",
+                "onIconTap": "$zone.rows.1.iconTap",
+                "onIconHold": "$zone.rows.1.iconHold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "device",
+              "x": 15,
+              "y": 320,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$zone.rows.2.icon",
+                "iconColor": "$zone.rows.2.iconColor",
+                "label": "$zone.rows.2.label",
+                "on": "$zone.rows.2.on",
+                "onChange": "$zone.rows.2.tap",
+                "onHold": "$zone.rows.2.hold",
+                "onIconTap": "$zone.rows.2.iconTap",
+                "onIconHold": "$zone.rows.2.iconHold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "device",
+              "x": 15,
+              "y": 398,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$zone.rows.3.icon",
+                "iconColor": "$zone.rows.3.iconColor",
+                "label": "$zone.rows.3.label",
+                "on": "$zone.rows.3.on",
+                "onChange": "$zone.rows.3.tap",
+                "onHold": "$zone.rows.3.hold",
+                "onIconTap": "$zone.rows.3.iconTap",
+                "onIconHold": "$zone.rows.3.iconHold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "thermostat",
+          "title": "Thermostat",
+          "role": "thermostat",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$thermostat.name",
+                "onClose": "$nav.close",
+                "onEditTitle": "$thermostat.editTitle"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$thermostat.icons.0.count",
+                "icon": "$thermostat.icons.0.icon",
+                "iconColor": "$thermostat.icons.0.iconColor",
+                "onTap": "$thermostat.icons.0.tap",
+                "visible": "$thermostat.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$thermostat.icons.1.count",
+                "icon": "$thermostat.icons.1.icon",
+                "iconColor": "$thermostat.icons.1.iconColor",
+                "onTap": "$thermostat.icons.1.tap",
+                "visible": "$thermostat.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 143,
+              "y": 80,
+              "w": 162,
+              "h": 44,
+              "bind": {
+                "label": "$thermostat.card.label",
+                "on": 0,
+                "onChange": "$thermostat.card.tap",
+                "visible": "$thermostat.card.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 128,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$thermostat.minus.count",
+                "icon": "$thermostat.minus.icon",
+                "iconColor": "$thermostat.minus.iconColor",
+                "onTap": "$thermostat.minus.tap"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 93,
+              "y": 128,
+              "w": 134,
+              "h": 78,
+              "bind": {
+                "text": "$thermostat.target",
+                "tone": "title",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 227,
+              "y": 128,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$thermostat.plus.count",
+                "icon": "$thermostat.plus.icon",
+                "iconColor": "$thermostat.plus.iconColor",
+                "onTap": "$thermostat.plus.tap"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 210,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$thermostat.lines.0",
+                "tone": "muted",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 15,
+              "y": 394,
+              "w": 141,
+              "h": 78,
+              "bind": {
+                "label": "$thermostat.modes.0.label",
+                "on": "$thermostat.modes.0.on",
+                "onChange": "$thermostat.modes.0.tap"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 164,
+              "y": 394,
+              "w": 141,
+              "h": 78,
+              "bind": {
+                "label": "$thermostat.modes.1.label",
+                "on": "$thermostat.modes.1.on",
+                "onChange": "$thermostat.modes.1.tap"
+              }
+            }
+          ]
+        },
+        {
+          "id": "cover",
+          "title": "Blind",
+          "role": "cover",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$cover.name",
+                "onClose": "$nav.close",
+                "onEditTitle": "$cover.editTitle"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$cover.icons.0.count",
+                "icon": "$cover.icons.0.icon",
+                "iconColor": "$cover.icons.0.iconColor",
+                "onTap": "$cover.icons.0.tap",
+                "visible": "$cover.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$cover.icons.1.count",
+                "icon": "$cover.icons.1.icon",
+                "iconColor": "$cover.icons.1.iconColor",
+                "onTap": "$cover.icons.1.tap",
+                "visible": "$cover.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 143,
+              "y": 80,
+              "w": 121,
+              "h": 44,
+              "bind": {
+                "label": "$cover.card.label",
+                "on": 0,
+                "onChange": "$cover.card.tap",
+                "visible": "$cover.card.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 272,
+              "y": 78,
+              "w": 48,
+              "h": 402,
+              "bind": {
+                "page": "$cover.page",
+                "pageCount": 21,
+                "onChange": "$cover.setPlace"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 128,
+              "w": 163,
+              "h": 78,
+              "bind": {
+                "text": "$cover.position",
+                "tone": "title",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 206,
+              "w": 163,
+              "h": 28,
+              "bind": {
+                "text": "$cover.state",
+                "tone": "muted",
+                "align": "center"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 186,
+              "y": 128,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$cover.up.count",
+                "icon": "$cover.up.icon",
+                "iconColor": "$cover.up.iconColor",
+                "onTap": "$cover.up.tap"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 186,
+              "y": 214,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$cover.stop.count",
+                "icon": "$cover.stop.icon",
+                "iconColor": "$cover.stop.iconColor",
+                "onTap": "$cover.stop.tap"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 186,
+              "y": 300,
+              "w": 78,
+              "h": 78,
+              "bind": {
+                "count": "$cover.down.count",
+                "icon": "$cover.down.icon",
+                "iconColor": "$cover.down.iconColor",
+                "onTap": "$cover.down.tap"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 15,
+              "y": 386,
+              "w": 249,
+              "h": 78,
+              "bind": {
+                "label": "$cover.vent.label",
+                "on": "$cover.vent.on",
+                "onChange": "$cover.vent.tap"
+              }
+            }
+          ]
+        },
+        {
+          "id": "settings",
+          "title": "Main settings",
+          "role": "list",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 272,
+              "y": 78,
+              "w": 48,
+              "h": 402,
+              "bind": {
+                "page": "$list.page",
+                "pageCount": "$list.pageCount",
+                "onChange": "$list.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$list.editTitle",
+                "actionIcon": "$list.actionIcon",
+                "onAction": "$list.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 86,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.0.icon",
+                "iconColor": "$list.rows.0.iconColor",
+                "label": "$list.rows.0.label",
+                "hint": "$list.rows.0.hint",
+                "hintColor": "$list.rows.0.hintColor",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 164,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.1.icon",
+                "iconColor": "$list.rows.1.iconColor",
+                "label": "$list.rows.1.label",
+                "hint": "$list.rows.1.hint",
+                "hintColor": "$list.rows.1.hintColor",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 242,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.2.icon",
+                "iconColor": "$list.rows.2.iconColor",
+                "label": "$list.rows.2.label",
+                "hint": "$list.rows.2.hint",
+                "hintColor": "$list.rows.2.hintColor",
+                "on": "$list.rows.2.on",
+                "onChange": "$list.rows.2.tap",
+                "onHold": "$list.rows.2.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 320,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.3.icon",
+                "iconColor": "$list.rows.3.iconColor",
+                "label": "$list.rows.3.label",
+                "hint": "$list.rows.3.hint",
+                "hintColor": "$list.rows.3.hintColor",
+                "on": "$list.rows.3.on",
+                "onChange": "$list.rows.3.tap",
+                "onHold": "$list.rows.3.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 398,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.4.icon",
+                "iconColor": "$list.rows.4.iconColor",
+                "label": "$list.rows.4.label",
+                "hint": "$list.rows.4.hint",
+                "hintColor": "$list.rows.4.hintColor",
+                "on": "$list.rows.4.on",
+                "onChange": "$list.rows.4.tap",
+                "onHold": "$list.rows.4.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "house",
+          "title": "House",
+          "role": "house",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 272,
+              "y": 174,
+              "w": 48,
+              "h": 306,
+              "bind": {
+                "page": "$list.page",
+                "pageCount": "$list.pageCount",
+                "onChange": "$list.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$list.editTitle",
+                "actionIcon": "$list.actionIcon",
+                "onAction": "$list.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.0.count",
+                "icon": "$house.icons.0.icon",
+                "iconColor": "$house.icons.0.iconColor",
+                "onTap": "$house.icons.0.tap",
+                "visible": "$house.icons.0.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.1.count",
+                "icon": "$house.icons.1.icon",
+                "iconColor": "$house.icons.1.iconColor",
+                "onTap": "$house.icons.1.tap",
+                "visible": "$house.icons.1.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 143,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.2.count",
+                "icon": "$house.icons.2.icon",
+                "iconColor": "$house.icons.2.iconColor",
+                "onTap": "$house.icons.2.tap",
+                "visible": "$house.icons.2.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 128,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.3.count",
+                "icon": "$house.icons.3.icon",
+                "iconColor": "$house.icons.3.iconColor",
+                "onTap": "$house.icons.3.tap",
+                "visible": "$house.icons.3.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 79,
+              "y": 128,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.4.count",
+                "icon": "$house.icons.4.icon",
+                "iconColor": "$house.icons.4.iconColor",
+                "onTap": "$house.icons.4.tap",
+                "visible": "$house.icons.4.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 143,
+              "y": 128,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$house.icons.5.count",
+                "icon": "$house.icons.5.icon",
+                "iconColor": "$house.icons.5.iconColor",
+                "onTap": "$house.icons.5.tap",
+                "visible": "$house.icons.5.shown"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 182,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.0.icon",
+                "iconColor": "$list.rows.0.iconColor",
+                "label": "$list.rows.0.label",
+                "hint": "$list.rows.0.hint",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 260,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.1.icon",
+                "iconColor": "$list.rows.1.iconColor",
+                "label": "$list.rows.1.label",
+                "hint": "$list.rows.1.hint",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 338,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "icon": "$list.rows.2.icon",
+                "iconColor": "$list.rows.2.iconColor",
+                "label": "$list.rows.2.label",
+                "hint": "$list.rows.2.hint",
+                "on": "$list.rows.2.on",
+                "onChange": "$list.rows.2.tap",
+                "onHold": "$list.rows.2.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "mesh",
+          "title": "Mesh",
+          "role": "mesh",
+          "place": [
+            {
+              "component": "tailwind-slate/page-rail",
+              "x": 272,
+              "y": 126,
+              "w": 48,
+              "h": 354,
+              "bind": {
+                "page": "$list.page",
+                "pageCount": "$list.pageCount",
+                "onChange": "$list.setPage"
+              }
+            },
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close",
+                "onEditTitle": "$list.editTitle",
+                "actionIcon": "$list.actionIcon",
+                "onAction": "$list.onAction"
+              }
+            },
+            {
+              "component": "tailwind-slate/zone-counter",
+              "variant": "face",
+              "x": 15,
+              "y": 80,
+              "w": 56,
+              "h": 44,
+              "bind": {
+                "count": "$mesh.cog.count",
+                "icon": "$mesh.cog.icon",
+                "iconColor": "$mesh.cog.iconColor",
+                "onTap": "$mesh.cog.tap"
+              },
+              "smallTouch": "the row under a page's title, 48 px on both panels, and what it leaves on the EU"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 134,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.0.label",
+                "hint": "$list.rows.0.hint",
+                "hintColor": "$list.rows.0.hintColor",
+                "tail": "$list.rows.0.tail",
+                "tailColor": "$list.rows.0.tailColor",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 212,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.1.label",
+                "hint": "$list.rows.1.hint",
+                "hintColor": "$list.rows.1.hintColor",
+                "tail": "$list.rows.1.tail",
+                "tailColor": "$list.rows.1.tailColor",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 290,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.2.label",
+                "hint": "$list.rows.2.hint",
+                "hintColor": "$list.rows.2.hintColor",
+                "tail": "$list.rows.2.tail",
+                "tailColor": "$list.rows.2.tailColor",
+                "on": "$list.rows.2.on",
+                "onChange": "$list.rows.2.tap",
+                "onHold": "$list.rows.2.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "stacked",
+              "x": 15,
+              "y": 368,
+              "w": 257,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.3.label",
+                "hint": "$list.rows.3.hint",
+                "hintColor": "$list.rows.3.hintColor",
+                "tail": "$list.rows.3.tail",
+                "tailColor": "$list.rows.3.tailColor",
+                "on": "$list.rows.3.on",
+                "onChange": "$list.rows.3.tap",
+                "onHold": "$list.rows.3.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "confirm",
+          "title": "Confirm",
+          "role": "dialog",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 86,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$dialog.lines.0"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 114,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$dialog.lines.1"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 142,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$dialog.lines.2"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 170,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$dialog.lines.3"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "flush",
+              "x": 15,
+              "y": 324,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.0.label",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "flush",
+              "x": 15,
+              "y": 402,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.1.label",
+                "on": "$list.rows.1.on",
+                "onChange": "$list.rows.1.tap",
+                "onHold": "$list.rows.1.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "qr",
+          "title": "Hotspot",
+          "role": "qr",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$list.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/qr-code",
+              "x": 62,
+              "y": 86,
+              "w": 196,
+              "h": 196,
+              "bind": {
+                "code": "$qr.code"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 290,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.0"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 318,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.1"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 346,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.2"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 374,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$qr.lines.3"
+              }
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "flush",
+              "x": 15,
+              "y": 402,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "label": "$list.rows.0.label",
+                "on": "$list.rows.0.on",
+                "onChange": "$list.rows.0.tap",
+                "onHold": "$list.rows.0.hold"
+              }
+            }
+          ]
+        },
+        {
+          "id": "help",
+          "title": "Help",
+          "role": "help",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$help.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 86,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.0",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 114,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.1",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 142,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.2",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 170,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.3",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 198,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$help.lines.4",
+                "tone": "muted"
+              }
+            }
+          ]
+        },
+        {
+          "id": "lock",
+          "title": "Draw pattern",
+          "role": "lock",
+          "place": [
+            {
+              "component": "tailwind-slate/nav-header",
+              "x": 15,
+              "y": 0,
+              "w": 305,
+              "h": 78,
+              "bind": {
+                "title": "$lock.title",
+                "onClose": "$nav.close"
+              }
+            },
+            {
+              "component": "tailwind-slate/pattern-pad",
+              "x": 16,
+              "y": 139,
+              "w": 288,
+              "h": 288,
+              "bind": {
+                "wrong": "$lock.wrong",
+                "onTry": "$lock.try"
+              }
+            }
+          ]
+        },
+        {
+          "id": "safeboot",
+          "title": "Safeboot",
+          "role": "safeboot",
+          "place": [
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 4,
+              "w": 290,
+              "h": 48,
+              "bind": {
+                "text": "$safeboot.title",
+                "tone": "title"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 52,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.node",
+                "tone": "muted"
+              }
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 92,
+              "w": 290,
+              "h": 48,
+              "bind": {
+                "text": "$safeboot.big",
+                "tone": "title",
+                "align": "center",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 146,
+              "w": 290,
+              "h": 12,
+              "bind": {
+                "text": "",
+                "tone": "accent",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 166,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.0",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 194,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.1",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 222,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.2",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 250,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.lines.3",
+                "tone": "muted",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 290,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.warn",
+                "tone": "warn",
+                "align": "center",
+                "visible": "$safeboot.status.shown"
+              },
+              "alternate": "status"
+            },
+            {
+              "component": "tailwind-slate/qr-code",
+              "x": 73,
+              "y": 86,
+              "w": 174,
+              "h": 174,
+              "bind": {
+                "code": "$safeboot.code",
+                "capacity": 64,
+                "visible": "$safeboot.code.shown"
+              },
+              "alternate": "code"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 262,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.network",
+                "tone": "body",
+                "align": "center",
+                "visible": "$safeboot.code.shown"
+              },
+              "alternate": "code"
+            },
+            {
+              "component": "tailwind-slate/label",
+              "x": 15,
+              "y": 290,
+              "w": 290,
+              "h": 28,
+              "bind": {
+                "text": "$safeboot.address",
+                "tone": "muted",
+                "align": "center",
+                "visible": "$safeboot.code.shown"
+              },
+              "alternate": "code"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 15,
+              "y": 324,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "label": "$safeboot.buttons.0.label",
+                "on": 0,
+                "onChange": "$safeboot.buttons.0.tap",
+                "visible": "$safeboot.buttons.shown"
+              },
+              "alternate": "actions"
+            },
+            {
+              "component": "tailwind-slate/list-row",
+              "variant": "button",
+              "x": 15,
+              "y": 402,
+              "w": 290,
+              "h": 78,
+              "bind": {
+                "label": "$safeboot.buttons.1.label",
+                "on": 0,
+                "onChange": "$safeboot.buttons.1.tap",
+                "visible": "$safeboot.buttons.shown"
+              },
+              "alternate": "actions"
+            }
+          ]
+        },
+        {
+          "id": "edit-pad",
+          "title": "EditPad",
+          "role": "keyboard",
+          "place": [
+            {
+              "component": "tailwind-slate/keyboard",
+              "variant": "t9",
+              "x": 0,
+              "y": 0,
+              "w": 320,
+              "h": 480,
+              "bind": {
+                "value": "$keyboard.value",
+                "max": "$keyboard.max",
+                "onCommit": "$keyboard.commit",
+                "onCancel": "$keyboard.cancel",
+                "onSymbols": "edit-symbols"
+              }
+            }
+          ]
+        },
+        {
+          "id": "edit-symbols",
+          "title": "EditSymbols",
+          "role": "keyboard",
+          "place": [
+            {
+              "component": "tailwind-slate/keyboard",
+              "variant": "symbols",
+              "x": 0,
+              "y": 0,
+              "w": 320,
+              "h": 480,
+              "bind": {
+                "value": "$keyboard.value",
+                "max": "$keyboard.max",
+                "onCommit": "$keyboard.commit",
+                "onCancel": "$keyboard.cancel",
+                "onKeypad": "edit-pad"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

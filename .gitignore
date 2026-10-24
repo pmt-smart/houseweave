@@ -1,0 +1,52 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# Claude Code's local session state
+.claude/
+
+# editors
+.vscode/
+*.swp
+
+# Tasmota's local builds (the submodule ignores them too, to be safe)
+firmware/tasmota/.pio/
+firmware/tasmota/tasmota/user_config_override.h
+firmware/tasmota/platformio_override.ini
+
+# the local toolchain (an embeddable Python and PlatformIO) each machine installs to build the firmware
+.tools/
+
+# node_modules and dist of libs/*
+libs/*/node_modules/
+libs/*/*/node_modules/
+libs/*/*/dist/
+
+# third-party .tft fixtures fetched by libs/nspanel-sim/export/scripts/fetch-fixtures.mjs
+# (manifest with URL + SHA-256 is versioned; the binaries are not ours to redistribute)
+libs/nspanel-sim/export/fixtures/cache/
+
+# the screen's projects the generator writes with --build, and the compiled .tft placed beside them
+libs/nspanel-sim/export/hmi-scenarios/out/
+# the brain's build stamp (firmware/overrides/panel_build.py) and the screen's
+# (build-project-hmi.mjs --build): written by each build, from what is committed
+firmware/overrides/generated/
+libs/nspanel-sim/export/hmi-scenarios/*.stamped.json
+tmp/
+libs/nspanel-sim/vm/.build/
+# Python's cache, of the HA integration's tests
+__pycache__/
+
+# BearSSL's intermediate objects, which the mesh's build compiles to WebAssembly
+libs/nspanel-sim/vm/wasm/.obj/
+
+# the firmware images each build keeps, <env>-<commit>.bin, for a rollback to go
+# back to (scripts/build-firmware.ps1)
+releases/
+
+# the bench tools' output, one directory a run (scripts/bench-*.mjs)
+bench/
+
+# HouseWeave's compiled app, built into the add-on's folder by the package script (scripts/ha-addon.mjs)
+ha/houseweave/app/*
+!ha/houseweave/app/.keep
