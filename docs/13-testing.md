@@ -24,6 +24,12 @@ node scripts/verify.mjs
 `--quick` takes a few minutes; `--list` says what it would run; words keep the steps whose name has one of them (`node scripts/verify.mjs berry
 mesh`). A step's output is shown only when it fails, and the exit code is 0 only when every step passed. Nothing in it touches a device.
 
+**On a fresh clone** the whole gate needs: the submodule (`git submodule update --init firmware/tasmota`), whose Berry interpreter the native
+step runs; the simulator's packages (`npm ci` in `libs/nspanel-sim/`), which the wasm step and the simulator's tests use (the Berry runner
+compiles the simulator's vm before the wasm step, so a clone with no build of it, or an edit of it, runs the current code); and emsdk in
+`tools/emsdk` beside the repository, or where `EMSDK` says, for the two host tests. The public `.tft` and `.HMI` files the export tests read are
+fetched apart (§3); without them those tests are skipped.
+
 ## 2. The Berry suite
 
 `berry/test/` has a test for every file of the brain, the bridge's and the house's layer included (`berry/test/test_*.be`), over stubs of the
@@ -44,7 +50,8 @@ native pieces each one uses (`berry/test/stub_*.be`); how a test is put together
 
 - **`layout`**: the contract of a component's nodes. **`core`**: themes and projects, the validation and its refusals.
 - **`export`**: the screen's formats against a corpus of public `.tft` and `.HMI` files (`npm run fetch-fixtures --workspace=export` fetches them,
-  each checked against its SHA-256 in `libs/nspanel-sim/export/fixtures/manifest.json`; the files are not ours and are not committed), the fonts,
+  each checked against its SHA-256 in `libs/nspanel-sim/export/fixtures/manifest.json`; the files are not ours and are not committed, and a test
+  that reads one is skipped until it is fetched), the fonts,
   the picture codec, the preflight, the generator's guards, the compression the panel inflates.
 - **`glass`**: the emulated screen, and, on the six generated projects, that every touch a manifest declares is reachable and sends the declared
   frame.

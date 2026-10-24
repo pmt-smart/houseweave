@@ -23,6 +23,7 @@ const attr = (spec, name) => spec.attributes.find((a) => a.name === name).value;
 const text = (u8) => new TextDecoder().decode(u8);
 
 const skip = !(existsSync(cachePath("06_bco_magenta_06.HMI")) && existsSync(cachePath("07_add_hotspot_07.HMI"))) && "fixtures not fetched";
+const skipMinimal = !existsSync(cachePath("23_minimal_project_23.HMI")) && "fixture not fetched";
 
 test("templates cover the component types the fixtures use, each with id/objname first", () => {
   const names = Object.values(HMI_TEMPLATES).map((t) => t.name);
@@ -112,9 +113,8 @@ test("withChanges: moving a component recomputes endx/endy; longer txt grows txt
  * compiler is concerned, does not exist. Its answer is
  * `Error:Invalid Page ID:<name>`.
  */
-test("renaming a page moves the header name too, not just the record", () => {
+test("renaming a page moves the header name too, not just the record", { skip: skipMinimal }, () => {
   const file = load("23_minimal_project_23.HMI");
-  if (!existsSync(cachePath("23_minimal_project_23.HMI"))) return;
   const before = page0(file);
   assert.equal(readHmiPage(before).name, "page0");
 
@@ -124,9 +124,8 @@ test("renaming a page moves the header name too, not just the record", () => {
   assert.equal(readHmiPage(after).name, "screensaver", "and the page header, which is the one the Editor reads");
 });
 
-test("a page renamed to something the Editor refuses is refused here first", () => {
+test("a page renamed to something the Editor refuses is refused here first", { skip: skipMinimal }, () => {
   const file = load("23_minimal_project_23.HMI");
-  if (!existsSync(cachePath("23_minimal_project_23.HMI"))) return;
   assert.throws(
     () => editPageBlob(page0(file), { changes: { page0: { attributes: { objname: "0bad" } } } }),
     /First character of a Name can not be number/,

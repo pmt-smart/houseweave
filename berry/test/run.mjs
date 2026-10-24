@@ -48,6 +48,20 @@ if (!wasm && !berryExe) {
   );
   process.exit(1);
 }
+// The wasm VM runs from the simulator's compiled vm (libs/nspanel-sim/vm/dist), which a fresh clone does not have and an edit of vm/src
+// leaves stale: it is compiled first, as the vm's own build does (a few seconds)
+if (wasm) {
+  const tsc = path.join(repoRoot, "libs/nspanel-sim/node_modules/typescript/bin/tsc");
+  if (!existsSync(tsc)) {
+    console.error("The simulator's packages are not installed: run `npm ci` in libs/nspanel-sim first.");
+    process.exit(1);
+  }
+  const built = spawnSync(process.execPath, [tsc, "-p", path.join(repoRoot, "libs/nspanel-sim/vm/tsconfig.json")], { encoding: "utf8" });
+  if (built.status !== 0) {
+    console.error(`The simulator's vm did not compile:\n${built.stdout}${built.stderr}`);
+    process.exit(1);
+  }
+}
 
 // The store and the two files of static functions it names, in the order a
 // file has to come after the ones it names

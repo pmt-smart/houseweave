@@ -354,7 +354,7 @@ test("a later font wins the codepoints it shares with an earlier one", { skip },
   assert.equal(merged.get(full.glyphs[3].code).advance, 1, "b should have won the overlap");
 });
 
-test("a subset is marked as one in the header, the way the Editor marks its own", () => {
+test("a subset is marked as one in the header, the way the Editor marks its own", { skip }, () => {
   // The Editor writes 2 at +0x05 for every subset we can check -- its own
   // 12-glyph font, and everything its Font Creator produced for us. Before this
   // was noticed our subsets carried the parent's value, so a 14-glyph font
@@ -368,7 +368,7 @@ test("a subset is marked as one in the header, the way the Editor marks its own"
   assert.equal(whole[0x05], fonts[0].blob[0x05]);
 });
 
-test("the writer never leaves the align8 flag set, because it writes plain offsets", () => {
+test("the writer never leaves the align8 flag set, because it writes plain offsets", { skip }, () => {
   // A font over 16 MB stores offsets divided by 8 and sets +0x21. We always
   // write them unscaled, so leaving the flag on produced a file this module's
   // own reader threw on -- which is exactly the shape that appears when an
@@ -381,7 +381,7 @@ test("the writer never leaves the align8 flag set, because it writes plain offse
   assert.equal(readZi(bytes).glyphs.length, font.glyphs.length);
 });
 
-test("a truncated or over-running stream is caught when the caller says what it expects", () => {
+test("a truncated or over-running stream is caught when the caller says what it expects", { skip }, () => {
   const font = readZi(fonts[0].blob);
   const g = font.glyphs.find((x) => x.data.length > 12);
   const want = ziBitmapWidth(g) * font.height;

@@ -2,7 +2,7 @@
 // Editor was measured to refuse.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -13,10 +13,13 @@ import { OUR_RULES } from "../dist/attrRanges.js";
 import { editHmiProject, buildComponent, projectGlobalsRam, checkNextionName, checkProgramNameClash, LENIENT } from "../dist/hmiWrite.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const cached = (n) => join(root, "fixtures", "cache", "eseverson-hmi", n);
 const load = (n) => {
-  const b = readFileSync(join(root, "fixtures", "cache", "eseverson-hmi", n));
+  const b = readFileSync(cached(n));
   return new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
 };
+// a test that reads a public fixture runs once it is fetched (npm run fetch-fixtures), and is skipped before
+const skipWithout = (...names) => !names.every((n) => existsSync(cached(n))) && "fixtures not fetched";
 
 test("the two ceilings are the measured walls", () => {
   // 250 compiles and 251 answers "Too many components." (m27, m31);
@@ -53,7 +56,7 @@ test("a dangling PICTURE is ours, because the Editor compiles it", () => {
   }
 });
 
-test("the minimal project really has no resources, so a font reference cannot work there", () => {
+test("the minimal project really has no resources, so a font reference cannot work there", { skip: skipWithout("23_minimal_project_23.HMI") }, () => {
   const minimal = load("23_minimal_project_23.HMI");
   assert.deepEqual(projectResourceCounts(minimal), { fonts: 0, pictures: 0 });
   assert.throws(
@@ -86,17 +89,20 @@ test("lenient mode turns the ceilings off, because the probes need to be refused
 test("everything has to fit the screen, with the Editor's own wording", () => {
   // m44-*-full compile at 480x320 for eight types; m44-*-over (x=460, w=21) all
   // answer `Error:Page:page0 Fail:c1 Position Invalid.`
-  const at = (over) => ({ type: "Text", objname: "farRight", x: 0, y: 0, w: 60, h: 20, ...over });
   assert.doesNotThrow(() => checkOnScreen("c1", 0, 0, 480, 320));
   assert.throws(() => checkOnScreen("c1", 460, 10, 21, 40), /Fail:c1 Position Invalid/);
   assert.throws(() => checkOnScreen("c1", 0, 300, 60, 21), /Position Invalid/);
   assert.throws(() => checkOnScreen("c1", -1, 0, 60, 20), /Position Invalid/);
   assert.throws(() => checkOnScreen("c1", 0, -10, 60, 20), /Position Invalid/);  // m37-y-negative
+});
+
+test("and a project's edit that puts a component off the screen is refused the same way", { skip: skipWithout("06_bco_magenta_06.HMI") }, () => {
+  const at = (over) => ({ type: "Text", objname: "farRight", x: 0, y: 0, w: 60, h: 20, ...over });
   const six = load("06_bco_magenta_06.HMI");
   assert.throws(() => editHmiProject(six, { "0.pa": { add: [at({ x: 460, w: 21 })] } }), /Position Invalid/);
 });
 
-test("the globals area includes the global components, because it is charged to every page", () => {
+test("the globals area includes the global components, because it is charged to every page", { skip: skipWithout("06_bco_magenta_06.HMI") }, () => {
   // m19-global-text40 reports Global Memory:68 = 4 + 4*3 ints + align4(10+40);
   // leaving the component out gives 16, and the budget check would be that much
   // too generous on EVERY page of the project.
