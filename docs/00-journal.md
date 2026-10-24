@@ -189,3 +189,44 @@ checks against the record. `EspNowOtaSafeboot` over HTTP uses the same writer.
 | bridge | 1 856 KB | 1 743 568 bytes | 153.3 KB |
 
 The panel image is 6 528 bytes larger than on `167d085/8dd1e94`, and the bridge image 6 672 bytes larger.
+
+## 2026-10-24 — The safeboot through a neighbour, made to hold
+
+An adversarial review of the safeboot through a neighbour found five ways to leave a node with no safeboot image, which EspNowOtaArm refuses,
+so the node takes no app over the mesh until a later write succeeds. All five are closed (`215630b`, fork `a411f31`,
+[06 §4](06-ota-and-backup.md)).
+
+1. **A busy way.** The node has one request at a time through a neighbour. A hello whose answer is lost holds the way for a minute, and a
+   neighbour answers 503 when it is busy or short of memory. Both spent the write's tries, and the write ended in about 10 s, possibly after
+   the erase. Both are now waited for, with no try spent, up to 3 minutes with nothing had.
+2. **The neighbour's heap.** The neighbour kept each 4 KB answer for 20 s, in case the node lacked a piece. With a piece about every 3.7 s,
+   that is some 20 KB of a panel's heap, and past its 40 KB floor the neighbour answers "Low memory". It now lets a node's answers go when the
+   node asks again: a node asks again only once it had its answer, or gave it up.
+3. **A neighbour on an older firmware** ends a binary file at its first zero byte. That was found only by the final check, after the erase,
+   and each later try erased again. The writer now checks the first piece before anything is erased: the header's `0xE9`, and the app
+   description's magic word at offset 32 (the image's first zero byte is at offset 9). Such a piece is refused, the image the partition holds
+   stays, and the release is asked for all the same.
+4. **The Wi-Fi back.** A write that did not end waited for the next upgrade once the node's Wi-Fi was back. It is now written over that Wi-Fi
+   (`EspNowOtaSafeboot`, at the address the index gives).
+5. **The tries.** A write that did not end was tried every 10 minutes, erasing each time. It is now tried 10 minutes later, then twice as long
+   after each try that fails, up to 2 hours.
+
+**Checked and found sound:**
+
+- The release server's answer heads are 178 to 236 bytes, under the 512 that `PanelHttp` now looks in.
+- NVS does not write a value it already holds, so the record kept at each "Kept" costs no flash.
+- Old and new firmware still carry each other's text answers.
+- With the partition empty, the boot loader starts the app.
+
+**On the bench**, every node took the release (`215630b/a411f314`). Nodes 3, 4, 5 and 6 each took about a minute. Node 1 took about 7 minutes,
+its request answered "no answer" though it arrived. Node 7, back on its Wi-Fi, took it over HTTP in 93 s. Its install fetched only the safeboot's signed record and kept the partition: by the HTTP path's own check too, the safeboot written over the mesh earlier in the day is the server's.
+
+The verify's `scripts` step failed once on two bench-tool tests (`bench-logs`, `bench-power`), which have nothing to do with this change.
+Both passed when run again, and so did the step: they are timing-sensitive under load.
+
+**The images, measured** on the build of this change (`215630b/a411f314`), each about 2.2 KB larger than on `ee4e24f/6f27fc18`:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 066 640 bytes | 157.8 KB |
+| bridge | 1 856 KB | 1 745 824 bytes | 151.1 KB |
