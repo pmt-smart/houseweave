@@ -4,7 +4,8 @@
 #   refuse     connect() fails at once, as an address that does not resolve
 #   state      what connected() says: nil connecting, true up, false closed
 #   room       how much a write() takes, nil for all of it
-#   inbox      what the server sent, for available() and read()
+#   inbox      what the server sent, for available(), read() and readbytes(): a
+#              string, or bytes for a body a string would not hold
 class FakeTcp
     var host, port, refuse, state, room, inbox, sent, closed
     def init() self.state = nil self.inbox = "" self.sent = "" self.closed = false self.refuse = false end
@@ -25,6 +26,11 @@ class FakeTcp
         var d = self.inbox
         self.inbox = ""
         return d
+    end
+    def readbytes()
+        var d = self.inbox
+        self.inbox = ""
+        return isinstance(d, bytes) ? d : bytes().fromstring(d)
     end
     def close() self.closed = true end
 end

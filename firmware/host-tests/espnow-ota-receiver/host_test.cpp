@@ -1099,6 +1099,21 @@ static void test_armed_wait(void) {
   CHECK(g_restarts == 0, "a device put here by hand (the web's upload) is left here");
 }
 
+// The safeboot partition's first sector, erased: the boot loader finds no image there, and starts the app
+static bool first_sector_erased(void) {
+  for (int i = 0; i < SPI_FLASH_SEC_SIZE; i++) { if (g_factory_flash[i] != 0xFF) { return false; } }
+  return true;
+}
+
+// A string field of a small JSON file, as the release tool writes its .sig.json
+static std::string json_field(const Bytes& file, const char* name) {
+  std::string text(file.begin(), file.end());
+  size_t at = text.find(std::string("\"") + name + "\"");
+  if (at == std::string::npos) { return ""; }
+  size_t from = text.find('"', text.find(':', at) + 1) + 1;
+  return text.substr(from, text.find('"', from) - from);
+}
+
 static void test_safeboot_install(void) {
   printf("-- the app writes a safeboot image, signed\n");
   const char* url = "http://server/houseweave-safeboot.bin";
@@ -1145,12 +1160,18 @@ static void test_safeboot_install(void) {
   g_http_after_gets = 2;                                           // the signature and the first pass, then the server's image changes
   g_http_after = []() { g_http["http://server/houseweave-safeboot.bin"][5000] ^= 1; };
   command(CmndEspNowOtaSafeboot, "EspNowOtaSafeboot", url);
-  CHECK(answered("written wrong: run it again") && logged("holds a broken image"), "an image that changed between the two passes is written wrong, and said so");
+  CHECK(answered("written wrong: run it again") && logged("the partition holds none"), "an image that changed between the two passes is written wrong, and said so");
+  CHECK(first_sector_erased() && g_nvs["espnowota_sb/writing"] == Bytes{ 1 },
+        "with no first sector: no image the boot loader would start, and the write said unfinished");
+  g_http[url] = image;
+  g_http_after = nullptr;
+  command(CmndEspNowOtaSafeboot, "EspNowOtaSafeboot", url);
+  CHECK(answered("\"Written\":300000") && !g_nvs.count("espnowota_sb/writing"), "run again, it is written, and no longer unfinished");
 
   setup();
   g_image_verify_fails = true;
   command(CmndEspNowOtaSafeboot, "EspNowOtaSafeboot", url);
-  CHECK(answered("written wrong"), "and so is one the boot loader does not take");
+  CHECK(answered("written wrong") && first_sector_erased(), "and so is one the boot loader does not take, its first sector erased after the check");
 
   setup();
   g_running_factory = 1;
@@ -1159,6 +1180,88 @@ static void test_safeboot_install(void) {
   g_running_factory = 0;
   command(CmndEspNowOtaSafeboot, "EspNowOtaSafeboot", "ftp://server/x.bin");
   CHECK(answered("EspNowOtaSafeboot <http://"), "and a url that is not http is not one");
+}
+
+static void test_safeboot_writer(void) {
+  printf("-- a safeboot image written a piece at a time, as a script that fetches it another way writes it\n");
+  Bytes image = read_file(g_fixture + "/safeboot.bin");
+  Bytes sig = read_file(g_fixture + "/safeboot.bin.sig.json");
+  Bytes record = from_hex(json_field(sig, "record").c_str());
+  Bytes signature = from_hex(json_field(sig, "signature").c_str());
+  CHECK(record.size() == ESPNOW_OTA_SIGNED_LEN && signature.size() == 64, "the record and signature, read from the image's .sig.json");
+  auto setup = [&]() {
+    link_world();
+    flash_reset();
+    g_image_verify_fails = false;
+  };
+  // the image given in pieces of 4 KB, as it comes through a neighbour
+  auto give = [&](uint32_t from, uint32_t to) {
+    bool ok = true;
+    for (uint32_t at = from; ok && (at < to); at += 4096) {
+      uint32_t n = (to - at < 4096) ? to - at : 4096;
+      ok = EspNowOtaSafebootWrite(at, image.data() + at, n);
+    }
+    return ok;
+  };
+
+  setup();
+  bool kept = true;
+  const char* why = EspNowOtaSafebootBegin(record.data(), signature.data(), &kept);
+  CHECK(!why && !kept && g_factory_erases == 0 && !g_nvs.count("espnowota_sb/writing"), "begun: nothing erased before the first bytes come");
+  CHECK(give(0, 8192) && g_factory_erases == 1 && g_nvs["espnowota_sb/writing"] == Bytes{ 1 } && EspNowOtaSafebootUnfinished(),
+        "the first bytes: the first 64 KB block erased, and the write said unfinished, in NVS, across a restart");
+  CHECK(!EspNowOtaSafebootWrite(16384, image.data() + 16384, 4096), "bytes that are not the next ones are refused");
+  CHECK(!EspNowOtaSafebootWrite(8192, image.data() + 8192, 300000), "and so are bytes past the image's end");
+  CHECK(give(8192, 300000) && g_factory_erases == 5 && !g_flash_bad_write, "the rest, the partition erased a block at a time as the write reaches it");
+  CHECK(first_sector_erased() && !memcmp(g_factory_flash.data() + 4096, image.data() + 4096, image.size() - 4096),
+        "the whole image given, all of it is in the partition but its first sector: until the image checks, the boot loader starts the app");
+  why = EspNowOtaSafebootFinish();
+  CHECK(!why && !memcmp(g_factory_flash.data(), image.data(), image.size()) && !g_flash_bad_write, "finished: checked, and its first sector written last");
+  Bytes kept_record = record;
+  kept_record.insert(kept_record.end(), signature.begin(), signature.end());
+  CHECK(g_nvs["espnowota_sb/record"] == kept_record, "its record kept");
+  CHECK(!g_nvs.count("espnowota_sb/writing") && !EspNowOtaSafebootUnfinished() && logged("written and checked"), "and the write no longer unfinished");
+  CHECK(EspNowOtaSafebootKnown(), "EspNowOtaArm knows the image by its record");
+  CHECK(!EspNowOtaSafebootWrite(0, image.data(), 4096) && EspNowOtaSafebootFinish(), "with nothing begun, nothing is written or finished");
+
+  int erases = g_factory_erases;
+  why = EspNowOtaSafebootBegin(record.data(), signature.data(), &kept);
+  CHECK(!why && kept && g_factory_erases == erases, "a partition that holds the image already is kept: nothing erased");
+
+  setup();
+  EspNowOtaSafebootBegin(record.data(), signature.data(), &kept);
+  give(0, 4096);
+  Bytes wrong(image.begin() + 4096, image.begin() + 8192);
+  wrong[100] ^= 1;
+  EspNowOtaSafebootWrite(4096, wrong.data(), wrong.size());
+  give(8192, 300000);
+  why = EspNowOtaSafebootFinish();
+  CHECK(why && std::string(why).find("not the one signed") != std::string::npos && first_sector_erased(),
+        "one byte that went wrong on its way: refused, and the first sector never written, so the boot loader starts the app");
+  CHECK(EspNowOtaSafebootUnfinished() && !g_nvs.count("espnowota_sb/record") && !EspNowOtaSafebootKnown(),
+        "the write still unfinished, no record kept, and EspNowOtaArm knows no image there");
+
+  setup();
+  EspNowOtaSafebootBegin(record.data(), signature.data(), &kept);
+  give(0, 200000);
+  why = EspNowOtaSafebootFinish();
+  CHECK(why && std::string(why).find("not whole") != std::string::npos && first_sector_erased() && EspNowOtaSafebootUnfinished(),
+        "a write that stops halfway: not whole, and no image the boot loader would start");
+  setup();
+  EspNowOtaSafebootBegin(record.data(), signature.data(), &kept);
+  why = EspNowOtaSafebootFinish();
+  CHECK(why && g_factory_erases == 0 && !EspNowOtaSafebootUnfinished(), "one given nothing erased nothing, and leaves the partition as it was");
+
+  setup();
+  Bytes forged = record;
+  forged[10] ^= 1;
+  why = EspNowOtaSafebootBegin(forged.data(), signature.data(), &kept);
+  CHECK(why && std::string(why).find("not signed") != std::string::npos && !EspNowOtaSafebootWrite(0, image.data(), 4096) && g_factory_erases == 0,
+        "a record its signature does not check: nothing begun, nothing erased");
+  g_running_factory = 1;
+  why = EspNowOtaSafebootBegin(record.data(), signature.data(), &kept);
+  CHECK(why && std::string(why).find("no safeboot partition") != std::string::npos, "the safeboot image does not write itself");
+  g_running_factory = 0;
 }
 
 // The receiver armed with a release's address, the station connected on the mesh's channel, and the server holding the fixture's releases
@@ -1318,6 +1421,7 @@ int main(int argc, char** argv) {
   } else {
     test_link();
     test_safeboot_install();
+    test_safeboot_writer();
     test_http_receive();
     test_upgrade();
   }

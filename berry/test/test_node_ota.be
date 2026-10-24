@@ -411,6 +411,128 @@ check("a look that did not go says why, in the colour of what is wrong", [labels
 st["ota"]["busy"] = "upgrading"
 check("upgrading", [labels(ask(["ota"], nil, nil))[3], labels(ask(["wireless"], nil, nil))[2]], [["Upgrading", "Restarting", 0], ["OTA", "Upgrading", 1]])
 
+# --- the safeboot image through a neighbour ----------------------------------------------------------------------------------------------------
+# the firmware's writer (xdrv_98_7), as the test answers it, and the way to the server through a neighbour (mesh_http.be)
+import global
+var sb_calls = []
+var sb_begin = "Begun"
+var sb_finish = "Written"
+var sb_unfinished = false
+global.espnow_ota_safeboot_begin = def (r, s) sb_calls.push(["begin", r.tohex(), size(s)]) return sb_begin end
+global.espnow_ota_safeboot_write = def (at, b) sb_calls.push(["write", at, size(b)]) return true end
+global.espnow_ota_safeboot_finish = def ()
+    sb_calls.push(["finish"])
+    sb_unfinished = sb_finish != "Written"
+    return sb_finish
+end
+global.espnow_ota_safeboot_unfinished = def () return sb_unfinished end
+class FakeMesh
+    var asked
+    def init() self.asked = [] end
+    def can() return true end
+    def request(method, host, port, path, body, done, headers, raw)
+        self.asked.push([method, path, headers, raw == true, done])
+        return true
+    end
+    def what() var a = self.asked[-1] return [a[0], a[1], a[2], a[3]] end
+    def reply(code, body) self.asked[-1][4](code, body) end
+end
+def zeros(n) var b = bytes() b.resize(n) return b end
+def rep(s, n) var o = "" for i: 1 .. n  o += s end return o end
+server = {"host": "192.168.2.108", "port": 8099}
+tasmota.timers = []
+tasmota.at_ms = nil
+tasmota.wifi_up = false
+var near = FakeHouse()
+near.wifi = [5]
+var lone = NodeOta(FakeHttp(), / -> server, nil, / -> near)
+lone.mesh = FakeMesh()
+lone.every_second()
+# a safeboot image of 10 000 bytes: three pieces, the last one shorter
+var record = "10270000" + "000000" + rep("AB", 32)
+var sig = '{"file": "houseweave-safeboot.bin", "record": "' + record + '", "signature": "' + rep("CD", 64) + '"}'
+var idx = '{"v": 1, "images": {}, "safeboot": {"path": "houseweave-safeboot.bin", "build": "77e6933/ea07370f", "size": 10000}}'
+
+check("the server's Upgrade, with no Wi-Fi: a look first", lone.upgrade_asked(), "Looking")
+lone.http.reply(0, "No network")
+check("the look does not reach the server: the server's safeboot image first, its index asked through a neighbour",
+      [lone.mesh.what(), lone.result, size(near.sent)], [["GET", "/ota/index.json", {}, false], "Safeboot: looking", 0])
+check("the Upgrade asked again meanwhile: said", lone.upgrade_asked(), "Writing the safeboot image")
+lone.mesh.reply(200, idx)
+check("the index's safeboot image: its signed record asked", lone.mesh.what(), ["GET", "/ota/houseweave-safeboot.bin.sig.json", {}, false])
+lone.mesh.reply(200, sig)
+check("the record to the firmware's writer, which begins: the first piece asked, as bytes",
+      [sb_calls, lone.mesh.what()], [[["begin", record, 64]], ["GET", "/ota/houseweave-safeboot.bin", {"Range": "bytes=0-4095"}, true]])
+lone.mesh.reply(206, zeros(4096))
+check("a piece written where it goes, and the next one asked after a moment", [sb_calls[-1], lone.result, size(tasmota.timers)],
+      [["write", 0, 4096], "Safeboot 40%", 1])
+run_timers()
+check("the next piece", lone.mesh.what()[2], {"Range": "bytes=4096-8191"})
+lone.mesh.reply(0, "No answer")
+check("a piece not had: nothing written, and asked again after a while", [size(sb_calls), size(tasmota.timers)], [2, 1])
+run_timers()
+check("the same piece asked again", lone.mesh.what()[2], {"Range": "bytes=4096-8191"})
+lone.mesh.reply(206, zeros(100))
+check("a piece of another size is not the piece", [size(sb_calls), lone.sb["tries"]], [2, 2])
+run_timers()
+lone.mesh.reply(206, zeros(4096))
+run_timers()
+check("the last piece, shorter", lone.mesh.what()[2], {"Range": "bytes=8192-9999"})
+lone.mesh.reply(206, zeros(1808))
+check("the image whole: finished, and then the release asked of a neighbour",
+      [sb_calls[-2], sb_calls[-1], lone.sb, size(near.sent), near.sent[0][0], near.sent[0][1][0], lone.result],
+      [["write", 8192, 1808], ["finish"], nil, 1, 5, 0x35, "Asking node 5"])
+
+# a partition that holds the server's image already: kept, and the release asked at once
+sb_calls = []
+near.sent = []
+sb_begin = "Kept"
+lone.upgrade_asked()
+lone.http.reply(0, "No network")
+lone.mesh.reply(200, idx)
+lone.mesh.reply(200, sig)
+check("kept: nothing written, and the release asked", [sb_calls, size(near.sent), lone.result], [[["begin", record, 64]], 1, "Asking node 5"])
+
+# no safeboot image on the server: nothing begun, the partition as it was, and the release asked all the same
+sb_calls = []
+near.sent = []
+lone.upgrade_asked()
+lone.http.reply(0, "No network")
+lone.mesh.reply(404, "")
+check("no safeboot image on the server: nothing begun, and the release asked all the same", [sb_calls, size(near.sent), lone.sb_due], [[], 1, nil])
+
+# a write that erased the partition and did not end: no release asked, since the partition holds no safeboot image; tried again later
+sb_calls = []
+near.sent = []
+sb_begin = "Begun"
+sb_finish = "the image written is not the one signed"
+lone.upgrade_asked()
+lone.http.reply(0, "No network")
+lone.mesh.reply(200, idx)
+lone.mesh.reply(200, sig)
+for i: 1 .. 2
+    lone.mesh.reply(206, zeros(4096))
+    run_timers()
+end
+lone.mesh.reply(206, zeros(1808))
+check("an image that does not check: no release asked, and the write tried again later",
+      [sb_calls[-1], size(near.sent), lone.result, lone.sb_due != nil], [["finish"], 0, "Safeboot: the image written is not the one signed", true])
+sb_calls = []
+sb_finish = "Written"
+tasmota.at_ms = tasmota.millis() + NodeOta.SB_AGAIN_MS + 1
+lone.every_second()
+check("SB_AGAIN_MS later, with no Wi-Fi: the write again, from the index", [lone.mesh.what(), lone.result], [["GET", "/ota/index.json", {}, false], "Safeboot: looking"])
+lone.mesh.reply(200, idx)
+lone.mesh.reply(200, sig)
+for i: 1 .. 2
+    lone.mesh.reply(206, zeros(4096))
+    run_timers()
+end
+lone.mesh.reply(206, zeros(1808))
+check("written: no longer unfinished, and nothing follows a write tried again by itself", [sb_calls[-1], lone.sb_due, size(near.sent), lone.result],
+      [["finish"], nil, 0, ""])
+tasmota.at_ms = nil
+
 if failures == 0
     print("ok - " + str(checks) + " checks")
 else

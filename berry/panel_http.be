@@ -4,10 +4,12 @@
 # glass, the relays and the bridge's link, for as long as a slow server takes.
 #
 # The request goes in pieces as the socket takes them, and the answer is read as
-# it comes. It is whole at its Content-Length, or when the server closes. An
-# answer longer than MAX is refused, as is one that does not come in
+# it comes, as bytes. It is whole at its Content-Length, or when the server
+# closes. An answer longer than MAX is refused, as is one that does not come in
 # TIMEOUT_MS. HTTP/1.0 asks for no chunked answer, and a redirect is an answer
-# like any other.
+# like any other. The body is text for the one that asked, or bytes when it asked
+# for them (`raw`): a binary file whole, which a string would not keep, since
+# Berry joins two strings only up to the first zero byte of each.
 #
 # A name for a host is looked up by Tasmota as the connection opens, which
 # waits for the DNS: an address does not.
@@ -22,10 +24,12 @@
 class PanelHttp : Driver
     static TIMEOUT_MS = 10000
     static MAX = 32000
+    static HEAD_MAX = 512     # the most an answer's head is: looked for in its first bytes, and past MAX of a body by this, an answer is too large
 
     var client      # the connection of the request under way, or nil
     var out         # what is left to send of it
-    var got         # what came back so far
+    var got         # what came back so far, bytes
+    var raw         # the body to done as bytes
     var done        # done(code, body): code 0, and the reason, for a failure
     var deadline    # when the request gives up
     var offline     # the request found no network: it fails at the next poll
@@ -38,11 +42,12 @@ class PanelHttp : Driver
 
     # `method` to `path` on host:port, with `body` (nil for none) as JSON and
     # `headers` (a map, or nil) beside Host; false, and nothing sent, while
-    # another request is under way
-    def request(method, host, port, path, body, done, headers)
+    # another request is under way. `raw`: the body to done as bytes
+    def request(method, host, port, path, body, done, headers, raw)
         if self.done != nil return false end
         self.done = done
-        self.got = ""
+        self.got = bytes()
+        self.raw = raw == true
         self.deadline = tasmota.millis(PanelHttp.TIMEOUT_MS)
         var head = method + " " + path + " HTTP/1.0\r\nHost: " + host + "\r\nConnection: close\r\n"
         if headers != nil
@@ -74,12 +79,13 @@ class PanelHttp : Driver
             if n > 0  self.out = n < size(self.out) ? self.out[n ..] : "" end
         end
         # what the server sent before it closed is still read
-        if up != nil && c.available() > 0  self.got += c.read() end
-        if size(self.got) > PanelHttp.MAX + 2048
+        if up != nil && c.available() > 0  self.got .. c.readbytes() end
+        # under 32 KB in all: a build of Berry may hold no more in a bytes object, and drop the rest unsaid
+        if size(self.got) > PanelHttp.MAX + PanelHttp.HEAD_MAX
             self.finish(0, "Too large")
             return
         end
-        var r = PanelHttp.answer(self.got, up == false)
+        var r = PanelHttp.answer(self.got, up == false, self.raw)
         if r != nil
             self.finish(r[0], r[1])
         elif up == false || tasmota.time_reached(self.deadline)
@@ -87,24 +93,32 @@ class PanelHttp : Driver
         end
     end
 
-    # The answer in `got`, once whole: [code, body], or nil while more is to come.
-    # Closed, what came is all there is, and an answer cut short is a failure
-    static def answer(got, closed)
+    # The answer in `got` (bytes), once whole: [code, body], or nil while more is
+    # to come; the body as bytes with `raw`, as text otherwise. Closed, what came
+    # is all there is, and an answer cut short is a failure
+    static def answer(got, closed, raw)
         import string
-        var i = string.find(got, "\r\n\r\n")
+        # the head is text, at most HEAD_MAX bytes: read as a string, which ends at
+        # the body's first zero byte, past the head
+        var text = got[0 .. (size(got) < PanelHttp.HEAD_MAX ? size(got) : PanelHttp.HEAD_MAX) - 1].asstring()
+        var i = string.find(text, "\r\n\r\n")
         if i < 0 return closed && size(got) > 0 ? [0, "Cut short"] : nil end
-        var head = string.tolower(got[0 .. i - 1])
-        var body = i + 4 < size(got) ? got[i + 4 ..] : ""
+        var head = string.tolower(text[0 .. i - 1])
+        var body = i + 4 < size(got) ? got[i + 4 ..] : bytes()
         var code = 0
         if string.find(head, "http/1.") == 0 && size(head) >= 12  code = int(head[9 .. 11]) end
         var at = string.find(head, "\r\ncontent-length:")
-        if at < 0 return closed ? [code, body] : nil end
-        var rest = head[at + 17 ..]
-        var e = string.find(rest, "\r\n")
-        if e >= 0  rest = e > 0 ? rest[0 .. e - 1] : "" end
-        var n = int(string.tr(rest, " \t", ""))
-        if size(body) < n return closed ? [0, "Cut short"] : nil end
-        return [code, n > 0 ? body[0 .. n - 1] : ""]
+        if at >= 0
+            var rest = head[at + 17 ..]
+            var e = string.find(rest, "\r\n")
+            if e >= 0  rest = e > 0 ? rest[0 .. e - 1] : "" end
+            var n = int(string.tr(rest, " \t", ""))
+            if size(body) < n return closed ? [0, "Cut short"] : nil end
+            body = n > 0 ? body[0 .. n - 1] : bytes()
+        elif !closed
+            return nil
+        end
+        return [code, raw ? body : body.asstring()]
     end
 
     def finish(code, body)

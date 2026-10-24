@@ -483,6 +483,8 @@ class PanelBoot
                 # they change
                 var house = self.house
                 hv.ota = NodeOta(PanelHttp(), / -> house.server(), / -> brain.run(hv.ota_changed()), / -> house)
+                # and its way to the server through a neighbour, for the safeboot image of a panel with no Wi-Fi
+                if self.link != nil  hv.ota.mesh = self.link.mesh end
                 brain.ota_ctl = hv.ota
                 hv.server = HouseServer(/ -> house, / -> brain.run(hv.ota_changed()))
                 # and the server's word to this panel: its upgrade, and its state; the backup's are the backup's. This panel says it is up

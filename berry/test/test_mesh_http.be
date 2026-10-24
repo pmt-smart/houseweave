@@ -56,11 +56,12 @@ class FakeHouse
 end
 # the neighbour's own client to the server: what it was asked, answered by the test
 class FakeHttp
-    var asked, done
+    var asked, done, raw
     def busy() return self.done != nil end
-    def request(method, host, port, path, body, done, headers)
+    def request(method, host, port, path, body, done, headers, raw)
         if self.done != nil return false end
         self.asked = [method, host, port, path, body, headers]
+        self.raw = raw
         self.done = done
         return true
     end
@@ -177,6 +178,16 @@ for i: 1 .. 5
 end
 check("nor one with no room for it", got3, [[503, "Low memory"]])
 tasmota.heap_free_kb = nil
+
+# a binary answer: to a request that asked for bytes, its body whole, through the neighbour's client and back
+got = []
+node.request("GET", "", 0, "/ota/houseweave-safeboot.bin", nil, done, {"Range": "bytes=0-9"}, true)
+tick(10)
+check("the request carried with its Range, and the neighbour's client asked for bytes",
+      [http.asked[5], http.raw], [{"Range": "bytes=0-9", "X-HouseWeave-Via": "4"}, true])
+http.reply(206, bytes("E9060002000020656E64"))
+tick(10)
+check("the answer's body as bytes, every byte of it", got, [[206, bytes("E9060002000020656E64")]])
 
 # a request nobody answers: the node is told, after WAIT_MS
 got = []

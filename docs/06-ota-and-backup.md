@@ -69,8 +69,9 @@ index when it opens, if what it saw is older than 5 minutes, and again at a touc
 
 1. **A node that reaches the server** runs `EspNowOtaUpgrade <release> <safeboot>`: it checks the release's signature and that it fits the
    partition, installs the house's safeboot when the partition does not hold the signed one (`EspNowOtaSafeboot`: download, check the signature,
-   compute the SHA-256 in a first pass **before erasing anything**, write, read back, compare, and let the bootloader verify the image; the app
-   keeps running in any case), leaves the release's address in the NVS, and restarts into the safeboot, which downloads it over HTTP.
+   compute the SHA-256 in a first pass **before erasing anything**, write with **the first sector last**, read back, compare, and let the
+   bootloader verify the image; the app keeps running in any case), leaves the release's address in the NVS, and restarts into the safeboot,
+   which downloads it over HTTP.
 2. **A node the server cannot reach directly** (behind another router) gets the request through another node (§6), and then reaches the
    server itself for the release.
 3. **A node with no Wi-Fi at all** asks a neighbour it hears on the radio and that sits on an access point (the best signal first) for its
@@ -81,8 +82,27 @@ index when it opens, if what it saw is older than 5 minutes, and again at a touc
    leaves. The neighbour fetches the blocks from the server 2 KB at a time (a panel's heap cannot hold a 64 KB block); a piece with no answer in
    250 ms goes again, and 24 in a row with no answer end the send.
 
+   Before it asks for its release, such a node takes **the house's safeboot through a neighbour**, since it can take none over HTTP. Through
+   the neighbour's way to the server (`berry/mesh_http.be`), it fetches the index, then the safeboot's signed record, then the image 4 KB at a
+   time, each piece as bytes. The app writes each piece as it comes (`espnow_ota_safeboot_begin`, `_write` and `_finish`, in the fork): the
+   partition is erased a block at a time as the write goes, and the first sector waits in RAM until the whole image checks against its signed
+   record, and is written last. A partition that holds the image already is kept, with its record, and nothing is erased. 749 408 bytes take
+   about 5 to 10 minutes, paced so the node's other requests through the neighbour still go, and only while the house's queue is short.
+
+   A write that erased the partition and did not end leaves no safeboot image: an NVS key says so, `EspNowOtaArm` refuses (there is nothing to
+   restart into), and the release is not asked for. The write is tried again 10 minutes later, and a minute after a restart, while the node has
+   no Wi-Fi.
+
+**The first sector last** is because the bootloader does not check an image's hash when it boots (`CONFIG_BOOTLOADER_SKIP_VALIDATE_ALWAYS` in
+the framework's configuration). An image whose bytes went wrong would start, and fail, at every restart into the safeboot, and only the serial
+line would bring the device back. A partition with no first sector holds no image, and the bootloader starts the app instead. A write cut in the
+middle was already safe, since the next segment's header is still erased and the bootloader refuses the image; the first sector last also covers
+a write that ends with wrong bytes. A failed write erases the first sector again.
+
 **`EspNowOtaArm` only restarts into a known safeboot**: the one the build pinned, or one an install checked and recorded in the NVS, read back
-whole. Tasmota's official safeboot has no receiver, and a node with no Wi-Fi armed into it would be out of reach.
+whole. Tasmota's official safeboot has no receiver, and a node with no Wi-Fi armed into it would be out of reach. The build carries the pinned
+safeboot's signed record too, and the app keeps it on a device it finds holding that safeboot ([11 §6](11-build-and-flash.md)): a device that
+never had the Wi-Fi still knows its safeboot after an app that pins another one.
 
 **A node left waiting in its safeboot is rescued by a neighbour.** The safeboot gives up a release after 10 failed downloads and waits for the
 mesh. Every node keeps, for each node it hears in the safeboot, its state, block, image (a prefix of its SHA-256), signal and the time of its last

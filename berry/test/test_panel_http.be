@@ -55,6 +55,19 @@ c.inbox = "12345}"
 http.every_50ms()
 check("the body whole, the header in any case", answers, [[200, "{\"a\":12345}"]])
 
+# --- a binary body: bytes, every one of them, for a request that asked for bytes ---------------------
+answers.clear()
+http.request("GET", "192.168.2.10", 8099, "/ota/houseweave-safeboot.bin", nil, got, {"Range": "bytes=0-5"}, true)
+c = tcp_made[-1]
+c.state = true
+http.every_50ms()
+c.inbox = bytes().fromstring("HTTP/1.0 206 Partial Content\r\nContent-Length: 6\r\n\r\n") .. bytes("E900010002")
+http.every_50ms()
+check("five of the six bytes: more to come", [answers, http.busy()], [[], true])
+c.inbox = bytes("03")
+http.every_50ms()
+check("the six bytes, zeros and all, as bytes", answers, [[206, bytes("E90001000203")]])
+
 # --- a header beside Host --------------------------------------------------------------------------
 answers.clear()
 http.request("PUT", "192.168.2.10", 8080, "/backup/living-room.json", "{}", got, {"Authorization": "Bearer 0123"})

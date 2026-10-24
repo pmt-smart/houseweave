@@ -168,6 +168,7 @@ static esp_err_t nvs_get_u16(nvs_handle_t h, const char* key, uint16_t* v) { siz
 static esp_err_t nvs_get_u8(nvs_handle_t h, const char* key, uint8_t* v) { size_t n = 1; return nvs_get_blob(h, key, v, &n); }
 static esp_err_t nvs_set_str(nvs_handle_t h, const char* key, const char* v) { return nvs_set_blob(h, key, v, strlen(v) + 1); }
 static esp_err_t nvs_get_str(nvs_handle_t h, const char* key, char* out, size_t* len) { return nvs_get_blob(h, key, out, len); }
+static esp_err_t nvs_erase_key(nvs_handle_t h, const char* key) { return g_nvs.erase(nvs_key(h, key)) ? ESP_OK : ESP_ERR_NVS_NOT_FOUND; }
 static esp_err_t nvs_erase_all(nvs_handle_t h) {
   std::string prefix = g_namespaces[h] + "/";
   for (auto it = g_nvs.begin(); it != g_nvs.end();) { if (it->first.rfind(prefix, 0) == 0) { it = g_nvs.erase(it); } else { ++it; } }

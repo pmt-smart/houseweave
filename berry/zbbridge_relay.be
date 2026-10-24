@@ -203,7 +203,11 @@ class ZbBridgeRelay
                 if global.contains("ServerLink") && global.contains("NodeBackup") && global.contains("BridgeBackup")
                     r.link = global.ServerLink(/ -> house, global.PanelHttp(), / -> r.server_state(), nil)
                     var link = r.link
-                    if global.contains("MeshHttp")  r.link.mesh = global.MeshHttp(/ -> house, global.PanelHttp(), / -> link.server()) end
+                    if global.contains("MeshHttp")
+                        r.link.mesh = global.MeshHttp(/ -> house, global.PanelHttp(), / -> link.server())
+                        # the same way to the server, for the safeboot image of a bridge with no Wi-Fi
+                        r.ota.mesh = r.link.mesh
+                    end
                     r.backup = global.NodeBackup(global.BridgeBackup(), global.PanelHttp(), r.link)
                     var ota = r.ota
                     r.link.on("upgrade", / -> {"upgrade": ota.upgrade_asked()})

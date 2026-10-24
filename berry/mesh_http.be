@@ -4,7 +4,8 @@
 # number, so that the server does not take its address for the node's.
 #
 # The same as panel_http.be's client to the one that asks: request(method, host, port, path, body, done, headers), busy(), and done(code, body), code 0
-# and the reason for a failure; the server's address is the neighbour's to know. A request, "method path\n", the headers as JSON, "\n" and the body,
+# and the reason for a failure; the server's address is the neighbour's to know. With `raw` after the headers, done takes the body as bytes, whole: a
+# binary file comes back as it is, where a string would end at its first zero byte. A request, "method path\n", the headers as JSON, "\n" and the body,
 # goes in pieces (HouseMesh.MSG_HTTP_REQ), and its answer, "code\n" and the body, comes back in pieces (MSG_HTTP_ANS). A piece is [msg, wire, transfer,
 # piece (2 bytes), pieces (2 bytes)] and its bytes, PER_TICK of them every 100 ms while the house's queue is short. The end that takes a transfer and
 # hears nothing of it for GAP_MS asks for the pieces it lacks (MSG_HTTP_MISS: [msg, wire, transfer, the transfer's msg, each piece in 2 bytes]),
@@ -56,8 +57,8 @@ class MeshHttp
     end
 
     # A request to the server through the neighbour on the Wi-Fi with the best signal: false, and nothing sent, while another is on its way, or with
-    # no neighbour to carry it
-    def request(method, host, port, path, body, done, headers)
+    # no neighbour to carry it. `raw`: the answer's body to done as bytes
+    def request(method, host, port, path, body, done, headers, raw)
         import json
         var h = self.house()
         if h == nil || self.asked != nil return false end
@@ -67,7 +68,7 @@ class MeshHttp
         if body != nil  data .. bytes().fromstring(str(body)) end
         if size(data) > MeshHttp.MAX return false end
         self.seq = (self.seq + 1) % 256
-        self.asked = {"id": self.seq, "to": to[0], "done": done, "at": tasmota.millis()}
+        self.asked = {"id": self.seq, "to": to[0], "done": done, "at": tasmota.millis(), "raw": raw == true}
         self.send_whole(to[0], h.MSG_HTTP_REQ, self.seq, data)
         return true
     end
@@ -221,7 +222,7 @@ class MeshHttp
         if d[0] == h.MSG_HTTP_REQ
             self.carry(src, id, all.asstring())
         else
-            self.answered(all.asstring())
+            self.answered(all)
         end
     end
 
@@ -245,9 +246,12 @@ class MeshHttp
         var i2 = i1 > 0 ? string.find(text, "\n", i1 + 1) : -1
         var sp = i1 > 0 ? string.find(text[0 .. i1 - 1], " ") : -1
         var head = i2 > 0 ? json.load(text[i1 + 1 .. i2 - 1]) : nil
+        # the answer as its bytes came: Berry joins two strings only up to the first zero byte of each, and a binary body has them
         var back = def (code, body)
             self.carrying = nil
-            self.send_whole(src, h.MSG_HTTP_ANS, id, bytes().fromstring(str(code) + "\n" + str(body)))
+            var b = bytes().fromstring(str(code) + "\n")
+            b .. (isinstance(body, bytes) ? body : bytes().fromstring(str(body)))
+            self.send_whole(src, h.MSG_HTTP_ANS, id, b)
         end
         if h == nil || s == nil || sp <= 0 || !isinstance(head, map)
             back(503, s == nil ? "No server" : "Not a request")
@@ -255,16 +259,19 @@ class MeshHttp
         end
         head["X-HouseWeave-Via"] = str(h.list.me)
         var body = size(text) > i2 + 1 ? text[i2 + 1 ..] : nil
-        if !self.http.request(text[0 .. sp - 1], s["host"], s["port"], text[sp + 1 .. i1 - 1], body, back, head)  back(503, "Busy") end
+        if !self.http.request(text[0 .. sp - 1], s["host"], s["port"], text[sp + 1 .. i1 - 1], body, back, head, true)  back(503, "Busy") end
     end
 
-    # this node's request answered: its code and body to the one that asked
-    def answered(text)
-        import string
+    # this node's request answered, "code\n" and the body: its code and body to the one that asked, the body as bytes when it asked for them
+    def answered(b)
         var done = self.asked != nil ? self.asked["done"] : nil
+        var raw = self.asked != nil && self.asked["raw"]
         self.asked = nil
-        var i = string.find(text, "\n")
-        var code = i > 0 ? int(text[0 .. i - 1]) : 0
-        if done != nil  done(code, i > 0 ? text[i + 1 ..] : "Not an answer") end
+        var i = 0
+        while i < size(b) && b[i] != 0x0A  i += 1 end
+        if done == nil return end
+        if i == 0 || i >= size(b) return done(0, "Not an answer") end
+        var body = i + 1 < size(b) ? b[i + 1 ..] : bytes()
+        done(int(b[0 .. i - 1].asstring()), raw ? body : body.asstring())
     end
 end
