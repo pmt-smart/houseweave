@@ -1208,6 +1208,12 @@ static void test_safeboot_writer(void) {
   bool kept = true;
   const char* why = EspNowOtaSafebootBegin(record.data(), signature.data(), &kept);
   CHECK(!why && !kept && g_factory_erases == 0 && !g_nvs.count("espnowota_sb/writing"), "begun: nothing erased before the first bytes come");
+  // the first bytes as a carrier that ends a binary file at its first zero byte leaves them: the image's header, then what memory held
+  Bytes spoilt(image.begin(), image.begin() + 4096);
+  for (size_t i = 9; i < spoilt.size(); i++) { spoilt[i] = (uint8_t)(i * 37); }
+  CHECK(!EspNowOtaSafebootWrite(0, spoilt.data(), spoilt.size()) && g_factory_erases == 0 && !EspNowOtaSafebootUnfinished(),
+        "a first piece that is not an app image's (no description at offset 32): refused before anything is erased, the image there left whole");
+  CHECK(!EspNowOtaSafebootWrite(0, image.data(), 20), "and so is one too short to tell");
   CHECK(give(0, 8192) && g_factory_erases == 1 && g_nvs["espnowota_sb/writing"] == Bytes{ 1 } && EspNowOtaSafebootUnfinished(),
         "the first bytes: the first 64 KB block erased, and the write said unfinished, in NVS, across a restart");
   CHECK(!EspNowOtaSafebootWrite(16384, image.data() + 16384, 4096), "bytes that are not the next ones are refused");

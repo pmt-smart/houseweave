@@ -114,6 +114,7 @@ for (let i = 0, s = 11; i < safeboot.length; i++) {
   safeboot[i] = s >>> 24;
 }
 safeboot[0] = 0xe9;
+safeboot.writeUInt32LE(0xabcd5432, 32);                            // an app image's description, at the start of its first segment
 const otherKey = createPrivateKey({ key: { kty: "OKP", crv: "Ed25519", d: b64url("c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"),
   x: b64url("fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025") }, format: "jwk" });
 writeFileSync(join(fixture, "safeboot.bin"), safeboot);

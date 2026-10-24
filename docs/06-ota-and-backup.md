@@ -86,12 +86,23 @@ index when it opens, if what it saw is older than 5 minutes, and again at a touc
    the neighbour's way to the server (`berry/mesh_http.be`), it fetches the index, then the safeboot's signed record, then the image 4 KB at a
    time, each piece as bytes. The app writes each piece as it comes (`espnow_ota_safeboot_begin`, `_write` and `_finish`, in the fork): the
    partition is erased a block at a time as the write goes, and the first sector waits in RAM until the whole image checks against its signed
-   record, and is written last. A partition that holds the image already is kept, with its record, and nothing is erased. 749 408 bytes take
-   about 5 to 10 minutes, paced so the node's other requests through the neighbour still go, and only while the house's queue is short.
+   record, and is written last. A partition that holds the image already is kept, with its record, and nothing is erased. 749 408 bytes took
+   686 s on the bench (183 pieces through a panel on a weak Wi-Fi), paced so the node's other requests through the neighbour still go, and only
+   while the house's queue is short.
+
+   - **A busy way is waited for.** The node's way to the server may be busy with another of its requests, which can wait a minute for its
+     answer, or the neighbour may answer 503 when it is busy or short of memory. Either is waited for, with no try spent, up to 3 minutes with
+     nothing had. A request that fails otherwise is tried 5 times.
+   - **The neighbour keeps only the node's last answer**, for the pieces the node may lack. It drops it as soon as the node asks again, rather
+     than keeping each 4 KB answer for 20 s.
+   - **The first piece is checked before anything is erased.** It must be an app image's: the header's `0xE9`, and the description's magic word
+     `0xABCD5432` at offset 32. A neighbour on an older firmware ends a binary file at its first zero byte; its first piece is refused, the
+     image the partition holds is left as it is, and the release is asked for all the same.
 
    A write that erased the partition and did not end leaves no safeboot image: an NVS key says so, `EspNowOtaArm` refuses (there is nothing to
-   restart into), and the release is not asked for. The write is tried again 10 minutes later, and a minute after a restart, while the node has
-   no Wi-Fi.
+   restart into), and the release is not asked for. The write is tried again 10 minutes later, then twice as long after each try that fails, up
+   to 2 hours, and a minute after a restart. When the node's Wi-Fi is back, it is written over HTTP (`EspNowOtaSafeboot`) at the address the
+   index gives.
 
 **The first sector last** is because the bootloader does not check an image's hash when it boots (`CONFIG_BOOTLOADER_SKIP_VALIDATE_ALWAYS` in
 the framework's configuration). An image whose bytes went wrong would start, and fail, at every restart into the safeboot, and only the serial

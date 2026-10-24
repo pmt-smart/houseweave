@@ -9,7 +9,8 @@
 # goes in pieces (HouseMesh.MSG_HTTP_REQ), and its answer, "code\n" and the body, comes back in pieces (MSG_HTTP_ANS). A piece is [msg, wire, transfer,
 # piece (2 bytes), pieces (2 bytes)] and its bytes, PER_TICK of them every 100 ms while the house's queue is short. The end that takes a transfer and
 # hears nothing of it for GAP_MS asks for the pieces it lacks (MSG_HTTP_MISS: [msg, wire, transfer, the transfer's msg, each piece in 2 bytes]),
-# TRIES times; the one that sends keeps the pieces KEEP_MS after the last. A request with no answer in WAIT_MS ends with code 0 and "No answer". One
+# TRIES times; the one that sends keeps the pieces KEEP_MS after the last, or, for an answer, until the node asks again. A request with no answer
+# in WAIT_MS ends with code 0 and "No answer". One
 # request at a time each way: a neighbour that carries another's, or has no server or no room for it, answers 503 and why.
 #@ solidify:MeshHttp
 class MeshHttp
@@ -203,6 +204,9 @@ class MeshHttp
         var t = self.takes.find(k)
         if t == nil
             if d[0] == h.MSG_HTTP_REQ
+                # the node's answers to its earlier requests, kept for the pieces it might lack, are done with: a node asks again only once it
+                # had its answer, or gave it up. A node that asks piece after piece would hold KEEP_MS of answers in this node's heap
+                self.drop_answers(src, id)
                 var why = self.refused(src, id, of)
                 if why != nil
                     self.send_whole(src, h.MSG_HTTP_ANS, id, bytes().fromstring("503\n" + why))
@@ -223,6 +227,20 @@ class MeshHttp
             self.carry(src, id, all.asstring())
         else
             self.answered(all)
+        end
+    end
+
+    # the answers kept for node src, but the one to its request id
+    def drop_answers(src, id)
+        var h = self.house()
+        var i = 0
+        while h != nil && i < size(self.sends)
+            var x = self.sends[i]
+            if x["to"] == src && x["msg"] == h.MSG_HTTP_ANS && x["id"] != id
+                self.sends.remove(i)
+            else
+                i += 1
+            end
         end
     end
 

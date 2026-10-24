@@ -418,19 +418,31 @@ var sb_calls = []
 var sb_begin = "Begun"
 var sb_finish = "Written"
 var sb_unfinished = false
-global.espnow_ota_safeboot_begin = def (r, s) sb_calls.push(["begin", r.tohex(), size(s)]) return sb_begin end
-global.espnow_ota_safeboot_write = def (at, b) sb_calls.push(["write", at, size(b)]) return true end
+var sb_written = 0             # the bytes given since the write began: the first ones erase the partition, as the firmware's writer does
+var sb_spoilt = false          # the first piece is not an image's: refused before anything is erased
+global.espnow_ota_safeboot_begin = def (r, s) sb_calls.push(["begin", r.tohex(), size(s)]) sb_written = 0 return sb_begin end
+global.espnow_ota_safeboot_write = def (at, b)
+    sb_calls.push(["write", at, size(b)])
+    if at == 0 && sb_spoilt return false end
+    if at == 0  sb_unfinished = true end
+    sb_written = at + size(b)
+    return true
+end
 global.espnow_ota_safeboot_finish = def ()
     sb_calls.push(["finish"])
-    sb_unfinished = sb_finish != "Written"
-    return sb_finish
+    var a = sb_written == 10000 ? sb_finish : "the image is not whole"
+    if sb_written > 0  sb_unfinished = a != "Written" end
+    sb_written = 0
+    return a
 end
 global.espnow_ota_safeboot_unfinished = def () return sb_unfinished end
 class FakeMesh
-    var asked
-    def init() self.asked = [] end
-    def can() return true end
+    var asked, full, way
+    def init() self.asked = [] self.full = false self.way = true end
+    def can() return self.way end
+    def busy() return self.full end
     def request(method, host, port, path, body, done, headers, raw)
+        if self.full || !self.way return false end
         self.asked.push([method, path, headers, raw == true, done])
         return true
     end
@@ -531,6 +543,65 @@ end
 lone.mesh.reply(206, zeros(1808))
 check("written: no longer unfinished, and nothing follows a write tried again by itself", [sb_calls[-1], lone.sb_due, size(near.sent), lone.result],
       [["finish"], nil, 0, ""])
+
+# the way busy, with another of this node's requests or at a neighbour busy or short of memory: waited for, with no try spent
+sb_calls = []
+near.sent = []
+lone.upgrade_asked()
+lone.http.reply(0, "No network")
+lone.mesh.reply(200, idx)
+lone.mesh.reply(200, sig)
+lone.mesh.reply(206, zeros(4096))
+lone.mesh.full = true
+run_timers()
+check("the way busy with another request of this node's: waited for, no try spent",
+      [lone.sb["tries"], size(tasmota.timers), lone.mesh.what()[2]], [0, 1, {"Range": "bytes=0-4095"}])
+lone.mesh.full = false
+run_timers()
+check("free again: the next piece", lone.mesh.what()[2], {"Range": "bytes=4096-8191"})
+lone.mesh.reply(503, bytes().fromstring("Low memory"))
+check("a neighbour short of memory: waited for too, no try spent", [lone.sb["tries"], size(tasmota.timers)], [0, 1])
+run_timers()
+check("and the same piece asked again", lone.mesh.what()[2], {"Range": "bytes=4096-8191"})
+tasmota.at_ms = tasmota.millis() + NodeOta.SB_BUSY_MS + 1
+lone.mesh.reply(503, bytes().fromstring("Busy"))
+check("busy past SB_BUSY_MS with nothing had: the write ends, the partition with no image, and is tried again later, the release not asked",
+      [lone.sb, lone.result, lone.sb_again, sb_unfinished, size(near.sent)], [nil, "Safeboot: Busy", NodeOta.SB_AGAIN_MS, true, 0])
+
+# the next try with no neighbour on the Wi-Fi: the one after it twice as late
+lone.mesh.way = false
+tasmota.at_ms = tasmota.millis() + NodeOta.SB_AGAIN_MS + 1
+lone.every_second()
+check("no neighbour at the try: the next one twice as late", [lone.sb, lone.sb_again], [nil, 2 * NodeOta.SB_AGAIN_MS])
+lone.mesh.way = true
+
+# the Wi-Fi back: the server's safeboot image over it, at the address the index gives
+tasmota.wifi_up = true
+tasmota.answer = def (c) sb_unfinished = false return {"EspNowOtaSafeboot": {"Written": 10000, "Sha256": "ABABABABABABABAB"}} end
+tasmota.at_ms = tasmota.millis() + 2 * NodeOta.SB_AGAIN_MS + 1
+lone.every_second()
+check("with the Wi-Fi back: the index over it", [lone.http.asked, lone.busy], [["GET", "192.168.2.108", 8099, "/ota/index.json"], "looking"])
+lone.http.reply(200, idx)
+check("and the safeboot image written over HTTP, at the index's address; no try left", [tasmota.said, lone.busy, lone.sb_due, lone.sb_again],
+      ["EspNowOtaSafeboot http://192.168.2.108:8099/ota/houseweave-safeboot.bin", "", nil, nil])
+tasmota.wifi_up = false
+
+# a neighbour that spoils binary files: the first piece is not an image's, and is refused before anything is erased. The image the partition holds is
+# kept, and the release asked all the same
+sb_calls = []
+near.sent = []
+sb_spoilt = true
+lone.upgrade_asked()
+lone.http.reply(0, "No network")
+lone.mesh.reply(200, idx)
+lone.mesh.reply(200, sig)
+for i: 1 .. NodeOta.SB_TRIES
+    lone.mesh.reply(206, zeros(4096))
+    run_timers()
+end
+check("the first piece spoilt each time: nothing erased, and the release asked all the same",
+      [sb_unfinished, lone.sb, size(near.sent), lone.sb_due, lone.result], [false, nil, 1, nil, "Asking node 5"])
+sb_spoilt = false
 tasmota.at_ms = nil
 
 if failures == 0

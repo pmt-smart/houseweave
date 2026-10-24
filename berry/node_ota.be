@@ -29,8 +29,10 @@
 # upgrade writes it first). Before it asks a neighbour for its release, it fetches through a neighbour (mesh_http.be, the body as bytes) the server's
 # index, the safeboot image's signed record, then the image SB_PIECE bytes at a time, each written as it comes (xdrv_98_7, espnow_ota_safeboot_*:
 # the partition erased as the write goes, and its first sector written last, once the whole image checks against its record). A partition that
-# holds it already is kept. A write that erased the partition and did not end leaves no safeboot image, which EspNowOtaArm then refuses: the
-# release is not asked for, and the write is tried again SB_AGAIN_MS later, and SB_BOOT_MS after a start, while this node has no Wi-Fi.
+# holds it already is kept. The way to the server busy (another request of this node's, or a neighbour busy or short of memory) is waited for,
+# up to SB_BUSY_MS; the first piece, checked before anything is erased, is not written when a neighbour spoilt it on its way. A write that erased
+# the partition and did not end leaves no safeboot image, which EspNowOtaArm then refuses: the release is not asked for, and the write is tried
+# again SB_AGAIN_MS later, twice as long after each that fails, and SB_BOOT_MS after a start; over this node's own Wi-Fi when it is back.
 #@ solidify:NodeOta
 class NodeOta
     static INDEX = "/ota/index.json"
@@ -45,10 +47,13 @@ class NodeOta
     static RESCUE_AGAIN_MS = 300000  # a node looked for after it stalled, not again before this
     static INDEX_AGAIN_MS = 30000    # or this, after an index that could not be read
     static SB_PIECE = 4096        # the bytes of the safeboot image asked for at once through a neighbour: a sector, and little heap at either end
-    static SB_TRIES = 5           # a request of the safeboot's write not answered as it should be this many times in a row ends the write
-    static SB_WAIT_MS = 2000      # and is asked again after this long
+    static SB_TRIES = 5           # a request of the safeboot's write that fails this many times in a row ends the write
+    static SB_WAIT_MS = 2000      # a request that failed, or that the way to the server was busy for, is asked again after this long
+    static SB_BUSY_MS = 180000    # the way busy this long with nothing had ends the write; and a write left unfinished is looked at again after this
+                                  # long while the upgrade is under way
     static SB_GAP_MS = 250        # a piece had, the next one after this long: room for the node's other requests through the neighbour
-    static SB_AGAIN_MS = 600000   # a safeboot write that did not end is tried again after this long
+    static SB_AGAIN_MS = 600000   # a safeboot write that did not end is tried again after this long, then twice as long after each that fails,
+    static SB_AGAIN_MAX_MS = 7200000  # up to this
     static SB_BOOT_MS = 60000     # and this long after a start
 
     var http        # the HTTP client (panel_http.be), its own
@@ -68,6 +73,7 @@ class NodeOta
     var mesh        # the way to the server through a neighbour (mesh_http.be), or nil; the boot's
     var sb          # the safeboot image written through a neighbour: {"step": "index", "sig" or "piece", "path", "size", "at", "tries", "begun", "then"}, or nil
     var sb_due      # when a safeboot write that did not end is looked at again, or nil
+    var sb_again    # how long the next try of a write that did not end waits, after the last that failed, or nil
 
     def init(http, server_fn, changed, house_fn)
         self.http = http
@@ -344,23 +350,69 @@ class NodeOta
     # False, and nothing asked, with no way to do it: no neighbour on the Wi-Fi, no server, a firmware without the writer, or one under way
     def safeboot(then)
         if self.sb != nil || self.mesh == nil || !NodeOta.sb_native() || !self.mesh.can() || self.server() == nil return false end
-        self.sb = {"step": "index", "path": nil, "size": 0, "at": 0, "tries": 0, "begun": false, "then": then}
+        self.sb = {"step": "index", "path": nil, "size": 0, "at": 0, "tries": 0, "since": tasmota.millis(), "begun": false, "then": then}
         self.result = "Safeboot: looking"
         self.say()
         self.sb_next()
         return true
     end
 
-    # a write that erased the partition and did not end, before this start or since: tried again while this node has no Wi-Fi, and nothing else of
-    # the upgrade is under way
+    # A write that erased the partition and did not end, before this start or since, tried again once nothing else of the upgrade is under way:
+    # through a neighbour, or, with this node's Wi-Fi back, over it (EspNowOtaSafeboot, at the address the index gives)
     def safeboot_due()
         import global
         if self.sb != nil || self.sb_due == nil || !tasmota.time_reached(self.sb_due) return end
         self.sb_due = nil
-        if !NodeOta.sb_native() || !global.espnow_ota_safeboot_unfinished() return end
-        if tasmota.wifi().find("up", false) || self.asked != nil || self.busy != "" || !self.safeboot(nil)
-            self.sb_due = tasmota.millis(NodeOta.SB_AGAIN_MS)
+        if !NodeOta.sb_native() || !global.espnow_ota_safeboot_unfinished()
+            self.sb_again = nil
+            return
         end
+        if self.asked != nil || self.busy != "" || self.http.busy()
+            self.sb_due = tasmota.millis(NodeOta.SB_BUSY_MS)
+            return
+        end
+        var went = tasmota.wifi().find("up", false) ? self.safeboot_http() : self.safeboot(nil)
+        if !went  self.sb_later() end
+    end
+
+    # The next try of a write that did not end: SB_AGAIN_MS after the first that fails, then twice as long after each other, up to SB_AGAIN_MAX_MS;
+    # none once the partition holds an image. A write that fails again and again erases the partition each time
+    def sb_later()
+        import global
+        if !global.espnow_ota_safeboot_unfinished()
+            self.sb_again = nil
+            self.sb_due = nil
+            return
+        end
+        self.sb_again = self.sb_again == nil ? NodeOta.SB_AGAIN_MS : (self.sb_again * 2 < NodeOta.SB_AGAIN_MAX_MS ? self.sb_again * 2 : NodeOta.SB_AGAIN_MAX_MS)
+        self.sb_due = tasmota.millis(self.sb_again)
+    end
+
+    # with this node's Wi-Fi back: the server's index looked at, for its safeboot image's address, which is written over HTTP
+    def safeboot_http()
+        var s = self.server()
+        if s == nil return false end
+        self.busy = "looking"
+        if !self.http.request("GET", s["host"], s["port"], NodeOta.INDEX, nil, / code, body -> self.sb_http(code, body))
+            self.busy = ""
+            return false
+        end
+        return true
+    end
+
+    def sb_http(code, body)
+        import json
+        self.busy = ""
+        var s = self.server()
+        var m = code == 200 ? json.load(str(body)) : nil
+        var e = isinstance(m, map) ? m.find("safeboot") : nil
+        var a = code == 0 ? str(body) : "Error " + str(code)
+        if s != nil && isinstance(e, map) && str(e.find("path", "")) != ""
+            var r = tasmota.cmd("EspNowOtaSafeboot http://" + s["host"] + ":" + str(s["port"]) + NodeOta.FOLDER + str(e["path"]))
+            a = isinstance(r, map) ? r.find("EspNowOtaSafeboot", "Not in this firmware") : "Not in this firmware"
+        end
+        log("OTA: the server's safeboot image over HTTP, after a write that did not end: " + str(a), 2)
+        self.sb_later()
     end
 
     # the write's next request through the neighbour: the index, the image's signed record, or the next piece of the image
@@ -374,17 +426,34 @@ class NodeOta
             var n = p["size"] - p["at"] < NodeOta.SB_PIECE ? p["size"] - p["at"] : NodeOta.SB_PIECE
             hd["Range"] = "bytes=" + str(p["at"]) + "-" + str(p["at"] + n - 1)
         end
-        if s == nil || !self.mesh.request("GET", s["host"], s["port"], path, nil, / code, body -> self.sb_got(code, body), hd, p["step"] == "piece")
-            self.sb_missed("No way to the server")
+        if s == nil return self.sb_missed("No server") end
+        if !self.mesh.request("GET", s["host"], s["port"], path, nil, / code, body -> self.sb_got(code, body), hd, p["step"] == "piece")
+            # the way busy with another of this node's requests, which may wait a minute for its answer: waited for, with no try spent
+            if self.mesh.busy() return self.sb_wait("Busy") end
+            self.sb_missed("No neighbour on the Wi-Fi")
         end
     end
 
-    # a request of the write not answered as it should be: asked again SB_WAIT_MS later, up to SB_TRIES times in a row
+    # a request of the write that failed: asked again SB_WAIT_MS later, up to SB_TRIES times in a row
     def sb_missed(why)
         var p = self.sb
         p["tries"] += 1
         if p["tries"] >= NodeOta.SB_TRIES return self.sb_end(why) end
         tasmota.set_timer(NodeOta.SB_WAIT_MS, / -> self.sb_next(), "node_ota_sb")
+    end
+
+    # The way to the server busy: with another request of this node's, or at a neighbour busy or short of memory (its 503). Asked again SB_WAIT_MS
+    # later with no try spent, until SB_BUSY_MS have gone by with nothing had
+    def sb_wait(why)
+        var p = self.sb
+        if tasmota.millis() - p["since"] > NodeOta.SB_BUSY_MS return self.sb_end(why) end
+        tasmota.set_timer(NodeOta.SB_WAIT_MS, / -> self.sb_next(), "node_ota_sb")
+    end
+
+    # a step of the write had: the tries and the time with nothing had start again
+    def sb_had()
+        self.sb["tries"] = 0
+        self.sb["since"] = tasmota.millis()
     end
 
     # an answer through the neighbour, for the step the write is at
@@ -393,6 +462,7 @@ class NodeOta
         import json
         var p = self.sb
         if p == nil return end
+        if code == 503 return self.sb_wait(isinstance(body, bytes) ? body.asstring() : str(body)) end
         var failed = code == 0 ? str(body) : "Error " + str(code)
         if p["step"] == "index"
             var m = code == 200 ? json.load(str(body)) : nil
@@ -402,7 +472,7 @@ class NodeOta
             end
             p["path"] = NodeOta.FOLDER + str(e["path"])
             p["step"] = "sig"
-            p["tries"] = 0
+            self.sb_had()
             return self.sb_next()
         elif p["step"] == "sig"
             var m = code == 200 ? json.load(str(body)) : nil
@@ -416,16 +486,20 @@ class NodeOta
             if a != "Begun" return self.sb_end(a == "Kept" ? nil : a) end
             p["size"] = record.get(0, 4)
             p["step"] = "piece"
-            p["tries"] = 0
             p["begun"] = true
+            self.sb_had()
             return self.sb_next()
         end
         # a piece of the image: written, then the next one, or the image whole
         var want = p["size"] - p["at"] < NodeOta.SB_PIECE ? p["size"] - p["at"] : NodeOta.SB_PIECE
         if code != 206 || !isinstance(body, bytes) || size(body) != want return self.sb_missed(failed) end
-        if !global.espnow_ota_safeboot_write(p["at"], body) return self.sb_end("The flash refused the image") end
+        if !global.espnow_ota_safeboot_write(p["at"], body)
+            # the first piece is checked before anything is erased: one that is not an image's was spoilt on its way, by a neighbour that carries no
+            # binary file whole, and the image the partition holds is left as it is
+            return p["at"] == 0 ? self.sb_missed("The first piece is not the image's") : self.sb_end("The flash refused the image")
+        end
         p["at"] += want
-        p["tries"] = 0
+        self.sb_had()
         if p["at"] < p["size"]
             self.result = "Safeboot " + str(p["at"] * 100 / p["size"]) + "%"
             self.say()
@@ -445,7 +519,7 @@ class NodeOta
         tasmota.remove_timer("node_ota_sb")
         if why != nil && p["begun"]  global.espnow_ota_safeboot_finish() end
         var unfinished = global.espnow_ota_safeboot_unfinished()
-        self.sb_due = unfinished ? tasmota.millis(NodeOta.SB_AGAIN_MS) : nil
+        self.sb_later()
         if why != nil
             log("OTA: the server's safeboot image, through a neighbour: " + why, 2)
         elif p["begun"]

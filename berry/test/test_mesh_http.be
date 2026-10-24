@@ -189,6 +189,23 @@ http.reply(206, bytes("E9060002000020656E64"))
 tick(10)
 check("the answer's body as bytes, every byte of it", got, [[206, bytes("E9060002000020656E64")]])
 
+# the answers the neighbour keeps for a node: only the last, since the node asks again only once it had it, or gave it up
+def answers_to(n)
+    var c = 0
+    for x: helper.sends
+        if x["to"] == n && x["msg"] == 0x39  c += 1 end
+    end
+    return c
+end
+check("the answer kept on the neighbour after it went, for pieces the node might lack, and none before it", answers_to(7), 1)
+got = []
+node.request("GET", "", 0, "/ota/houseweave-safeboot.bin", nil, done, {"Range": "bytes=10-19"}, true)
+tick(10)
+check("the node asks again: the answer it had is let go at once, not KEEP_MS later", answers_to(7), 0)
+http.reply(206, bytes("00112233445566778899"))
+tick(10)
+check("and the new one is the one kept", [answers_to(7), got], [1, [[206, bytes("00112233445566778899")]]])
+
 # a request nobody answers: the node is told, after WAIT_MS
 got = []
 far.drop = def (b) return true end
