@@ -124,8 +124,12 @@ takes an app image from a neighbour over ESP-NOW, and on a panel shows it on the
 - **The build pins it.** `firmware/overrides/safeboot_pin.py` checks that the signed record beside the file says its size and SHA-256 (a
   safeboot nobody signed goes into no factory image), copies it where Tasmota's `post_esp32.py` takes it from, and gives the app its size and
   SHA-256 (`ESPNOW_OTA_SAFEBOOT_SIZE`, `ESPNOW_OTA_SAFEBOOT_SHA256`): that is how `EspNowOtaArm` knows a device fresh from the factory has a
-  safeboot that receives over the mesh. `firmware/overrides/safeboot_check.py` then reads the safeboot's bytes from 0x10000 of the factory
-  image and compares them to the file; when they differ it stops the build and deletes both copies of the factory image.
+  safeboot that receives over the mesh. It gives the app the signed record and its signature too (`ESPNOW_OTA_SAFEBOOT_RECORD`,
+  `ESPNOW_OTA_SAFEBOOT_SIGNATURE`), which the app keeps on a device it finds holding that safeboot. A later app that pins another safeboot
+  then still knows this one by its record. The only other way a record is kept is a safeboot installed over HTTP, which a device out of the
+  Wi-Fi's reach never takes; without the kept record, that device would take no image again. `firmware/overrides/safeboot_check.py` then
+  reads the safeboot's bytes from 0x10000 of the factory image and compares them to the file; when they differ it stops the build and deletes
+  both copies of the factory image.
 - **A new safeboot** is built with the safeboot env, signed by `node scripts/ota-release.mjs publish`, and only then put in
   `firmware/safeboot/`.
 - **The keys**: releases are signed with the house's Ed25519 key, a PEM file **outside the repository** (`HOUSEWEAVE_RELEASE_KEY` names it; by

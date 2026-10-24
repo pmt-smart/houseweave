@@ -16,6 +16,10 @@
 // the installs write, so that each way EspNowOtaArm knows one is tested by itself
 #define ESPNOW_OTA_SAFEBOOT_SIZE 200000
 #define ESPNOW_OTA_SAFEBOOT_SHA256 "03f4e53dc2e96f9a2904a555fc4b4fa6425f4076078af910f4e7c93933b0dbe7"
+// and its signed record (200 000 bytes, 0 blocks of 0 KB, that SHA-256), under RFC 8032's first test key, which the app keeps
+#define ESPNOW_OTA_SAFEBOOT_RECORD "400d030000000003f4e53dc2e96f9a2904a555fc4b4fa6425f4076078af910f4e7c93933b0dbe7"
+#define ESPNOW_OTA_SAFEBOOT_SIGNATURE \
+  "224c503cd9f96666f5607d36d0b97d472e9f6a81fa9778b9bfb0c15d453f713076758c398c1ba5133951fdb52b46ee5288c0affd060b04257717b673ea65fb07"
 struct { bool radio = true; bool radio_lost = false; } EspNowMeshDriver;
 struct { uint8_t id; uint8_t has_group; uint8_t group_version; uint8_t group_key[32]; } EspNowMeshSettings;
 static int g_radio_takes = 0;
@@ -953,6 +957,7 @@ static void test_link(void) {
   command(CmndEspNowOtaArm, "EspNowOtaArm", "");
   CHECK(answered("not one known to take an image over ESP-NOW") && !g_nvs.count("espnowota/armed") && g_to_safeboot == 0 && TasmotaGlobal.restart_flag == 0,
         "EspNowOtaArm refused while the safeboot partition holds no image known to take one over ESP-NOW: Tasmota's own would keep a device without WiFi in it");
+  CHECK(!g_nvs.count("espnowota_sb/record"), "and no record is kept for an image the partition does not hold");
   // the image the build pins, as a factory image's, with no record kept
   Bytes pinned = read_file(g_fixture + "/image.bin");
   CHECK(pinned.size() == ESPNOW_OTA_SAFEBOOT_SIZE, "the pinned image is the fixture's (run.mjs)");
@@ -960,11 +965,20 @@ static void test_link(void) {
   command(CmndEspNowOtaArm, "EspNowOtaArm", "");
   CHECK(answered("Done") && g_nvs["espnowota/armed"] == Bytes{ 1 } && g_to_safeboot == 1 && TasmotaGlobal.restart_flag == 2,
         "EspNowOtaArm: the image the build pins (a factory image's), read back whole, with no record: armed");
+  Bytes pinned_kept = from_hex(ESPNOW_OTA_SAFEBOOT_RECORD ESPNOW_OTA_SAFEBOOT_SIGNATURE);
+  CHECK(g_nvs["espnowota_sb/record"] == pinned_kept,
+        "and the pinned image's signed record is kept: an app that pins another image knows this one by it, with no install over HTTP");
+  const esp_partition_t* factory = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, nullptr);
+  CHECK(EspNowOtaRecordSigned(pinned_kept.data(), pinned_kept.data() + ESPNOW_OTA_SIGNED_LEN) &&
+        EspNowOtaSafebootHolds(factory, EspNowOtaGet32(pinned_kept.data()), pinned_kept.data() + 7),
+        "the record kept is signed, and says the image the partition holds");
   g_factory_flash[150000] ^= 1;
   g_to_safeboot = 0;
   TasmotaGlobal.restart_flag = 0;
   command(CmndEspNowOtaArm, "EspNowOtaArm", "");
   CHECK(answered("not one known") && g_to_safeboot == 0 && TasmotaGlobal.restart_flag == 0, "one byte off, it is not that image: refused");
+  CHECK(g_nvs["espnowota_sb/record"] == pinned_kept, "and the record kept stays as it was");
+  g_nvs.erase("espnowota_sb/record");
   flash_reset();
   // a safeboot image an install checked: its signed record kept, apart from what the app clears at its start
   g_http["http://server/houseweave-safeboot.bin"] = read_file(g_fixture + "/safeboot.bin");
