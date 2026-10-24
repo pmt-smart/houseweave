@@ -144,3 +144,48 @@ The bench's node 7, out of the Wi-Fi's reach for now, is not that case: it kept 
 |---|---|---|---|
 | panel (US) | 2 176 KB | 2 057 872 bytes | 166.4 KB |
 | bridge | 1 856 KB | 1 736 896 bytes | 159.8 KB |
+
+## 2026-10-24 — The house's safeboot through a neighbour, and the first sector last
+
+**What was built.** A node with no Wi-Fi now takes the house's safeboot through a neighbour (`ee4e24f`, fork `6f27fc1`, [06 §4](06-ota-and-backup.md)).
+Before it asks for its release, `NodeOta` fetches the server's index through the neighbour's way to the server, then the safeboot's signed
+record, then the image 4 KB at a time. The fork's writer (`espnow_ota_safeboot_begin`, `_write`, `_finish`) writes each piece as it comes:
+the partition is erased a block at a time as the write goes, and the first sector waits in RAM and is written last, once the whole image
+checks against the record. `EspNowOtaSafeboot` over HTTP uses the same writer.
+
+**What the work found on the way.**
+
+- **Berry joins two strings only up to the first zero byte of each** (`be_strcat` copies with `strcpy`, and keeps the summed length), and the
+  device's Berry does not even keep a zero byte in a string literal. A binary body must therefore stay bytes from end to end:
+  - `PanelHttp` now reads the answer as bytes, and gives bytes to a request that asks for them;
+  - `MeshHttp` carries an answer's bytes as they came.
+
+  Every Wi-Fi node that may carry a no-Wi-Fi node's requests needs this firmware, so the whole bench took it.
+- **A bytes object in the test's Berry stops at 32 768 bytes and drops the rest unsaid.** So an answer is now too large past 32 000 bytes of a
+  body and 512 of a head.
+
+**On the bench.**
+
+- **The five Wi-Fi nodes took the release over HTTP**, one at a time.
+  - Node 1, whose Wi-Fi is weak, gave up its own download in its safeboot. A neighbour (`.112`) noticed it had stalled and sent the release
+    over the mesh in about 2 min 16 s.
+  - Each of the five kept its safeboot, which was already the server's. The HTTP write with the first sector last was therefore not exercised
+    on a device; the host test covers it.
+- **Node 7 had dropped off its Wi-Fi again** (its signal is weak), with its safeboot from before (`9870b560`).
+  1. It took the app over the mesh, sent mostly by node 1, in about 12.5 min.
+  2. Asked to upgrade again, it fetched the index and the signed record through node 1, then the 749 408 bytes in 183 pieces, all through
+     node 1, in 686 s (about 1.1 KB/s, slower than the estimate: node 1's own Wi-Fi is weak, and each piece waits for its fetch). It then asked
+     a neighbour for its release.
+  3. A third upgrade fetched the index and the record and no piece: the partition holds the server's safeboot (`77e6933/ea07370f`), checked
+     by its SHA-256 against the signed record.
+- **A rule left on node 7.** Rule3 is still on, put there to take it off its Wi-Fi, which turned out not to be needed. It sets the same SSID
+  back 45 minutes after a boot and turns itself off, which costs one restart. Clear it with `Rule3 ""` when the node is on the Wi-Fi.
+
+**The images, measured** on the build of this change (`ee4e24f/6f27fc18`):
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 064 400 bytes | 160.0 KB |
+| bridge | 1 856 KB | 1 743 568 bytes | 153.3 KB |
+
+The panel image is 6 528 bytes larger than on `167d085/8dd1e94`, and the bridge image 6 672 bytes larger.
