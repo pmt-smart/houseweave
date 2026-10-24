@@ -9,7 +9,7 @@ ARG BUILD_FROM=node:22-alpine
 # package whose app/ holds the compiled app (the package script's, as a local add-on's) is taken as it is.
 FROM node:22-alpine AS app
 ARG BUILD_VERSION
-ARG SOURCE=https://github.com/pmt-smart/HouseWeave
+ARG SOURCE=https://github.com/pmt-smart/houseweave
 COPY app /out
 RUN set -e; \
     if [ ! -f /out/index.html ]; then \

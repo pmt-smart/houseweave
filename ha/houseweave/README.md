@@ -53,7 +53,7 @@ at once, by the node's Back up now, or by the app's Backup, of one node or of al
 
 ## On Home Assistant OS, from the add-on repository
 
-1. In Settings, Add-ons, Add-on store, the three-dot menu: Repositories, and add `https://github.com/pmt-smart/HouseWeave`
+1. In Settings, Add-ons, Add-on store, the three-dot menu: Repositories, and add `https://github.com/pmt-smart/houseweave`
    (`repository.yaml`, at the repository's root, describes it).
 2. HouseWeave shows in the store: install it (Home Assistant builds the app from the version's source, which takes a few minutes) and start it.
    Home Assistant offers each new version with its update button.
