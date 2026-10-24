@@ -8,6 +8,7 @@ was wrong and what holds.
 
 - [2026-10-23 — HouseWeave starts](#2026-10-23--houseweave-starts)
 - [2026-10-23 — The names in English, with a transition](#2026-10-23--the-names-in-english-with-a-transition)
+- [2026-10-24 — The former names out, and the safeboot that counted its installs](#2026-10-24--the-former-names-out-and-the-safeboot-that-counted-its-installs)
 
 ---
 
@@ -79,3 +80,32 @@ so the factory image of a panel carries its screen.
 | bridge | 1 856 KB | 1 736 656 bytes | 160.0 KB |
 
 **Open:** the former names taken out, in a release after every node of the house runs the current firmware.
+
+## 2026-10-24 — The former names out, and the safeboot that counted its installs
+
+**Every node on the names.** On the bench the six nodes were upgraded one at a time to the release of the names (`400558c/3e2b5c2d`), the
+panel in the bedroom included, through the server's Upgrade of each node: each looked its image up by its former name, found the release, and
+came back speaking the names. Then the transition came out (add-on and integration 1.6.0): the server takes and calls a node only in
+HouseWeave's names, the pairing posts only to `/houseweave/pair`, a release's index has each image once, and the integration and the weather
+automation use only the `houseweave/` topics. `PanelBackup.FORMER` stays: a panel flashed before keeps its project's former name in its file
+system, which an OTA does not write, until it is flashed again by the serial line. The bench's server runs from this repository now, with its
+identity, its house and the nodes' backups.
+
+**The safeboot's count of quick starts.** The first upgrade of node 5 came back on its old build seven seconds after it was asked, with no
+block fetched. The safeboot's receiver gives the device back to its app after three starts in a row that each end before 30 s, a count kept in
+RTC memory and cleared only by a start that lasts 30 s or by a power cut; an install over HTTP takes less than that, so the node's two quick
+installs earlier in the day had made the third start the third in a row. The second request went through, since giving the device back clears
+the count. The receiver now ends the count when it installs its image (`ea07370` in the fork, with a host test that fails without it). The
+safeboot carrying it (`77e6933/ea07370f`, 749 408 bytes, 32 more) is signed and pinned, and the apps that pin it were published: each node's
+upgrade wrote the new safeboot first and then took its app. Five nodes answer `EspNowOtaSafeboot` with the new one (`Kept`, SHA-256
+`a3336a89...`). Node 7 has no Wi-Fi and takes its images over the mesh, which installs no safeboot: it keeps the one before, and an install over
+the mesh lasts minutes, past the 30 s that end the count.
+
+**The images, measured** on the build of the day (`443140d/ea07370f`):
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 057 632 bytes | 166.6 KB |
+| bridge | 1 856 KB | 1 736 656 bytes | 160.0 KB |
+
+**Open:** a node with no Wi-Fi has no way to a new safeboot: one over the mesh would be the receiver's to take.
