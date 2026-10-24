@@ -17,8 +17,8 @@ def _probe() return json.dump(${expr}) end`, "probe"), 0, dev.vm.error());
   return JSON.parse(dev.vm.call("_probe"));
 }
 
-/** a device's answer to a post, as release-server.mjs reads it: its JSON, or {error: "no such route"} for a route the device has not */
-const answerOf = (r) => (r.status === 404 ? { error: "no such route" } : JSON.parse(r.body ?? "null"));
+/** a device's answer to a post: its JSON, as release-server.mjs reads it */
+const answerOf = (r) => JSON.parse(r.body ?? "null");
 
 /**
  * The server at ip:port in `home`, paired on `panel`: {fleet, files, log, dir, node(device)}. `run(ms)` runs the house, for the pause between two nodes

@@ -11,11 +11,6 @@
 // body in hex": taken within TIME_S of the server's clock, and once when it writes. THE SERVER'S REQUESTS go to the node's POST /houseweave/do, JSON
 // {"v": 1, "verb", "t", "nonce", "mac": the HMAC of "houseweave-do|verb|t|node|nonce"}, and the node answers with what the verb did and its state.
 //
-// THE FORMER NAMES (FORMER): the firmware before these names said "casa" where they say "houseweave" (the salt, the headers, the route and the
-// signed labels). A node on it is taken and called in its names until the house runs the current firmware: its requests say which names it speaks; a
-// node the server knew before the names changed is called in the former ones until it is heard, and one it learnt of since in the current ones; and a
-// node called at a route it does not have is called again in the other names.
-//
 // The nodes' routes, signed:
 //   POST /api/hello     a node's word, on an event (its start, a backup, an upgrade): its state and its backup's, and a panel's the house's nodes
 //   PUT  /api/backup    its backup, kept by its radio address (backups/<mac>.json), the nine before it beside it, .1 the newest
@@ -69,10 +64,6 @@ export const VERBS = ["backup", "upgrade", "state"];
 export const NODE_VERBS = [...VERBS, "restore"];
 const ROLES = { 1: "bridge", 2: "panel", 3: "server" };
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
-/** the protocol's names: the salt of the pair's key, the prefix of the node's headers, the server's route on the node and its signed labels' word */
-export const CURRENT = { id: "current", salt: "houseweave-server", header: "x-houseweave-", route: "/houseweave/do", label: "houseweave" };
-/** the ones of the firmware before them, taken until every node of the house runs the current firmware */
-export const FORMER = { id: "former", salt: "casa-server", header: "x-casa-", route: "/casa/do", label: "casa" };
 
 // --- SHA-256 (FIPS 180-4), HMAC (RFC 2104), HKDF (RFC 5869) ------------------------------------------------------------------------------
 
@@ -180,10 +171,10 @@ function same(a, b) {
 }
 
 /** the key of the server's pair with a node, from `shared` (the X25519 of the server's secret with a public key: bytes, or null), or null */
-export function pairKey(shared, nodePublicHex, names = CURRENT) {
+export function pairKey(shared, nodePublicHex) {
   const pub = fromHex(nodePublicHex);
   const z = pub.length === 32 ? shared(pub) : null;
-  return z ? hkdf(utf8(names.salt), z, utf8("http"), 32) : null;
+  return z ? hkdf(utf8("houseweave-server"), z, utf8("http"), 32) : null;
 }
 
 /** the X-HouseWeave-Mac of a node's request */
@@ -192,13 +183,13 @@ export function requestMac(key, method, path, time, body) {
 }
 
 /** the server's request to a node, signed */
-export function doRequest(key, node, verb, t, nonce, names = CURRENT) {
-  return { v: 1, verb, t, nonce, mac: hex(hmac(key, utf8(`${names.label}-do|${verb}|${t}|${node}|${nonce}`))) };
+export function doRequest(key, node, verb, t, nonce) {
+  return { v: 1, verb, t, nonce, mac: hex(hmac(key, utf8(`houseweave-do|${verb}|${t}|${node}|${nonce}`))) };
 }
 
 /** the signature of a node's answer to a request relayed over the mesh */
-export function doneMac(key, nonce, answer, names = CURRENT) {
-  return hex(hmac(key, utf8(`${names.label}-done|${nonce}|${answer}`)));
+export function doneMac(key, nonce, answer) {
+  return hex(hmac(key, utf8(`houseweave-done|${nonce}|${answer}`)));
 }
 
 function json(status, value) {
@@ -252,7 +243,7 @@ export function createFleet({ shared, random, store, house = () => null, post, n
     if (!Array.isArray(n) || !Number.isInteger(n[0]) || n[1] === 3 || !/^[0-9a-f]{64}$/i.test(String(n[4]))) return null;
     const old = state.nodes[n[0]];
     const key = String(n[4]).toLowerCase();
-    const kept = old && old.key === key ? old : { names: CURRENT.id };
+    const kept = old && old.key === key ? old : {};
     state.nodes[n[0]] = { ...kept, node: n[0], role: ROLES[n[1]] ?? "node", name: String(n[2] ?? ""), ip: String(n[3] ?? ""), key,
                           mac: String(n[5] ?? "").toLowerCase() };
     return n[0];
@@ -272,22 +263,17 @@ export function createFleet({ shared, random, store, house = () => null, post, n
   // a node's address: the one its last hello came from, or the list's; none while its hellos come carried over the mesh
   const where = (rec) => (rec.carried ? null : rec.from || rec.ip);
 
-  // the names a node speaks: the ones of its last request taken or of its last answer, the current ones for a node learnt of since they changed,
-  // and the former ones for a node kept from before
-  const namesOf = (rec) => (rec.names === CURRENT.id ? CURRENT : FORMER);
-
-  // a node's request, checked: its record, or the answer that refuses it. Its headers say the names it speaks
+  // a node's request, checked: its record, or the answer that refuses it
   const check = ({ method, path, headers, body }) => {
     const h = Object.fromEntries(Object.entries(headers ?? {}).map(([k, v]) => [k.toLowerCase(), String(v)]));
-    const names = h[CURRENT.header + "node"] !== undefined ? CURRENT : FORMER;
-    const n = Number(h[names.header + "node"]);
+    const n = Number(h["x-houseweave-node"]);
     const rec = Number.isInteger(n) ? state.nodes[n] : undefined;
     if (!rec) return [null, text(401, "a node of the house's")];
     const s = Math.floor(now() / 1000);
-    const t = Number(h[names.header + "time"]);
+    const t = Number(h["x-houseweave-time"]);
     if (!Number.isInteger(t) || Math.abs(s - t) > TIME_S) return [null, text(401, "the node's clock is off")];
-    const key = pairKey(shared, rec.key, names);
-    const mac = String(h[names.header + "mac"] ?? "").toLowerCase();
+    const key = pairKey(shared, rec.key);
+    const mac = String(h["x-houseweave-mac"] ?? "").toLowerCase();
     if (!key || !same(requestMac(key, method, String(path), t, body), mac)) return [null, text(401, "not the node's signature")];
     // a request that writes is taken once; a read again in the same second is the same read (a look, then the restore)
     if (method !== "GET" && method !== "HEAD") {
@@ -295,7 +281,6 @@ export function createFleet({ shared, random, store, house = () => null, post, n
       if (seen.has(mac)) return [null, text(401, "a request taken already")];
       seen.set(mac, s + TIME_S);
     }
-    rec.names = names.id;
     return [rec, null];
   };
 
@@ -335,7 +320,7 @@ export function createFleet({ shared, random, store, house = () => null, post, n
       // before may bring it while another is waited on
       const p = relayed.get(String(m?.nonce));
       if (!p || p.node !== m.to || p.answer !== null || typeof m.answer !== "string") return text(404, "no such request relayed");
-      if (!same(doneMac(p.key, m.nonce, m.answer, p.names), String(m.mac ?? "").toLowerCase())) return text(401, "not the node's signature");
+      if (!same(doneMac(p.key, m.nonce, m.answer), String(m.mac ?? "").toLowerCase())) return text(401, "not the node's signature");
       let a;
       try {
         a = JSON.parse(m.answer);
@@ -358,7 +343,7 @@ export function createFleet({ shared, random, store, house = () => null, post, n
       rec.state = { role: m?.role, image: m?.image, build: m?.build, date: m?.date, backup: m?.backup ?? null };
       // its address; or, when another node carried the hello for it over the mesh (berry/mesh_http.be), none: the carrier's is not the node's, and
       // the one it had answers no more, so the server asks it through another at once, until a hello of its own
-      const via = Object.entries(req.headers ?? {}).some(([k]) => [CURRENT, FORMER].some((names) => k.toLowerCase() === names.header + "via"));
+      const via = Object.entries(req.headers ?? {}).some(([k]) => k.toLowerCase() === "x-houseweave-via");
       if (via) rec.carried = true;
       else if (req.from) {
         rec.from = req.from;
@@ -420,29 +405,15 @@ export function createFleet({ shared, random, store, house = () => null, post, n
     return none();
   }
 
-  // a request posted to a node, at the route of the names it is signed in: its answer, or {error}, "no such route" from a node that speaks the
-  // other names
-  async function call(addr, body, names) {
+  // a request posted to a node's /houseweave/do: its answer, or {error}
+  async function call(addr, body) {
     let a;
     try {
-      a = await post(`http://${addr}${names.route}`, body);
+      a = await post(`http://${addr}/houseweave/do`, body);
     } catch (e) {
       a = { error: `no answer (${e.message})` };
     }
     return a !== null && typeof a === "object" ? a : { error: "no answer" };
-  }
-
-  // A request to a node at its address, `signed(names)`, in the names it speaks, and in the other ones when it has no route of those. [its answer,
-  // the names it went in]; a node that answers speaks them
-  async function callNode(rec, signed) {
-    const order = namesOf(rec) === CURRENT ? [CURRENT, FORMER] : [FORMER, CURRENT];
-    let a;
-    for (const names of order) {
-      a = await call(where(rec), signed(names), names);
-      if (!a.error) rec.names = names.id;
-      if (a.error !== "no such route") return [a, names];
-    }
-    return [a, order[0]];
   }
 
   // the nodes that may relay a request for node n: the ones the server reached last, then the ones it heard from last
@@ -452,8 +423,9 @@ export function createFleet({ shared, random, store, house = () => null, post, n
   // The server's request for node n, `req`, given to node g to take over the mesh, with the request's own nonce: "sent" when g took it, "refused"
   // when g said it would not, and "unknown" when the call came to no answer, which says nothing of whether g took it (as seen on the bench)
   async function relay(g, n, req) {
-    if (!pairKey(shared, g.key)) return "refused";
-    const [r] = await callNode(g, (names) => ({ ...doRequest(pairKey(shared, g.key, names), g.node, "relay", req.t, req.nonce, names), to: n, req }));
+    const gkey = pairKey(shared, g.key);
+    if (!gkey) return "refused";
+    const r = await call(where(g), { ...doRequest(gkey, g.node, "relay", req.t, req.nonce), to: n, req });
     if (!r.error && r.relay === "Sent") {
       g.reached = now();
       return "sent";
@@ -464,9 +436,9 @@ export function createFleet({ shared, random, store, house = () => null, post, n
 
   // Node n's request through the others, one after another while no answer comes: {a: the answer, via: the node that brought it}, {a: {error}}
   // when one took it, or may have, and none came, or null when none did. The wait is open before the first is called, and an answer is taken from
-  // whichever of them brings it: the signature checked is node n's, in the names its request is in
-  async function through(n, key, req, names) {
-    const p = { node: n, key, names, answer: null, via: null };
+  // whichever of them brings it: the signature checked is node n's
+  async function through(n, key, req) {
+    const p = { node: n, key, answer: null, via: null };
     relayed.set(req.nonce, p);
     const tried = [];
     try {
@@ -487,16 +459,15 @@ export function createFleet({ shared, random, store, house = () => null, post, n
   async function ask(n, verb) {
     const rec = state.nodes[n];
     if (!rec) return { error: "no such node" };
-    if (!pairKey(shared, rec.key)) return { error: "no pair with it" };
+    const key = pairKey(shared, rec.key);
+    if (!key) return { error: "no pair with it" };
     // one request, with one nonce, whichever way it goes: the node runs it once, and to the same request again says "again"
-    const t = Math.floor(now() / 1000);
-    const nonce = hex(random(8));
-    const signed = (names) => doRequest(pairKey(shared, rec.key, names), n, verb, t, nonce, names);
-    let [a, names] = where(rec) ? await callNode(rec, signed) : [{ error: "no address" }, namesOf(rec)];
+    const req = doRequest(key, n, verb, Math.floor(now() / 1000), hex(random(8)));
+    let a = where(rec) ? await call(where(rec), req) : { error: "no address" };
     let via = null;
     if (!a.error) rec.reached = now();
     if (a.error === "no address" || a.error?.startsWith("no answer")) {
-      const r = await through(n, pairKey(shared, rec.key, names), signed(names), names);
+      const r = await through(n, key, req);
       if (r !== null) {
         a = r.a;
         via = r.via;

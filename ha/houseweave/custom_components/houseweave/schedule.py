@@ -18,8 +18,6 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
 TOPIC = "houseweave/schedule"
-# the topic of the firmware before HouseWeave's, which a panel still on it says its schedule under
-FORMER_TOPIC = "casainteligente/schedule"
 EPOCH = date(1970, 1, 1)
 
 

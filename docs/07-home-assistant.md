@@ -59,10 +59,7 @@ The panels keep the house's **schedule** and run it, with or without Home Assist
 off a calendar in Home Assistant (`calendar.thermostat_1`), from what the panels say on the house's MQTT, which Home Assistant already has. A
 calendar is seen and edited in Home Assistant's calendar; the panel checks every change and refuses one with the sentence the glass would say,
 which Home Assistant shows. Adding it takes nothing to type: after the add-on's copy and a restart of Home Assistant, **Settings → Devices &
-services → Add integration**, HouseWeave, whose technical name is `houseweave`. The firmware before HouseWeave's names said the schedule under
-`casainteligente/schedule` and the integration's domain was `casainteligente`: the integration takes a panel's schedule from that topic until the
-panel says it under `houseweave/schedule`, and then clears what the former topic kept of it; and the add-on takes the integration it copied under
-the former domain out, whose entry is deleted in Devices & services before HouseWeave is added.
+services → Add integration**, HouseWeave, whose technical name is `houseweave`.
 
 ## 4. MQTT
 
@@ -88,9 +85,8 @@ connects, when the broker hands back retained ones.
 
 **The weather** on the panels' screensaver comes from a Home Assistant automation (`ha/weather/forecast.yaml`): it says, retained, on
 `houseweave/weather`, `{"at": <UTC seconds>, "cells": [[label, °C], ...]}`, the weather now and the next four days, every 30 minutes and
-whenever the weather entity changes, and on `casainteligente/weather` too for a panel on the firmware before HouseWeave's names, until every panel
-runs the current one. Every panel listens; none asks. A forecast older than 6 hours shows "--", and so does a house without Home Assistant, with
-nothing else on the panel changing.
+whenever the weather entity changes. Every panel listens; none asks. A forecast older than 6 hours shows "--", and so does a house without Home
+Assistant, with nothing else on the panel changing.
 
 ## 5. What stays out of Home Assistant
 

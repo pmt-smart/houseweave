@@ -4,7 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash, createHmac, createPrivateKey, createPublicKey, diffieHellman, hkdfSync, randomBytes } from "node:crypto";
-import { BACKUP_VERSIONS, CURRENT, FORMER, MAX_BACKUP, RELAY_MS, RELAY_STEP_MS, RETRY_MS, ROUND_GAP_MS, TIME_S, createFleet, doRequest, doneMac, hex, hkdf, hmac, pairKey, requestMac, said, sha256, utf8 } from "../../../../ha/houseweave/server/house-fleet.mjs";
+import { BACKUP_VERSIONS, MAX_BACKUP, RELAY_MS, RELAY_STEP_MS, RETRY_MS, ROUND_GAP_MS, TIME_S, createFleet, doRequest, doneMac, hex, hkdf, hmac, pairKey, requestMac, said, sha256, utf8 } from "../../../../ha/houseweave/server/house-fleet.mjs";
 
 // the pinned secrets: the node's 0x3C..., the server's 0x5A...
 const raw = (b) => createPrivateKey({ key: Buffer.concat([Buffer.from("302e020100300506032b656e04220420", "hex"), Buffer.alloc(32, b)]), format: "der", type: "pkcs8" });
@@ -14,8 +14,6 @@ const SERVER = raw(0x5a);
 const NODE_PUB = pubOf(NODE);
 const SERVER_PUB = pubOf(SERVER);
 const K = "463c97311c85ec6df2640aeefc4be01b89b330283b2fb200af9ff9bc1e7dd238";
-// and the key of the same pair in the names of the firmware before them
-const K_FORMER = "0362be37b29b1735b58762e5179f885a16085191f4404f161220e8d30925472e";
 const x25519 = (key) => (pub) => {
   try {
     return new Uint8Array(diffieHellman({ privateKey: key, publicKey: createPublicKey({ key: Buffer.concat([Buffer.from("302a300506032b656e032100", "hex"), Buffer.from(pub)]), format: "der", type: "spki" }) }));
@@ -45,18 +43,11 @@ test("the key of the pair and the two signatures, pinned as the node pins them",
   const key = Buffer.from(K, "hex");
   assert.equal(requestMac(key, "PUT", "/api/backup", 1760000000, utf8('{"v":1}')), "b188046ab010fb3aa6224f1319961b4bab6ee0ffe7fe921fe2c4b880ef8261ee");
   assert.equal(doRequest(key, 1, "backup", 1760000000, "00112233aabbccdd").mac, "f8ed022f190a5ac856320104599ce8a1a99f739340654de60f054b216794f015");
-  // the former names: the same pins as the firmware before them
-  assert.equal(hex(pairKey(x25519(SERVER), NODE_PUB, FORMER)), K_FORMER);
-  const former = Buffer.from(K_FORMER, "hex");
-  assert.equal(requestMac(former, "PUT", "/api/backup", 1760000000, utf8('{"v":1}')), "63ba8140b71a64be34d06f32b197486081f83928ddee28a2ad65c4b8850ab602");
-  assert.equal(doRequest(former, 1, "backup", 1760000000, "00112233aabbccdd", FORMER).mac, "bcb050a6a087b8a627488e00f1e0646e83f713e7b72b0ee0d125320701d4a167");
 });
 
-// a server's nodes, over a store in memory, with its clock and its posts in the test's hands. `kept` is a fleet.json the server starts from;
-// `speaks` gives the names a node at an address speaks, which answers a route of the others as release-server.mjs reads a 404
-function fleetOf({ nodes, minutes = () => 600, kept: fleetJson, speaks = {} } = {}) {
+// a server's nodes, over a store in memory, with its clock and its posts in the test's hands
+function fleetOf({ nodes, minutes = () => 600 } = {}) {
   const files = new Map();
-  if (fleetJson) files.set("fleet.json", utf8(JSON.stringify(fleetJson)));
   const store = { get: (rel) => files.get(rel), put: (rel, bytes) => files.set(rel, new Uint8Array(bytes)), list: (prefix) => [...files.keys()].filter((k) => k.startsWith(prefix) && !k.slice(prefix.length).includes("/")) };
   const clock = { now: 1760000000000 };
   const posted = [];
@@ -68,8 +59,6 @@ function fleetOf({ nodes, minutes = () => 600, kept: fleetJson, speaks = {} } = 
     shared: x25519(SERVER), random: (n) => new Uint8Array(n).fill(0x11), store, house: () => kept, now: () => clock.now, minutes: (ms) => minutes(ms),
     post: async (url, body) => {
       posted.push([url, body]);
-      const names = speaks[new URL(url).hostname];
-      if (names && new URL(url).pathname !== names.route) return { error: "no such route" };
       const a = answers.shift();
       if (a instanceof Error) throw a;
       return a ?? { v: 1, node: 1, verb: body.verb, state: { role: "panel", build: "b2" } };
@@ -83,13 +72,12 @@ function fleetOf({ nodes, minutes = () => 600, kept: fleetJson, speaks = {} } = 
   return f;
 }
 
-// a node's request, signed as server_link.be signs it, or as the firmware before the names did (`former`)
+// a node's request, signed as server_link.be signs it
 const key1 = Buffer.from(K, "hex");
-function signed(f, method, path, body, { node = 1, key = key1, t = Math.floor(f.clock.now / 1000), mac, former = false } = {}) {
+function signed(f, method, path, body, { node = 1, key = key1, t = Math.floor(f.clock.now / 1000), mac } = {}) {
   const b = body === undefined ? new Uint8Array(0) : utf8(typeof body === "string" ? body : JSON.stringify(body));
-  const h = former ? "X-Casa-" : "X-HouseWeave-";
   return f.fleet.handleNode({ method, path, body: b, length: b.length, from: "192.168.2.213",
-    headers: { [h + "Node"]: String(node), [h + "Time"]: String(t), [h + "Mac"]: mac ?? requestMac(key, method, path, t, b) } });
+    headers: { "X-HouseWeave-Node": String(node), "X-HouseWeave-Time": String(t), "X-HouseWeave-Mac": mac ?? requestMac(key, method, path, t, b) } });
 }
 const panelBackup = (at, extra = {}) => ({ v: 1, panel: "aabbccddeeff", project: "p1", from: "AA:BB:CC:DD:EE:FF", at, keys: { panel_config: { v: 7 } }, ...extra });
 
@@ -382,73 +370,4 @@ test("a hello another node carried over the mesh (berry/mesh_http.be): taken on 
     "asked through another at once, without the 5 s of a call to the old address");
   assert.equal(hello("192.168.2.120").status, 204, "its own hello again, with its Wi-Fi back");
   assert.equal(one().ip, "192.168.2.120");
-});
-
-// the house as a server kept it before the names changed: its nodes, paired, none of them heard since
-const keptBefore = () => ({
-  v: 1, round: "02:00", lastRound: null, paired: "2026-10-21T02:00:00.000Z", swaps: {}, replaced: {},
-  nodes: { 1: { node: 1, role: "panel", name: "P-Desk", ip: "192.168.2.113", key: NODE_PUB, mac: "aabbccddeeff" },
-           5: { node: 5, role: "bridge", name: "B-PC", ip: "192.168.2.115", key: SERVER_PUB, mac: "b0b0b0000005" } },
-});
-
-test("the firmware before the names: a node the server kept from then is called in the former names, and taken in them, until it speaks the current ones", async () => {
-  const f = fleetOf({ kept: keptBefore(), speaks: { "192.168.2.113": FORMER } });
-  const former1 = Buffer.from(K_FORMER, "hex");
-  const t = Math.floor(f.clock.now / 1000);
-  assert.equal((await f.fleet.ask(1, "state")).verb, "state");
-  assert.deepEqual(f.posted[0], ["http://192.168.2.113/casa/do", doRequest(former1, 1, "state", t, "1111111111111111", FORMER)],
-    "at the former route, signed under the former key in the former label");
-  assert.equal(signed(f, "POST", "/api/hello", { kind: "backup" }, { key: former1, former: true }).status, 204, "its request in the former names, taken");
-  assert.equal(signed(f, "POST", "/api/hello", { kind: "x" }, { key: key1, former: true }).status, 401, "the former headers with the current key: not its signature");
-  assert.equal(signed(f, "POST", "/api/hello", { kind: "y" }, { key: former1 }).status, 401, "nor the current headers with the former key");
-  // the node upgraded: its hello in the current names, and the server calls it in them
-  assert.equal(signed(f, "POST", "/api/hello", { kind: "boot" }).status, 204);
-  f.posted.length = 0;
-  await f.fleet.ask(1, "state");
-  assert.deepEqual(f.posted.map(([u]) => u), ["http://192.168.2.213/houseweave/do"], "at the address its hello came from");
-});
-
-test("the firmware before the names: a node called at a route it has not is called in the other names, and spoken to in them from then", async () => {
-  // node 5 was kept from before, and runs the current firmware already
-  const f = fleetOf({ kept: keptBefore(), speaks: { "192.168.2.115": CURRENT } });
-  const key5 = Buffer.from(pairKey(x25519(SERVER), SERVER_PUB));
-  const t = Math.floor(f.clock.now / 1000);
-  assert.equal((await f.fleet.ask(5, "state")).verb, "state");
-  assert.deepEqual(f.posted.map(([u, b]) => [u, b.mac]), [["http://192.168.2.115/casa/do", doRequest(Buffer.from(pairKey(x25519(SERVER), SERVER_PUB, FORMER)), 5, "state", t, "1111111111111111", FORMER).mac],
-    ["http://192.168.2.115/houseweave/do", doRequest(key5, 5, "state", t, "1111111111111111").mac]], "the former route first, then the current one, with the same nonce");
-  f.posted.length = 0;
-  await f.fleet.ask(5, "state");
-  assert.deepEqual(f.posted.map(([u]) => u), ["http://192.168.2.115/houseweave/do"], "and the current one alone after it answered there");
-});
-
-test("the firmware before the names: a request relayed to a node on it goes in its names, and its answer is taken in them; a hello carried says so in them too", async () => {
-  const f = fleetOf({ kept: keptBefore() });
-  const former1 = Buffer.from(K_FORMER, "hex");
-  const key5 = Buffer.from(pairKey(x25519(SERVER), SERVER_PUB));
-  const t = Math.floor(f.clock.now / 1000);
-  const nonce = "1111111111111111";
-  // node 5 speaks the current names; node 1 is still on the former firmware and out of the server's reach
-  assert.equal(signed(f, "POST", "/api/hello", { kind: "boot" }, { node: 5, key: key5 }).status, 204);
-  await f.fleet.ask(5, "state");
-  f.answers.push(new Error("connect ETIMEDOUT"), { v: 1, node: 5, verb: "relay", relay: "Sent", state: {} });
-  const answer = JSON.stringify({ v: 1, node: 1, verb: "state", state: { role: "panel", build: "b8" } });
-  const statuses = [];
-  f.onWait = () => {
-    if (statuses.length > 0) return;
-    statuses.push(signed(f, "POST", "/api/relayed", { to: 1, nonce, mac: doneMac(former1, nonce, answer), answer: answer + " " }, { node: 5, key: key5 }).status);
-    statuses.push(signed(f, "POST", "/api/relayed", { to: 1, nonce, mac: doneMac(former1, nonce, answer, FORMER), answer }, { node: 5, key: key5 }).status);
-  };
-  const a = await f.fleet.ask(1, "state");
-  assert.deepEqual(statuses, [401, 204], "the answer signed in node 1's names, the former, taken");
-  const [url, body] = f.posted.at(-1);
-  assert.deepEqual([url, body.mac], ["http://192.168.2.213/houseweave/do", doRequest(key5, 5, "relay", t, nonce).mac], "the node in between asked in its own names, at the address of its hello");
-  assert.deepEqual(body.req, doRequest(former1, 1, "state", t, nonce, FORMER), "node 1's request in its own");
-  assert.equal(a.state.build, "b8");
-  // a hello of node 1's, carried by a neighbour on the former firmware
-  f.clock.now += 1000;
-  const t2 = Math.floor(f.clock.now / 1000);
-  const b = utf8(JSON.stringify({ kind: "boot", role: "panel", build: "b8" }));
-  const r = f.fleet.handleNode({ method: "POST", path: "/api/hello", body: b, length: b.length, from: "192.168.2.111",
-    headers: { "X-Casa-Node": "1", "X-Casa-Time": String(t2), "X-Casa-Mac": requestMac(former1, "POST", "/api/hello", t2, b), "X-Casa-Via": "7" } });
-  assert.deepEqual([r.status, f.fleet.fleet().nodes.find((n) => n.node === 1).ip], [204, ""], "carried: no address of its own");
 });

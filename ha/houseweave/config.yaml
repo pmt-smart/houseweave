@@ -8,7 +8,7 @@
 # "share": releases are dropped there. The server's identity, the house and the
 # nodes' backups are in /data, the add-on's own, which it does not serve.
 name: HouseWeave
-version: "1.5.0"
+version: "1.6.0"
 slug: houseweave_release_server
 description: A smart house mesh, built on ESP32. Serves the nodes' releases, keeps their backups, and makes the panels' schedules calendars of Home Assistant.
 arch:

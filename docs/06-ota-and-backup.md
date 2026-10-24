@@ -23,11 +23,6 @@ A release is a folder the server serves under `/ota`: each app image cut into 64
 stream (the ESP32's ROM inflates it, and a power cut costs at most one block), with a manifest; the safeboot image, signed; and `index.json`, which
 says for each image (the env of the build, which every device knows as `PanelBuild.IMAGE`) its build, date, size, folder and SHA-256.
 
-The images had other names in the firmware before HouseWeave's (`tasmota32-casainteligente-sala-eu`, `-sala-us` and `-bridge`), and a device on
-it looks its image up by its own. So `publish` writes each release of those images under the former name too, the same release with `of` naming
-the image it is (`FORMER_IMAGES` in `scripts/ota-release.mjs`): such a device finds the new release and upgrades into the current names. The
-OTA tab shows each image once. A later release takes the former names out.
-
 The signed record is 39 bytes: the image's size, its number of blocks, the block size and its SHA-256. The offer that goes over the mesh is the
 record and its 64-byte signature, 103 bytes. A file that goes whole over HTTP (a panel's `.tft` or `.jsonl`) has its own signed record with zero
 blocks. A file whose signature does not check is worth nothing, whichever way it came. A new key comes as a second public key in a release the old
@@ -122,13 +117,6 @@ to the server carries `X-HouseWeave-Node`, `X-HouseWeave-Time` and `X-HouseWeave
 every request of the server to a node (`POST /houseweave/do`) is checked by the HMAC of "houseweave-do|verb|time|node|nonce", within 10
 minutes, each nonce once. The verbs are `backup`, `upgrade`, `restore`, `state`, `round` and `relay`. A node signs nothing before its clock has
 the network's time.
-
-**The former names.** The firmware before these names said `casa` where they say `houseweave`: the salt `casa-server`, the headers
-`X-Casa-*`, the routes `/casa/do` and `/casa/pair`, and the labels `casa-do`, `casa-done` and `casa-pair-1/2`. The server takes both until
-every node runs the current firmware (`FORMER` in `ha/houseweave/server/house-fleet.mjs`): a node's request says the names it speaks, and the
-server calls it in them; a node the server knew before the change is called in the former names until it is heard, and a node called at a route
-it does not have (a 404) is called again in the other names. The pairing asks a panel at `/houseweave/pair` first, and at `/casa/pair` when it
-has not that route. A later release takes the former names out.
 
 **The hello.** A node introduces itself (`POST /api/hello`) when it boots, after a backup and after an upgrade; a panel adds the house's nodes,
 with their keys and radio addresses, again when the list changes. That is how the server learns a node's address. A hello the server refuses is

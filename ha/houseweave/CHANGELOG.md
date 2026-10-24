@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 (2026-10-23)
+
+- Only HouseWeave's names: every node of the house runs the firmware that speaks them, so the server no longer takes or calls a node in the
+  names before them, a release's index has each image once, and the integration (its version 1.6.0) and the weather automation use only the
+  `houseweave/` topics.
+
 ## 1.5.0 (2026-10-22)
 
 - The add-on is HouseWeave: the app (Studio, House and Settings) in Home Assistant's sidebar, through the ingress.

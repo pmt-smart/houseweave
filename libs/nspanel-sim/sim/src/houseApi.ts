@@ -22,8 +22,6 @@ export interface Release {
   build: string;
   size: number;
   date: string;
-  /** a release written under an image's former name: the image it is (scripts/ota-release.mjs, FORMER_IMAGES) */
-  of?: string;
 }
 export interface Index {
   images?: Record<string, Release>;

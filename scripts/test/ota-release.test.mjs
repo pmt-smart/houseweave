@@ -112,9 +112,7 @@ test("published: each image packed in its folder, the safeboot image signed whol
     assert.deepEqual(index.images["tasmota32-houseweave-living-room-us"],
       { path: "tasmota32-houseweave-living-room-us.ota", build: "a91d8b13/319cddad", size: 150000, date: "2026-10-20T23:26",
         sha256: createHash("sha256").update(app).digest("hex") }, "with the image's SHA-256, by which a neighbour knows the release a node waits for");
-    assert.deepEqual(index.images["tasmota32-casainteligente-sala-us"], { ...index.images["tasmota32-houseweave-living-room-us"], of: "tasmota32-houseweave-living-room-us" },
-      "and under the image's former name, the same release, for a node on the firmware before the names");
-    assert.deepEqual(Object.keys(index.images).sort(), ["tasmota32-casainteligente-sala-us", "tasmota32-houseweave-living-room-us"], "the safeboot image has none");
+    assert.deepEqual(Object.keys(index.images), ["tasmota32-houseweave-living-room-us"], "the safeboot image has none");
     assert.deepEqual(index.safeboot, { path: SAFEBOOT_FILE, build: "a91d8b13/319cddad", size: 90000, date: "2026-10-20T23:26" });
     assert.deepEqual(JSON.parse(readFileSync(join(to, "index.json"), "utf8")), index, "the index, as written");
     const manifest = JSON.parse(readFileSync(join(to, "tasmota32-houseweave-living-room-us.ota", "manifest.json"), "utf8"));
@@ -127,7 +125,6 @@ test("published: each image packed in its folder, the safeboot image signed whol
     writeFileSync(join(src, "tasmota32-houseweave-bridge-b0000001-319cddad.bin"), bridge);
     const after = publish([join(src, "tasmota32-houseweave-bridge-b0000001-319cddad.bin")], to, key, at);
     assert.equal(after.images["tasmota32-houseweave-bridge"].build, "b0000001/319cddad");
-    assert.equal(after.images["tasmota32-casainteligente-bridge"].of, "tasmota32-houseweave-bridge");
     assert.equal(after.images["tasmota32-houseweave-living-room-us"].build, "a91d8b13/319cddad");
     assert.equal(after.safeboot.build, "a91d8b13/319cddad");
     assert.throws(() => publish([join(src, "tasmota32-houseweave-living-room-us-a91d8b13-319cddad.bin.copy")], to, key), /not a build's name/);

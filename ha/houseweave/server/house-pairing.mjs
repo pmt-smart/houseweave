@@ -5,8 +5,7 @@
 // types both on the OTA tab, which asks this server to pair: it posts to the panel's /houseweave/pair its key, its address and port, its name and a nonce,
 // with the HMAC-SHA256 of those under the code, and the panel, whose code checks it, writes the server into the house's list and answers with the server's
 // number, the house's name and the nodes of its mesh, with an HMAC under the code too (berry/house_server.be says the two messages). The code never goes on
-// the network. A panel on the firmware before these names has /casa/pair and says "casa" in the labels (house-fleet.mjs, FORMER): it is posted to there when
-// it has no route of the current names.
+// the network.
 //
 // The house is kept in the data folder as house.json: {"node", "house", "panel", "panelHost", "nodes", "paired"}. The routes, under /api:
 //   GET  /api/status   {"key", "address": {"host", "port"} or null, "house": the house kept, or null}
@@ -39,19 +38,15 @@ export function identity(dir) {
   return { key, public: der.subarray(der.length - 32).toString("hex") };
 }
 
-/** the panel's route and the labels' word: the firmware's, and the one before it */
-export const PAIRING = { route: "/houseweave/pair", label: "houseweave" };
-export const FORMER_PAIRING = { route: "/casa/pair", label: "casa" };
-
 /** what the server posts to the panel, proved by the code */
-export function pairRequest({ key, host, port, name, code, nonce }, names = PAIRING) {
-  return { v: 1, key, host, port, name, nonce, mac: hmac(code, `${names.label}-pair-1|${key}|${host}|${port}|${name}|${nonce}`) };
+export function pairRequest({ key, host, port, name, code, nonce }) {
+  return { v: 1, key, host, port, name, nonce, mac: hmac(code, `houseweave-pair-1|${key}|${host}|${port}|${name}|${nonce}`) };
 }
 
 /** whether the panel's answer is the panel's: its HMAC under the code */
-export function welcomeChecks(answer, code, nonce, names = PAIRING) {
+export function welcomeChecks(answer, code, nonce) {
   if (!answer || typeof answer !== "object" || !Number.isInteger(answer.node) || typeof answer.house !== "string" || typeof answer.mac !== "string") return false;
-  return answer.mac.toLowerCase() === hmac(code, `${names.label}-pair-2|${nonce}|${answer.node}|${answer.house}`);
+  return answer.mac.toLowerCase() === hmac(code, `houseweave-pair-2|${nonce}|${answer.node}|${answer.house}`);
 }
 
 /** the address this server is reached at by a panel at `panelHost`: the one given (SERVER_HOST, the Supervisor's), else this machine's on the panel's network */
@@ -78,22 +73,19 @@ export async function pair({ panel, code, dir, address, name = NAME, post = post
   if (!/^\d{1,3}(\.\d{1,3}){3}(:\d+)?$/.test(String(panel ?? ""))) return { error: "the panel's address, as its screen says it" };
   if (!address) return { error: "no address of this server for the panel: set SERVER_HOST" };
   const me = identity(dir);
+  const body = pairRequest({ key: me.public, host: address.host, port: address.port, name, code, nonce });
   let answer;
-  let names;
-  for (names of [PAIRING, FORMER_PAIRING]) {
-    try {
-      answer = await post(`http://${panel}${names.route}`, pairRequest({ key: me.public, host: address.host, port: address.port, name, code, nonce }, names));
-    } catch (e) {
-      return { error: `the panel did not answer (${e.message})` };
-    }
-    if (answer?.error !== "no such route") break;
+  try {
+    answer = await post(`http://${panel}/houseweave/pair`, body);
+  } catch (e) {
+    return { error: `the panel did not answer (${e.message})` };
   }
   if (answer?.error) {
     const why = { closed: "the panel's window is closed: open Add server on it", code: "the code is not the panel's", request: "the panel refused the request",
                   house: "the panel could not add it to its house" };
     return { error: why[answer.error] ?? answer.error };
   }
-  if (!welcomeChecks(answer, code, nonce, names)) return { error: "the answer is not the panel's" };
+  if (!welcomeChecks(answer, code, nonce)) return { error: "the answer is not the panel's" };
   const kept = { node: answer.node, house: answer.house, panel: answer.panel, panelHost: String(panel).split(":")[0], nodes: answer.nodes ?? [],
                  paired: now().toISOString() };
   mkdirSync(dir, { recursive: true });
@@ -105,7 +97,7 @@ export async function pair({ panel, code, dir, address, name = NAME, post = post
 
 async function postJson(url, body) {
   const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(PAIR_MS) });
-  return r.status === 404 ? { error: "no such route" } : r.json();
+  return r.json();
 }
 
 /** The routes under /api: an answer {status, headers, body}, or null for a path that is not one of them. `address(panelHost)` gives this server's */

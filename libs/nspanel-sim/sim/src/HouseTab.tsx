@@ -73,8 +73,7 @@ export function HouseTab() {
   };
 
   const house = status?.house ?? null;
-  // each image once: a release written again under its former name is the same release
-  const images = Object.entries(index?.images ?? {}).filter(([, r]) => !r.of);
+  const images = Object.entries(index?.images ?? {});
   return (
     <div style={{ maxWidth: 820 }}>
       {problem && <Hint>{problem}</Hint>}

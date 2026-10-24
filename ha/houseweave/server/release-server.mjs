@@ -162,25 +162,6 @@ export function installIntegration(from, to) {
   return "copied";
 }
 
-/** the domain the integration had before HouseWeave's names */
-export const FORMER_DOMAIN = "casainteligente";
-
-/**
- * The integration this add-on copied under its former domain, taken out of Home Assistant's custom_components (`dir`): beside the current one it
- * would be a second integration on the same topics. Only a folder whose manifest says that domain is this add-on's. Whether one was taken out
- */
-export function retireFormerIntegration(dir) {
-  const former = dir ? path.join(dir, FORMER_DOMAIN) : null;
-  if (!former || !existsSync(former)) return false;
-  try {
-    if (JSON.parse(readFileSync(path.join(former, "manifest.json"), "utf8")).domain !== FORMER_DOMAIN) return false;
-  } catch {
-    return false;
-  }
-  rmSync(former, { recursive: true, force: true });
-  return true;
-}
-
 /**
  * The answer to a request on one of the two ports (`kind`: "nodes" or "app"), from the parts that answer them: `fleet` (house-fleet.mjs), `api`
  * (house-pairing.mjs) and `files` (createHandler). The nodes' port takes the nodes' signed routes and the releases, and refuses the owner's API; the
@@ -220,10 +201,10 @@ export function answerFor(kind, { fleet, api, files, app = null, from = [] }) {
   };
 }
 
-/** a post to a node (its /houseweave/do): its answer's JSON, or {error: "no such route"} from a node without it. A node answers at once, or is not there */
+/** a post to a node (its /houseweave/do): its answer's JSON. A node answers at once, or is not there */
 async function postNode(url, body) {
   const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(5000) });
-  return r.status === 404 ? { error: "no such route" } : r.json();
+  return r.json();
 }
 
 async function main() {
@@ -235,14 +216,10 @@ async function main() {
     process.exit(2);
   }
   // the integration, into Home Assistant's configuration, which the add-on maps at /homeassistant: the add-on's copy is beside this folder
-  const components = process.env.HA_CONFIG === "" ? null : path.join(process.env.HA_CONFIG ?? "/homeassistant", "custom_components");
   const integration = installIntegration(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "custom_components", "houseweave"),
-    components ? path.join(components, "houseweave") : null);
+    process.env.HA_CONFIG === "" ? null : path.join(process.env.HA_CONFIG ?? "/homeassistant", "custom_components", "houseweave"));
   if (integration === "copied") console.log("INTEGRATION: copied into Home Assistant: restart it, then add HouseWeave in Devices & services");
   if (integration === "current") console.log("INTEGRATION: Home Assistant has this version");
-  if (integration !== "none" && retireFormerIntegration(components)) {
-    console.log(`INTEGRATION: the former one (${FORMER_DOMAIN}) taken out: delete its entry in Devices & services, and add HouseWeave there`);
-  }
   // where the nodes reach this one, and its data, which it does not serve (house-pairing.mjs)
   const given = await serverAddress(port);
   const dataDir = process.env.DATA_DIR ?? path.join(path.dirname(path.resolve(root)), path.basename(path.resolve(root)) + "-server");

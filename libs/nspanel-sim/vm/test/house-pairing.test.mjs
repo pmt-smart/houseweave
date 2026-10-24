@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { FORMER_PAIRING, PAIRING, addressFor, createApi, hmac, house, identity, pair, pairRequest, welcomeChecks } from "../../../../ha/houseweave/server/house-pairing.mjs";
+import { addressFor, createApi, hmac, house, identity, pair, pairRequest, welcomeChecks } from "../../../../ha/houseweave/server/house-pairing.mjs";
 
 const KEY = "9a968a150000000000000000000000000000000000000000000000000000fd5f";
 const temp = () => mkdtempSync(join(tmpdir(), "house-pairing-"));
@@ -15,9 +15,6 @@ test("HMAC-SHA256 as RFC 4231 says it, and the pairing's request, pinned as the 
   const r = pairRequest({ key: KEY, host: "192.168.2.108", port: 8099, name: "Home Assistant", code: "123456", nonce: "0011223344556677" });
   assert.deepEqual(r, { v: 1, key: KEY, host: "192.168.2.108", port: 8099, name: "Home Assistant", nonce: "0011223344556677",
                         mac: "d3390a5fcc3546613c19927edbb7a3ce02986118c90a48f47fc3dd589b8b6782" });
-  // and in the labels of the firmware before them
-  assert.equal(pairRequest({ key: KEY, host: "192.168.2.108", port: 8099, name: "Home Assistant", code: "123456", nonce: "0011223344556677" }, FORMER_PAIRING).mac,
-               "cffd0da3f5de72981a4afa5e64595ea9f134e256f97632ab4a58f5ed05289640");
 });
 
 test("its identity: an X25519 key made once, kept, its public half 32 bytes", () => {
@@ -32,16 +29,13 @@ test("its identity: an X25519 key made once, kept, its public half 32 bytes", ()
   }
 });
 
-// the panel, as house_server.be answers: the code checked, the server given its number; in the names it speaks, and a route of the others is
-// none of its own, as the release server reads a 404
-const panel = (code, { error, house: name = "Cottage", node = 9, names = PAIRING } = {}) => async (url, body) => {
+// the panel, as house_server.be answers: the code checked, the server given its number
+const panel = (code, { error, house: name = "Cottage", node = 9 } = {}) => async (url, body) => {
   panel.asked = [url, body];
-  (panel.urls ??= []).push(url);
-  if (new URL(url).pathname !== names.route) return { error: "no such route" };
   if (error) return { v: 1, error };
-  if (body.mac !== hmac(code, `${names.label}-pair-1|${body.key}|${body.host}|${body.port}|${body.name}|${body.nonce}`)) return { v: 1, error: "code" };
+  if (body.mac !== hmac(code, `houseweave-pair-1|${body.key}|${body.host}|${body.port}|${body.name}|${body.nonce}`)) return { v: 1, error: "code" };
   return { v: 1, node, house: name, panel: 1, nodes: [[1, 2, "P-Desk", "192.168.2.113"], [5, 1, "B-PC", "192.168.2.115"]],
-           mac: hmac(code, `${names.label}-pair-2|${body.nonce}|${node}|${name}`) };
+           mac: hmac(code, `houseweave-pair-2|${body.nonce}|${node}|${name}`) };
 };
 
 test("paired on a panel: the request proved by the code, the answer checked, the house kept", async () => {
@@ -56,21 +50,6 @@ test("paired on a panel: the request proved by the code, the answer checked, the
     assert.deepEqual(r, { node: 9, house: "Cottage", panel: 1, panelHost: "192.168.2.113", nodes: [[1, 2, "P-Desk", "192.168.2.113"], [5, 1, "B-PC", "192.168.2.115"]],
                           paired: "2026-10-21T02:00:00.000Z" });
     assert.deepEqual(house(dir), r, "kept");
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-test("a panel on the firmware before the names: asked at its own route, in its own labels, and paired", async () => {
-  const dir = temp();
-  try {
-    panel.urls = [];
-    const r = await pair({ panel: "192.168.2.113", code: "482913", dir, address: { host: "192.168.2.108", port: 8099 }, post: panel("482913", { names: FORMER_PAIRING }) });
-    assert.deepEqual(panel.urls, ["http://192.168.2.113/houseweave/pair", "http://192.168.2.113/casa/pair"], "the current route first, and the former when the panel has not it");
-    assert.deepEqual([r.node, r.house], [9, "Cottage"]);
-    panel.urls = [];
-    assert.match((await pair({ panel: "192.168.2.113", code: "000000", dir, address: { host: "192.168.2.108", port: 8099 }, post: panel("482913") })).error, /not the panel's/);
-    assert.deepEqual(panel.urls, ["http://192.168.2.113/houseweave/pair"], "a panel of the current names that refuses the code is not asked again at the former route");
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

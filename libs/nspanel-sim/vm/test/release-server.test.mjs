@@ -3,7 +3,7 @@
 // integration it copies into Home Assistant.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FORMER_DOMAIN, answerFor, createHandler, installIntegration, retireFormerIntegration, serverAddress } from "../../../../ha/houseweave/server/release-server.mjs";
+import { answerFor, createHandler, installIntegration, serverAddress } from "../../../../ha/houseweave/server/release-server.mjs";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -98,25 +98,6 @@ test("the add-on copies its integration into Home Assistant's configuration, at 
     writeFileSync(join(from, "manifest.json"), JSON.stringify({ domain: "houseweave", version: "1.3.0" }));
     assert.equal(installIntegration(from, to), "copied", "a new version replaces it");
     assert.equal(existsSync(join(to, "old.py")), false, "whole");
-  } finally {
-    rmSync(base, { recursive: true, force: true });
-  }
-});
-
-test("the integration the add-on copied under its former domain is taken out, and nothing that is not it", () => {
-  const base = mkdtempSync(join(tmpdir(), "ci-integration-"));
-  try {
-    const components = join(base, "custom_components");
-    const former = join(components, FORMER_DOMAIN);
-    assert.equal(retireFormerIntegration(components), false, "none there");
-    assert.equal(retireFormerIntegration(null), false);
-    mkdirSync(former, { recursive: true });
-    writeFileSync(join(former, "manifest.json"), JSON.stringify({ domain: "someone_else", version: "1.0.0" }));
-    assert.equal(retireFormerIntegration(components), false, "a folder of that name that is another integration stays");
-    assert.equal(existsSync(former), true);
-    writeFileSync(join(former, "manifest.json"), JSON.stringify({ domain: FORMER_DOMAIN, version: "1.4.0" }));
-    assert.equal(retireFormerIntegration(components), true, "this add-on's, under the former domain");
-    assert.equal(existsSync(former), false);
   } finally {
     rmSync(base, { recursive: true, force: true });
   }

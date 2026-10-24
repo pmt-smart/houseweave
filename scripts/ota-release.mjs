@@ -109,14 +109,6 @@ export function manifestText(file, manifest) {
 /** the name the safeboot image is published under, beside the images' folders */
 export const SAFEBOOT_FILE = "houseweave-safeboot.bin";
 
-/** The names the images had in the firmware before HouseWeave's: a node on it looks its image up in the index by its own, so each release of these
- * images is written under the former name too, with "of" saying the image it is, until every node runs a release of the current names */
-export const FORMER_IMAGES = {
-  "tasmota32-houseweave-living-room-eu": "tasmota32-casainteligente-sala-eu",
-  "tasmota32-houseweave-living-room-us": "tasmota32-casainteligente-sala-us",
-  "tasmota32-houseweave-bridge": "tasmota32-casainteligente-bridge",
-};
-
 /** What a build's file name says (scripts/build-firmware.ps1 names them): of tasmota32-houseweave-living-room-us-a91d8b13-319cddad.bin, the
  * image, its env, and the build as the image's own stamp says it (berry/panel_build.be, PanelBuild.COMMIT), a91d8b13/319cddad; null for a
  * name of another shape */
@@ -152,7 +144,6 @@ export function publish(files, dir, key, now = new Date()) {
       writeFileSync(join(folder, "blocks.bin"), blocks);
       writeFileSync(join(folder, "manifest.json"), manifestText(basename(file), manifest));
       index.images[b.image] = { path: `${b.image}.ota`, build: b.build, size: data.length, date, sha256: manifest.sha256 };
-      if (FORMER_IMAGES[b.image]) index.images[FORMER_IMAGES[b.image]] = { ...index.images[b.image], of: b.image };
     }
   }
   writeFileSync(indexPath, JSON.stringify(index, null, 2) + "\n");
@@ -198,7 +189,7 @@ function main(argv) {
     const files = argv.slice(1, toAt >= 0 ? toAt : undefined);
     if (toAt < 0 || !argv[toAt + 1] || files.length === 0) throw new Error("usage: publish <image.bin>... --to <folder the release server serves>/ota");
     const index = publish(files, resolve(argv[toAt + 1]), readKey(path));
-    for (const [image, r] of Object.entries(index.images)) if (!r.of) console.log(`${image}: ${r.build}, ${r.size} B, ${r.date}`);
+    for (const [image, r] of Object.entries(index.images)) console.log(`${image}: ${r.build}, ${r.size} B, ${r.date}`);
     console.log(index.safeboot ? `the safeboot image: ${index.safeboot.build}, ${index.safeboot.size} B` : "no safeboot image: a device cannot upgrade over HTTP without one");
   } else if (command === "sign" && file) {
     const signed = signFile(readFileSync(file), readKey(path));
