@@ -1177,11 +1177,14 @@ static void test_http_receive(void) {
   printf("-- the image over HTTP, from the server\n");
   Bytes image = read_file(g_fixture + "/image.bin");
   http_world("http://server/living.ota");
+  EspNowOtaBootMagic = ESPNOW_OTA_BOOT_MAGIC;                      // two quick installs before this one, with no power cut between
+  EspNowOtaBoots = 2;
   Xdrv104(FUNC_INIT);
   second(1);
   CHECK(!EspNowOtaWifiQuiet() && g_wifi_connected, "armed with a release's address, a station connected is not parked");
   run_receiver(120000);
   CHECK(EspNowOta.state == kOtaDone && flash_holds(image, 0, image.size()), "the release, fetched over HTTP, is written whole");
+  CHECK(0 == EspNowOtaBoots, "and an install that ends well ends the count of quick starts: the next one is no third in a row");
   CHECK(g_boot == &g_app && TasmotaGlobal.restart_flag == 3 && !g_nvs.count("espnowota/url"), "and checked, and set to boot, the NVS cleared");
   CHECK(!strcmp(EspNowOta.sender_name, "the server") && logged("Fetching the release at http://server/living.ota, from block 1"), "the page says it comes from the server");
   int parts = 0;

@@ -44,7 +44,8 @@ drivers of the fork:
 - **The Wi-Fi on the house's channel.** A node with no reachable access point would search for one all the time, and every try sweeps all the
   channels, off the mesh's. The receiver parks the station on the house's channel (the one in the mesh's record) when the app armed it for the
   mesh, when a transfer is half done, or when the Wi-Fi did not connect in 30 s; a station connected on the house's channel stays as it is.
-- **The way out.** Three starts in a row that do not reach 30 s send the device back to its app, when the app's partition holds a whole image.
+- **The way out.** Three starts in a row that do not reach 30 s send the device back to its app, when the app's partition holds a whole image;
+  a start that installs its image ends the count, since an install over HTTP takes less than 30 s.
   A node armed for the mesh that nobody offers an image to goes back to its app after 10 minutes (`ESPNOW_OTA_WAIT_S`); once it took an offer, the
   app is being overwritten, and it waits for the image. The buttons of a device of a house do nothing in the safeboot.
 - **The panel's page** (`USE_ESPNOW_OTA_DISPLAY`, only on a device whose template is the NSPanel's): the safeboot draws the `.tft`'s `safeboot`
