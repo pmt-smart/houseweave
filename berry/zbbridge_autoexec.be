@@ -4,7 +4,7 @@
 # is the file at the repo root.
 #
 # The relay is compiled into the bridge's firmware:
-# ZbBridgeRelay, ZbBridgeRelayPairing,
+# ZbBridgeRelay, NodeHost (the house's part of a node with no screen, which the relay hands over to), ZbBridgeRelayPairing,
 # ZbBridgeDiscovery, ZbBridgeDrivers and ZbDriverThermostat, ZbDriverCover, ZbDriverTwoKey, ZbBridgeAlarm, ZbAlarmMerge (the alarm replica's rule), ZbAlarmMesh (the replica on the mesh, which ZbBridgeAlarm builds once the mesh runs and the bridge has an alarm number), PairSign and ClockLink, one class a file in berry/. This only starts it -- which it has to,
 # at every boot: without it, every restart of the ZBBridge Pro (and it restarts
 # on its own now and then -- RestartReason "Software reset CPU" without any
@@ -29,7 +29,7 @@
 import global
 import path
 
-for f: ["panel_build.be", "pair_sign.be", "clock_link.be", "zbbridge_relay_pairing.be", "zbbridge_discovery.be", "zbbridge_drivers.be", "zbdriver_thermostat.be", "zbdriver_cover.be", "zbdriver_twokey.be", "mesh_beat.be", "mesh_events.be", "zbbridge_alarm_merge.be", "zbbridge_alarm_mesh.be", "zbbridge_alarm.be", "mesh_cmd.be", "house_list.be", "house_key.be", "house_state.be", "house_devices.be", "house_link.be", "house_channel.be", "house_mesh.be", "house_commands.be", "house_mqtt.be", "house_alarm.be", "panel_wifi.be", "panel_http.be", "node_ota.be", "node_wireless.be", "server_link.be", "mesh_http.be", "node_settings.be", "node_backup.be", "bridge_backup.be", "zbbridge_relay.be"]
+for f: ["panel_build.be", "pair_sign.be", "clock_link.be", "zbbridge_relay_pairing.be", "zbbridge_discovery.be", "zbbridge_drivers.be", "zbdriver_thermostat.be", "zbdriver_cover.be", "zbdriver_twokey.be", "mesh_beat.be", "mesh_events.be", "zbbridge_alarm_merge.be", "zbbridge_alarm_mesh.be", "zbbridge_alarm.be", "mesh_cmd.be", "house_list.be", "house_key.be", "house_state.be", "house_devices.be", "house_link.be", "house_channel.be", "house_mesh.be", "house_commands.be", "house_mqtt.be", "house_alarm.be", "panel_wifi.be", "panel_http.be", "node_ota.be", "node_wireless.be", "server_link.be", "mesh_http.be", "node_settings.be", "node_backup.be", "bridge_backup.be", "node_host.be", "zbbridge_relay.be"]
     if path.exists(f)
         load(f)
         log("ZBBRIDGE_RELAY: " + f + " runs from the file system, over the firmware's", 1)

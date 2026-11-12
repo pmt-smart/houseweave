@@ -5,11 +5,15 @@
 # And back, to the panels that hear this bridge (`listeners`: the ones that commanded it lately, that keep it as the bridge of the house's words, or that
 # show its devices), goes every Zigbee event this side hears that the panel's pages read (`ZbReceived`, `ZbState`, `ZbResponse`, `ZbInfo`, `ZbPing`),
 # filtered and merged to fit a frame of the mesh.
-
+#
+# What a bridge is to the house as any node with no screen is (the house's layer, the panels that hear it, its Wi-Fi, its OTA, the server and its backup,
+# the house's MQTT, the screens a panel shows of it) is NodeHost's (node_host.be), over this object: the fields are here, and the methods of those names
+# hand over to it. What is a bridge's own is here: the Zigbee network and what it says, the commands a panel sends it, the window of entering the house,
+# the button, the clock.
 #
 # COMPILED INTO THE BRIDGE'S FIRMWARE,
 # for the bridge to update by OTA, which carries the app and not the file
-# system: one class a file (this, ZbBridgeRelayPairing, ZbBridgeDiscovery,
+# system: one class a file (this, NodeHost, ZbBridgeRelayPairing, ZbBridgeDiscovery,
 # ZbBridgeDrivers, ZbDriverThermostat, ZbDriverCover and PairSign), nothing at the
 # top, every module imported where it is used, the statics read only.
 # `ZbBridgeRelay.start()` is the whole of the bridge's autoexec.be
@@ -70,13 +74,12 @@ class ZbBridgeRelay
     # word, in any case. ZbRelayListen and ZbRelayAdmin are this side's own (listen, admin)
     static ALLOWED = ["ZBSEND", "ZBPING", "ZBINFO", "ZBLEAVE", "ZBFORGET", "ZBPERMITJOIN",
                       "SETOPTION116", "ZBRELAYNAME", "ZBRELAYDRIVE", "ZBRELAYTIME", "ZBRELAYALARM"]
-    # a factory reset's word to the panel goes out before everything does
-    static FORGET_WORD_MS = 300
-    # and a restart a panel asked for, after the screen that says so (render_for)
-    static RESTART_MS = 1500
-    # a panel that commanded this bridge over the mesh hears its events this long, and so many panels at most hear them
-    static LISTEN_MS = 600000
-    static LISTENERS_MAX = 8
+    # what NodeHost reads of the node it serves (node_host.be): what its log lines and the names of its timers and rules begin with, what it tells the
+    # house's server it is, and how many rows of its Main settings are its own (settings_rows)
+    static TAG = "ZBBRIDGE_RELAY"
+    static ID = "zbbridge_relay"
+    static ROLE = "bridge"
+    static MAIN_ROWS = 2
     # after a boot, the house looked at every AGAIN_MS, AGAIN_TRIES times at most, for this bridge to say everything again once it is in step
     static AGAIN_MS = 1000
     static AGAIN_TRIES = 180
@@ -175,57 +178,14 @@ class ZbBridgeRelay
         # this command
         if global.contains("ZbBridgeAlarm")  r.alarm = global.ZbBridgeAlarm(r) end
         tasmota.add_cmd("ZbRelayAlarm", / cmd, idx, payload -> r.alarm_cmd(payload))
-        # the commands the other nodes of the house send over the mesh to the devices of this bridge: the class waits for the mesh by itself
-        if global.contains("MeshCmd")  r.meshcmd = global.MeshCmd(r) end
-        # the house's list and the change of the network's key: the class waits for the mesh by itself, and holds nothing until it is in a house
-        if global.contains("HouseMesh")
-            r.house = global.HouseMesh(global.HouseList.ROLE_BRIDGE)
-            # the console's way of building and reading a house: the commands keep it
-            if global.contains("HouseCommands") global.HouseCommands(r.house) end
-            # the house's MQTT, which this bridge takes as every node does
-            if global.contains("HouseMqtt")  r.house.mqtt = global.HouseMqtt(r.house, / m -> r.apply_mqtt(m)) end
+        # the house on this bridge, as on every node with no screen (node_host.be): the commands of the mesh, the house's list and its MQTT, its Wi-Fi, its
+        # OTA, the house's server with the bridge's backup, and its screens on a panel
+        NodeHost.start(r, global.contains("HouseList") ? global.HouseList.ROLE_BRIDGE : 0, global.contains("BridgeBackup") ? global.BridgeBackup : nil)
+        if r.house != nil
             # told to join another house: out of this one, its window opens for a panel of the other, with its Wi-Fi and its devices kept
             r.house.on_move = / -> r.open_window(ZbBridgeRelay.BOOT_WINDOW_MS, false)
-            # its Wi-Fi as a panel of the house asks for it in this bridge's Wireless settings (node_wireless.be): the station driver's search, join and
-            # hotspot, as a panel's own, and a Disconnect asked there kept across a restart
-            if global.contains("PanelWifi")
-                r.wifi = global.PanelWifi(nil)
-                if r.wifi.station && r.wifi.kept().find("off", false)  r.wifi.radio_off() end
-                tasmota.add_rule("StaScan", / v -> r.wifi_said("scan", v), "zbbridge_relay_wifi")
-                tasmota.add_rule("StaJoin", / v -> r.wifi_said("join", v), "zbbridge_relay_wifi")
-                tasmota.add_rule("StaHotspot", / v -> r.wifi_said("spot", v), "zbbridge_relay_wifi")
-            end
-            # its OTA, from the house's server the list has: a panel that shows it asks again while it changes
-            if global.contains("NodeOta") && global.contains("PanelHttp")
-                var house = r.house
-                r.ota = global.NodeOta(global.PanelHttp(), / -> house.server(), nil, / -> house)
-                # and the house's server's word to it: its backup, as every node's, its upgrade and its state; it says when it is up
-                if global.contains("ServerLink") && global.contains("NodeBackup") && global.contains("BridgeBackup")
-                    r.link = global.ServerLink(/ -> house, global.PanelHttp(), / -> r.server_state(), nil)
-                    var link = r.link
-                    if global.contains("MeshHttp")
-                        r.link.mesh = global.MeshHttp(/ -> house, global.PanelHttp(), / -> link.server())
-                        # the same way to the server, for the safeboot image of a bridge with no Wi-Fi
-                        r.ota.mesh = r.link.mesh
-                    end
-                    r.backup = global.NodeBackup(global.BridgeBackup(), global.PanelHttp(), r.link)
-                    var ota = r.ota
-                    r.link.on("upgrade", / -> {"upgrade": ota.upgrade_asked()})
-                    r.link.on("state", / -> {})
-                    r.link.hello("boot")
-                end
-            end
-            # and this bridge's screens, which a panel of the house shows as its Main settings and Wireless settings (house_mesh.be, ask_view)
-            r.house.view_fn = / v, k, x -> r.render_for(v, k, x)
-            # and the nodes the house forgets (house_mesh.be, sweep()): the panels that commanded this bridge, and the alarm's losses of a bridge that is no more
-            r.house.forgets.push(def (m, forgot)
-                var drop = []
-                for k: r.heard_from.keys()
-                    if !m.contains(k)  drop.push(k) end
-                end
-                for k: drop  r.heard_from.remove(k) end
-                if r.alarm != nil  r.alarm.sweep(m) end
-            end)
+            # and of the nodes the house forgets (house_mesh.be, sweep()), the alarm's losses of a bridge that is no more
+            r.house.forgets.push(/ m, forgot -> r.alarm != nil ? r.alarm.sweep(m) : nil)
             # and the alarm's configuration, which is the house's: this bridge's alarm takes the part that is its own
             if global.contains("HouseAlarm") && r.alarm != nil  r.house.alarm = global.HouseAlarm(r.house, / c -> r.alarm.take_cfg(c)) end
             # the devices of this bridge that panels of other rooms mark: their reports are said to the house, and one that has said nothing is read
@@ -306,32 +266,13 @@ class ZbBridgeRelay
         return self.alarm.set_panic({"devices": devs})
     end
 
-    # a line's command: what comes before its first space, in capitals
-    static def word(line)
-        import string
-        var i = string.find(line, " ")
-        return string.toupper(i < 0 ? line : line[0 .. i - 1])
-    end
-
     # A command line from a panel of the house, over the mesh (`from`, its number, MeshCmd): run when it is one a panel sends, refused and logged
-    # otherwise. The factory reset and the web password are the admin's (admin), from a panel of the house only
+    # otherwise. The panel is noted as one that hears this bridge, and the words every node takes, ZbRelayListen (listen) and ZbRelayAdmin (the factory
+    # reset and the web password, from a panel of the house only), are the node's (node_host.be)
     def run(line, via, from)
         import string
-        # a panel of the house that commands this bridge over the mesh hears its events for a while
-        if from != nil && from > 0 && self.house != nil && self.house.up && self.house.list.is_panel(from)  self.heard_from[from] = tasmota.millis() end
-        var w = ZbBridgeRelay.word(line)
-        if w == "ZBRELAYLISTEN"
-            # a panel that keeps this bridge as the one of the house's words: it hears its events, and, with a 1, what it says again
-            var i = string.find(line, " ")
-            self.listen(i < 0 ? "" : line[i + 1 ..], from)
-            return
-        end
-        if w == "ZBRELAYADMIN"
-            # the bridge's factory reset and its web password, from any panel of the house, over the mesh only
-            var i = string.find(line, " ")
-            self.admin(i < 0 ? "" : line[i + 1 ..], via, from)
-            return
-        end
+        if NodeHost.run(self, line, via, from) return end
+        var w = NodeHost.word(line)
         if ZbBridgeRelay.ALLOWED.find(w) != nil
             # a command of the panel to a device or a group: its echo is not a hand on the device
             if w == "ZBSEND" && self.alarm != nil  self.alarm.commanded(line) end
@@ -419,127 +360,26 @@ class ZbBridgeRelay
         tasmota.set_timer(ZbBridgeRelay.AGAIN_MS, / -> self.again_after_boot(tries - 1), "zbbridge_relay_again")
     end
 
-    # A panel of the house asks for this bridge's factory reset, or sets or removes its web password: `{"do": "factory", "unlock" or "lock",
-    # "pw": the password, for a lock, "n": the panel's word}`. Taken over the mesh only, and only from a panel of the house's list that is not struck off: the frame is
-    # sealed with the key of the two nodes, and its `From` is the mesh's own (MeshCmd), so a password can travel in it. The panel is told it was done, by its word, before
-    # anything of a reset goes: the reset is this bridge leaving the house by itself, which the panels hear and strike it off for, and then everything goes
+    # a panel of the house asks for this bridge's factory reset, or sets or removes its web password: every node's (node_host.be), with this bridge's wipe
     def admin(payload, via, from)
-        import json
-        var h = self.house
-        if via != "mesh" || from == nil || h == nil || !h.up || !h.list.is_panel(from)
-            log("ZBBRIDGE_RELAY: an admin word refused: not from a panel of the house over the mesh", 1)
-            return false
-        end
-        var m = json.load(str(payload))
-        if !isinstance(m, map) return false end
-        var what = str(m.find("do", ""))
-        var n = str(m.find("n", ""))
-        if what == "lock"
-            var pw = str(m.find("pw", ""))
-            if !ZbBridgeRelay.fair_password(pw) return false end
-            # WebPassword2 answers with asterisks: the log never has it
-            tasmota.cmd("WebPassword2 " + pw)
-            log("ZBBRIDGE_RELAY: a web password set by the panel " + str(from), 2)
-        elif what == "unlock"
-            tasmota.cmd('WebPassword2 "')
-            log("ZBBRIDGE_RELAY: its web password removed by the panel " + str(from), 2)
-        elif what == "factory"
-            log("ZBBRIDGE_RELAY: a factory reset from the panel " + str(from) + ": everything goes in a moment", 2)
-            tasmota.set_timer(ZbBridgeRelay.FORGET_WORD_MS, / -> self.wipe(), "zbbridge_relay_wipe")
-        else
-            return false
-        end
-        h.event_node(from, json.dump({"ZbRelayAdmin": {"did": what, "n": n}}))
-        return true
+        return NodeHost.admin(self, payload, via, from)
     end
 
-    # This bridge's screens, which a panel of the house shows as its Main settings and Wireless settings (house_mesh.be, ask_view):
-    # [view, title, rows, closed, effects], each row [label, value, what a touch does (0 nothing, 1 the screen that follows, 2 a change here, 3 the panel's
-    # own screen that follows), its colour, the screen]. Its Main settings: its Zigbee network, its Info and a restart, which comes a moment after the answer.
-    # Its Wireless settings are every node's (node_wireless.be), with `x` what the touch carries. Nil for any other screen or touch
+    # This bridge's screens, which a panel of the house shows as its Main settings and Wireless settings: every node's (node_host.be), with the rows of
+    # the Main settings that are a bridge's own (settings_rows)
     def render_for(view, k, x)
-        import global
-        var w = isinstance(view, list) && size(view) > 0 ? view[0] : nil
-        if w != nil && global.contains("NodeWireless") && global.NodeWireless.VIEWS.find(w) != nil
-            if self.wifi == nil return nil end
-            # what a search found goes 2 min after it was last asked for (the heap)
-            if w == "wifiSearch"
-                tasmota.remove_timer("zbbridge_relay_wifi_end")
-                tasmota.set_timer(120000, / -> self.wifi.run("endSearch", []), "zbbridge_relay_wifi_end")
-            end
-            return global.NodeWireless.answer(view, k, x, / -> self.node_state(), / e -> self.run_wifi(e))
-        end
-        if w == "settings"
-            if k == 3
-                log("ZBBRIDGE_RELAY: a restart asked by a panel of the house", 2)
-                tasmota.set_timer(ZbBridgeRelay.RESTART_MS, / -> tasmota.cmd("Restart 1"), "zbbridge_relay_restart")
-            elif k != nil
-                return nil
-            end
-            var ch = ZbBridgeRelay.zigbee_channel()
-            return [view, "Main settings", [["Zigbee channel", ch > 0 ? str(ch) : "Not up", 0, 0], ["Zigbee devices", str(ZbBridgeRelay.device_count()), 0, 0],
-                    ["Info", "", 1, 0, ["info"]], ["Restart", k == 3 ? "Restarting" : "", 2, 2]], false, []]
-        end
-        if k != nil return nil end
-        if w == "info" return [view, "Info", global.HouseMesh.build_rows(), false, []] end
-        return nil
+        return NodeHost.render_for(self, view, k, x)
     end
 
-    # What this bridge's network is, for its Wireless settings on a panel (node_wireless.be): its Wi-Fi, its radio's channel and the house's, and its MQTT
-    def node_state()
-        import mqtt
-        var h = self.house
-        var m = h != nil ? h.channel_setting() : nil
-        var alone = true
-        if h != nil
-            for id: h.list.ids(false)
-                if id != h.list.me  alone = false end
-            end
-        end
-        return {"wifi": self.wifi.state(), "radio": h != nil && h.channel != nil ? h.channel.mine() : nil, "house_ch": m != nil ? m["channel"] : 0,
-                "alone": alone, "mqtt": mqtt.connected() ? "Connected" : "Not connected", "ota": self.ota != nil ? self.ota.state() : nil,
-                "backup": self.backup != nil ? self.backup.state() : nil}
+    # the rows of its Main settings that are a bridge's own: its Zigbee network. MAIN_ROWS says how many they are
+    def settings_rows()
+        var ch = ZbBridgeRelay.zigbee_channel()
+        return [["Zigbee channel", ch > 0 ? str(ch) : "Not up", 0, 0], ["Zigbee devices", str(ZbBridgeRelay.device_count()), 0, 0]]
     end
 
-    # what this bridge says of itself to the house's server: what it runs, and its backup
-    def server_state()
-        import global
-        var b = global.contains("PanelBuild") ? global.PanelBuild : nil
-        return {"role": "bridge", "image": b != nil ? b.IMAGE : "", "build": b != nil ? b.COMMIT : "dev", "date": b != nil ? b.DATE : "",
-                "backup": self.backup != nil ? self.backup.brief() : nil}
-    end
-
-    # what a panel's touch on this bridge's Wireless settings asked for: its Wi-Fi's (panel_wifi.be, run), its OTA's (node_ota.be, run), or its backup's
-    # (node_backup.be, run)
-    def run_wifi(effects)
-        for e: effects
-            if e[0] == "wifi" && self.wifi != nil  self.wifi.run(e[1], e[2 ..]) end
-            if e[0] == "ota" && self.ota != nil  self.ota.run(e[1], e[2 ..]) end
-            if e[0] == "backup" && self.backup != nil  self.backup.run(e[1], e[2 ..]) end
-        end
-    end
-
-    # the station driver's report to this bridge's Wi-Fi: a search's networks, a join's end, the hotspot's phones (the command's own answer, a word, reaches
-    # the same rule, and is not a report)
+    # the station driver's report to this bridge's Wi-Fi (node_host.be)
     def wifi_said(kind, v)
-        if self.wifi == nil || !isinstance(v, map) return end
-        if kind == "scan"
-            self.wifi.scanned(v)
-        elif kind == "join"
-            self.wifi.joined(v)
-        else
-            self.wifi.hotspot_said(v)
-        end
-    end
-
-    # a web password a panel may give: 8 to 32 printable characters, none that a command line or Tasmota's quoting would take for something else
-    static def fair_password(pw)
-        if size(pw) < 8 || size(pw) > 32 return false end
-        for i: 0 .. size(pw) - 1
-            var c = pw[i]
-            if c <= " " || c > "~" || c == '"' || c == ";" || c == "\\" return false end
-        end
-        return true
+        NodeHost.wifi_said(self, kind, v)
     end
 
     # The bridge as its image left it: no panel, nothing persist keeps, the driver's
@@ -593,38 +433,15 @@ class ZbBridgeRelay
         if size(batch) > 0  send(json.dump({"ZbReceived": batch})) end
     end
 
-    # One message to the panels that hear this bridge, now, over the mesh: a frame to each, which must fit its room
+    # One message to the panels that hear this bridge, now, over the mesh: a frame to each, which must fit its room (node_host.be)
     def send_text(msg)
-        if self.house == nil return end
-        for n: self.listeners()
-            if !self.house.event_node(n, msg)
-                log("ZBBRIDGE_RELAY: an event of " + str(size(msg)) + " bytes did not go to the panel " + str(n), 3)
-            end
-        end
+        NodeHost.send_text(self, msg)
     end
 
-    # The panels this bridge's events go to over the mesh, by their numbers: those that commanded it in the last LISTEN_MS, which
-    # include the ones that keep it as the bridge of the house's words (listen), and those that show its devices (their marks); LISTENERS_MAX at most. A
-    # panel that shows nothing of it and said nothing to it hears nothing
+    # The panels this bridge's events go to over the mesh, by their numbers: those that commanded it lately, which include the ones that keep it as the
+    # bridge of the house's words (listen), and those that show its devices (their marks) (node_host.be)
     def listeners()
-        var out = []
-        var h = self.house
-        if h == nil || !h.up return out end
-        var now = tasmota.millis()
-        var gone = []
-        for n: self.heard_from.keys()
-            if now - self.heard_from[n] >= ZbBridgeRelay.LISTEN_MS
-                gone.push(n)
-            elif out.find(n) == nil && h.list.is_panel(n)
-                out.push(n)
-            end
-        end
-        for n: gone  self.heard_from.remove(n) end
-        for n: h.state.marks.keys()
-            if out.find(n) == nil && h.list.is_panel(n)  out.push(n) end
-        end
-        while size(out) > ZbBridgeRelay.LISTENERS_MAX  out.pop() end
-        return out
+        return NodeHost.listeners(self)
     end
 
     # A message to the NSPanel through the queue: the
@@ -859,20 +676,13 @@ class ZbBridgeRelay
     # An event to the panels at once, whatever waits in the queue: what the alarm, the drivers and the time say (the first two keep a queue and a gap
     # of their own). What Z2T said goes through emit()
     def send_event(event)
-        import json
-        self.send_text(json.dump(event))
+        NodeHost.send_event(self, event)
     end
 
     # The most one event carries: an ESP-NOW frame's, and what a frame of the mesh to each panel that hears this bridge carries, when it is less
+    # (node_host.be)
     def frame_budget()
-        var b = self.budget
-        if self.house != nil
-            for n: self.listeners()
-                var room = self.house.node_room(n)
-                if room > 0 && room < b  b = room end
-            end
-        end
-        return b
+        return NodeHost.frame_budget(self)
     end
 
     def forward_state(value, trigger, payload)
@@ -951,23 +761,14 @@ class ZbBridgeRelay
         self.emit(nil, {"ZbPing": {"Device": str(p["IEEEAddr"]), "IEEEAddr": p["IEEEAddr"]}})
     end
 
-    # The house's MQTT, as every node takes it (house_mqtt.be): this bridge on the house's broker, with its own client and topic. Each
-    # setting alone, a Backlog would cut a password at a ";"; Tasmota restarts once, after the last. The discovery here is the Zigbee devices'
-    # (zbbridge_discovery.be), with the hours its battery devices' sensors wait for word
+    # The house's MQTT, as every node takes it (house_mqtt.be, node_host.be): this bridge on the house's broker. The discovery here is the Zigbee
+    # devices' (zbbridge_discovery.be), with the hours its battery devices' sensors wait for word, set before the broker's settings restart Tasmota
     def apply_mqtt(m)
-        def text(v) var s = str(v) return s == "" ? "\"" : s end
         if self.discovery != nil
             self.discovery.set_on(m["discovery"] != false)
             self.discovery.set_expire(m["expire"])
         end
-        # a house that keeps no password (house_list.be): the one this bridge has stays, on the same broker, and another broker's is cleared
-        var was = tasmota.cmd("MqttHost")
-        var same = isinstance(was, map) && str(was.find("MqttHost", "")) == str(m["host"])
-        tasmota.cmd("MqttHost " + text(m["host"]))
-        tasmota.cmd("MqttPort " + str(int(m["port"])))
-        tasmota.cmd("MqttUser " + text(m["user"]))
-        if m.find("keep") != true || !same  tasmota.cmd("MqttPassword2 " + text(m.find("keep") == true ? "" : m["password"])) end
-        log("ZBBRIDGE_RELAY: the house's MQTT, on " + str(m["host"]) + ": Tasmota restarts", 2)
+        NodeHost.apply_mqtt(self, m)
     end
 
     # --- the button's window -----------------------------------------------
@@ -1016,21 +817,9 @@ class ZbBridgeRelay
         tasmota.set_timer(ZbBridgeRelay.HOLD_STEP_MS, / -> self.hold_step(), "zbbridge_relay_hold")
     end
 
-    # This bridge out of the house: in one, the panels told first that it goes, and it leaves a moment later; with no house, the house layer's
-    # leave, or, with none in the image, the driver's alone. `then` once it has left
+    # This bridge out of the house, the panels told first that it goes, and `then` once it has left (node_host.be)
     def leave_house(then)
-        if self.house != nil && self.house.up
-            if self.house.go(then) return end
-            if then != nil  then() end
-            return
-        end
-        if self.house != nil
-            self.house.leaving = true
-            self.house.leave()
-        else
-            tasmota.cmd("EspNowMeshLeave 1", true)
-        end
-        if then != nil  then() end
+        NodeHost.leave_house(self, then)
     end
 
     # the LED blinks `n` times fast, and is left as it was: what the bridge says when it has left the house

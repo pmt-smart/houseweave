@@ -26,7 +26,9 @@ What the build has beyond the files:
 - **A prelude**, `firmware/overrides/_brain_prelude.be`, run first (the leading `_` sorts it before the others). The build's VM lacks what
   Tasmota adds to Berry: the `Driver` class the brain's drivers extend, and the natives the methods name (`log`, `serial`, `tcpclient`, `udp`,
   ...). It compiles strictly, so a name must be declared before the file that uses it; the prelude declares all of that, our classes included,
-  read from the other files' directives. Nothing of it reaches the device: the solidified code points at Tasmota's own `Driver`.
+  read from the other files' directives. Nothing of it reaches the device: the solidified code points at Tasmota's own `Driver`. A class of ours
+  is there as `nil` until its own file has run, and the files run in the order of their names: so none of our classes extends another, and what two
+  of them share is a class of static functions over the object that keeps the state (`berry/node_host.be`, which the bridge's relay hands over to).
 - **The boot is a class**, `PanelBoot` (`berry/panel_boot.be`) on a panel, and `autoexec.be` only calls it. `autoexec.be` is the only file
   that stays a file.
 - **A fix before the next firmware** is a loose file with the same class, loaded with `load("file.be")` in `autoexec.be` above the boot. The

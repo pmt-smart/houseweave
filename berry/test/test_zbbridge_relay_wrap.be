@@ -49,7 +49,7 @@ def run_wrap()
     told.clear()
     r.send_text('{"ZbPing":{"Device":"0x1"}}')
     check("1.5 s later, across the wrap: it still does", size(told), 1)
-    tasmota.at_ms = edge - 500 + ZbBridgeRelay.LISTEN_MS
+    tasmota.at_ms = edge - 500 + NodeHost.LISTEN_MS
     told.clear()
     r.send_text('{"ZbPing":{"Device":"0x1"}}')
     check("LISTEN_MS after its word: no more", [size(told), r.heard_from.contains(4)], [0, false])

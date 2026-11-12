@@ -65,6 +65,13 @@ is (`berry/panel_build.be`), and one Tasmota rule for all its parts (`berry/pane
   read (`ZbReceived`, `ZbState`, `ZbResponse`, `ZbInfo`, `ZbPing`), filtered to the keys the panels use and merged to fit a mesh frame, and runs only
   its **closed list** of commands from the panels (a `ZbSend`, the alarm's words, the drivers' commands, ...). It also flashes the coordinator's own
   firmware when the chip reports another version.
+- **The house on a node with no screen** (`berry/node_host.be`): what a bridge is to the house as any such node is, and nothing of Zigbee. The house's
+  layer and the mesh's commands started at boot, the panels that hear the node (those that commanded it lately and those that show its devices) and
+  the events sent to them, a panel's words every node takes (the factory reset and the web password), the node's Wi-Fi, OTA, server and backup, the
+  house's MQTT, the screens a panel shows of it (its Main settings, with the node's own rows, and its Wireless settings), and its way out of the
+  house. It is a class of static functions over the node's own object, the relay, which keeps the state and is asked for what is a bridge's: an
+  appliance that joins the house as a node uses the same functions. They are not a class the relay extends: the build runs the files in the order
+  of their names, and a class could only extend one whose file came first ([12 §1](12-berry-notes.md)).
 - **The drivers' host** (`berry/zbbridge_drivers.be`): every report of a device goes to its driver, which returns a normalised state the panels show
   (one event, `ZbDriver`); a panel's command to a device goes to its driver. Drivers are classes of their own: thermostats
   (`berry/zbdriver_thermostat.be`: a ZCL thermostat and the Moes ZHT-SR, with its settings), blinds (`berry/zbdriver_cover.be`) and switches of two

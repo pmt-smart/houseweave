@@ -206,7 +206,7 @@ def mesh_event_checks()
     check("what a frame carries: the least of the panels' rooms", r.frame_budget(), 120)
     h.room = 400
     check("and never more than a frame of ESP-NOW", r.frame_budget(), 233)
-    tasmota.at_ms = 1000 + ZbBridgeRelay.LISTEN_MS
+    tasmota.at_ms = 1000 + NodeHost.LISTEN_MS
     h.sent.clear()
     r.send_text(ev)
     check("one that said nothing for LISTEN_MS no more", h.sent, [[6, ev]])
@@ -1150,7 +1150,7 @@ def view_checks()
     tasmota.timers.remove("zbbridge_relay_restart")
     var t = r.render_for(["settings"], 3)
     check("the restart touched: said on the screen, and Restart 1 a moment after the answer",
-          [t[2][3][1], tasmota.timers.delay_of("zbbridge_relay_restart"), tasmota.cmds.find("Restart 1")], ["Restarting", ZbBridgeRelay.RESTART_MS, nil])
+          [t[2][3][1], tasmota.timers.delay_of("zbbridge_relay_restart"), tasmota.cmds.find("Restart 1")], ["Restarting", NodeHost.RESTART_MS, nil])
     tasmota.timers.fire("zbbridge_relay_restart")
     check("by Restart 1", tasmota.cmds[-1], "Restart 1")
     check("a touch on a row that changes nothing is nothing", r.render_for(["settings"], 0), nil)
