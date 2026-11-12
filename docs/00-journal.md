@@ -9,6 +9,7 @@ was wrong and what holds.
 - [2026-10-23 — HouseWeave starts](#2026-10-23--houseweave-starts)
 - [2026-10-23 — The names in English, with a transition](#2026-10-23--the-names-in-english-with-a-transition)
 - [2026-10-24 — The former names out, and the safeboot that counted its installs](#2026-10-24--the-former-names-out-and-the-safeboot-that-counted-its-installs)
+- [2026-11-12 — Appliances as nodes: the fork's first step](#2026-11-12--appliances-as-nodes-the-forks-first-step)
 
 ---
 
@@ -230,3 +231,37 @@ Both passed when run again, and so did the step: they are timing-sensitive under
 |---|---|---|---|
 | panel (US) | 2 176 KB | 2 066 640 bytes | 157.8 KB |
 | bridge | 1 856 KB | 1 745 824 bytes | 151.1 KB |
+
+## 2026-11-12 — Appliances as nodes: the fork's first step
+
+The house is to take a node that is itself a device: a Sonoff TH Elite (THR320D, an ESP32 with a 20 A latching relay and a TM1621 display) on
+a water heater, with the WTS01 waterproof probe in the tank's well. It will be a fourth role of the house's list, which the panels see as an
+owner of devices, as a bridge with no Zigbee: the heater is a thermostat on the page they already have. Its logic runs on the node, so it keeps
+to its targets and its hours with no panel on and the mesh down. The first step is two changes in the fork, each on its own branch.
+
+**The WTS01's reading** (`fix/wts01-reading-withdrawn`, `6c07df7`). The serial bridge decoded the probe's datagrams into a temperature that
+started at 0 °C and was kept forever: a node just booted read cold water until the probe's first datagram, and a probe unplugged left its last
+value. The temperature is now reported only from the first valid datagram on, and no longer once none came for 5 s. A new host test,
+`firmware/host-tests/serial-bridge-wts01/`, compiles the driver as it is and reads it where every reader of a sensor does: 23 checks, of which
+10 fail against the driver before the fix. No image carries the serial bridge yet, so the test is what compiles that driver; it is in the
+gate ([13](13-testing.md)).
+
+**The appliance's window** (`feature/pairing-announce-appliance`, `592f706`, stacked on the first). A panel's search told a wall panel from
+a device without a screen, but not a bridge from an appliance, and called both a bridge. The pairing's announcement takes the next free flag,
+0x10, for an appliance with no Zigbee coordinator and no screen; `EspNowPairOpen`'s third argument is now a kind, 0 and 1 as before and 2 for
+an appliance; and the search's `Heard` reports say `Appliance`. Nothing in the Berry reads it yet: the panel will, with the role, and the
+simulator's stand-in of the pairing will say it then.
+
+**Open, for the bench:**
+- the WTS01 datagram's ninth byte is the sum of the first eight in the one example the driver's notes give; the driver does not check it, and
+  the bench says whether it should;
+- which coil of the latching relay switches it on: with the official template, Tasmota pulses GPIO22 for on and GPIO19 for off, and the
+  ESPHome page of the device says the opposite. A lamp in the heater's place answers it before the heater is wired.
+
+**The images, measured** on the build of this change (`479358b/592f7062`), each 64 bytes larger than on `215630b/a411f314`: the pairing's
+new flag. The fix of the WTS01 weighs nothing in either, since neither carries the serial bridge:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 066 704 bytes | 157.7 KB |
+| bridge | 1 856 KB | 1 745 888 bytes | 151.0 KB |
