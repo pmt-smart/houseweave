@@ -11,6 +11,7 @@ was wrong and what holds.
 - [2026-10-24 — The former names out, and the safeboot that counted its installs](#2026-10-24--the-former-names-out-and-the-safeboot-that-counted-its-installs)
 - [2026-11-12 — Appliances as nodes: the fork's first step](#2026-11-12--appliances-as-nodes-the-forks-first-step)
 - [2026-11-12 — The house's part of a node, out of the bridge's relay](#2026-11-12--the-houses-part-of-a-node-out-of-the-bridges-relay)
+- [2026-11-12 — The house's list and mesh know an appliance](#2026-11-12--the-houses-list-and-mesh-know-an-appliance)
 
 ---
 
@@ -298,3 +299,35 @@ panel's image carries none of the files that changed, and was not built:
 | image | app partition | used | free |
 |---|---|---|---|
 | bridge | 1 856 KB | 1 747 360 bytes | 149.6 KB |
+
+## 2026-11-12 — The house's list and mesh know an appliance
+
+The third step towards an appliance as a node. The house's list has a role for it, `HouseList.ROLE_DEVICE`, the number 4, and the list and the
+mesh's layer say what a node of that role is ([05 §1](05-the-house.md)).
+
+**A node of the mesh that owns a device.** It is among the list's nodes (`ids`, `meshed`), so every part that goes through them takes it with no
+change of its own: the mesh driver's table, a new key, the house's channel, the server's relayed requests. It owns a device, as a bridge owns
+those of its network (`owns`, `is_owner`): the question the panels' side will ask where it asks today whether a node is a bridge. Unnamed, it is
+"Device" and the end of its radio address.
+
+**As a bridge in what a node with no screen is, and not in what is Zigbee's.** It says its presence at a bridge's period, has the panels' marks
+of its device back from the flash when it starts, and writes nothing into the list. It has no alarm number and is no panel's favourite bridge.
+The last panel that leaves a house took its bridges along, since a house always has a panel; it now takes every node that has no screen.
+
+**No format changes.** A build kept an identity of a role it did not know as it came, up to role 15, so a node that learns this one finds the
+appliance in the fields it already holds, with its vector kept. What an older build does not do is speak to it: it gives the mesh's driver no
+node of that role and sends it no new key. So **a house takes an appliance once every node of it runs a build that knows the role**; nothing in
+the code holds a panel to that yet.
+
+**The bench's console** writes one with `HouseAdd device,...`, and `HouseStatus` says `Device`.
+
+**Open:** the panels' side. A panel's screens still take any node that is not a bridge for a panel, and its state, its devices' page and its
+events are a bridge's alone. The simulator's House tab and the house's server name the roles 1 to 3.
+
+**The images, measured** on the build of this change (`d8491f0/592f7062`), each 992 bytes larger: the panel's than on `479358b/592f7062`, the
+bridge's than on `367639c/592f7062`:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 067 696 bytes | 156.8 KB |
+| bridge | 1 856 KB | 1 748 352 bytes | 148.6 KB |
