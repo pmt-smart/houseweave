@@ -27,6 +27,7 @@ export const STEPS = [
   { name: "simulator workspaces", cmd: ["npm", "test"], cwd: "libs/nspanel-sim", quick: false, shell: true },
   { name: "mesh driver host test", cmd: ["node", "firmware/host-tests/espnow-mesh-driver/run.mjs"], quick: false },
   { name: "OTA receiver host test", cmd: ["node", "firmware/host-tests/espnow-ota-receiver/run.mjs"], quick: false },
+  { name: "WTS01 host test", cmd: ["node", "firmware/host-tests/serial-bridge-wts01/run.mjs"], quick: false },
   { name: "docs: links", cmd: ["node", "scripts/check-doc-links.mjs"], quick: true },
   { name: "docs: paths", cmd: ["node", "scripts/check-doc-paths.mjs"], quick: true },
 ];

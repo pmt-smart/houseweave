@@ -97,14 +97,14 @@ Our drivers in the fork, each behind a switch the override sets:
 | `xdrv_98_2_espnow_mesh_probe.ino` | `USE_ESPNOW_MESH_PROBE` | the bench's probe of the channel (bench images only) |
 | `xdrv_98_7_espnow_ota_sender.ino` | `USE_ESPNOW_OTA` | the app's OTA: hear the nodes in their safeboot, send an image, install the safeboot, arm |
 | `xdrv_98_5_espnow_ota_receiver.ino`, `xdrv_98_6_espnow_ota_display.ino` | `USE_ESPNOW_OTA_RECEIVER`, `USE_ESPNOW_OTA_DISPLAY` | the safeboot's receiver and its page on the panel's screen |
-| `xdrv_98_espnow_direct.ino` | `USE_ESPNOW_DIRECT`, `USE_ESPNOW_DIRECT_PAIRING` | the pairing's guest exchange (X25519, a signed transcript) that carries a node into the house |
+| `xdrv_98_espnow_direct.ino` | `USE_ESPNOW_DIRECT`, `USE_ESPNOW_DIRECT_PAIRING` | the pairing's guest exchange (X25519, a signed transcript) that carries a node into the house, and the window's announcement, which says whether the node has a screen or is an appliance, with no Zigbee coordinator and no screen |
 | `xdrv_97_button_decouple.ino` | `USE_BUTTON_DECOUPLE` | the panel's buttons, decoupled from its relays |
 | `xdrv_96_wifi_station.ino` | `USE_WIFI_STATION_CONTROL` | search and join a network from the glass, the hotspot |
 | `xdrv_95_boot_rescue.ino` | `USE_BOOT_RESCUE` | three short boots open the way to a phone |
 | `xdrv_99_rtc_retain.ino` | `USE_RTC_RETAIN` | the time kept across a restart that is not a power cycle |
 
 Besides those, fixes in Tasmota's own code (the Berry `persist` saved atomically, the Berry rules matched by their first key, the Wi-Fi at boot
-without Ethernet, ...), and the cuts that keep out what no node uses (TLS, IPv6, the SD card, the file system's FAT fallback, Zigbee2Tasmota on the
+without Ethernet, the Sonoff WTS01 probe's temperature reported only while its datagrams come, ...), and the cuts that keep out what no node uses (TLS, IPv6, the SD card, the file system's FAT fallback, Zigbee2Tasmota on the
 panels, and the rest of the generic feature set).
 
 ## 6. Memory

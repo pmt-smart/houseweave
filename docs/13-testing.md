@@ -18,6 +18,7 @@ node scripts/verify.mjs
 | simulator workspaces | `npm test` in `libs/nspanel-sim/` | |
 | mesh driver host test | `node firmware/host-tests/espnow-mesh-driver/run.mjs` | |
 | OTA receiver host test | `node firmware/host-tests/espnow-ota-receiver/run.mjs` | |
+| WTS01 host test | `node firmware/host-tests/serial-bridge-wts01/run.mjs` | |
 | docs: links | `node scripts/check-doc-links.mjs` | yes |
 | docs: paths | `node scripts/check-doc-paths.mjs` | yes |
 
@@ -27,7 +28,7 @@ mesh`). A step's output is shown only when it fails, and the exit code is 0 only
 **On a fresh clone** the whole gate needs: the submodule (`git submodule update --init firmware/tasmota`), whose Berry interpreter the native
 step runs; the simulator's packages (`npm ci` in `libs/nspanel-sim/`), which the wasm step and the simulator's tests use (the Berry runner
 compiles the simulator's vm before the wasm step, so a clone with no build of it, or an edit of it, runs the current code); and emsdk in
-`tools/emsdk` beside the repository, or where `EMSDK` says, for the two host tests. The public `.tft` and `.HMI` files the export tests read are
+`tools/emsdk` beside the repository, or where `EMSDK` says, for the three host tests. The public `.tft` and `.HMI` files the export tests read are
 fetched apart (§3); without them those tests are skipped.
 
 ## 2. The Berry suite
@@ -83,6 +84,9 @@ that explore the mesh's parameters on simulated houses (`libs/nspanel-sim/vm/scr
   station, the search, the peers, the queues, the pages of the lists, the clock, the key, the counter. It needs emscripten, and its last line says
   how many checks passed.
 - **`firmware/host-tests/espnow-ota-receiver/`** does the same for the safeboot's receiver and the app's sender of the house's OTA.
+- **`firmware/host-tests/serial-bridge-wts01/`** does the same for the serial bridge's decoding of the Sonoff WTS01 probe
+  (`xdrv_08_serial_bridge.ino`): no temperature before the probe's first datagram, nor once it went silent. No image carries the serial bridge
+  yet, so this test is what compiles that driver.
 - **The build's scripts**, in the gate's scripts step: `scripts/build-firmware.test.mjs`, `scripts/build-stamp.test.mjs`, and
   `scripts/fork-berry-class.test.mjs`, which checks that every method of the fork's Tasmota class written in Berry is also in the C list that
   exposes it on the device (the simulator loads the class whole and cannot see a missing entry).
