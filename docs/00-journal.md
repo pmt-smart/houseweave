@@ -10,6 +10,7 @@ was wrong and what holds.
 - [2026-10-23 — The names in English, with a transition](#2026-10-23--the-names-in-english-with-a-transition)
 - [2026-10-24 — The former names out, and the safeboot that counted its installs](#2026-10-24--the-former-names-out-and-the-safeboot-that-counted-its-installs)
 - [2026-11-12 — Appliances as nodes: the fork's first step](#2026-11-12--appliances-as-nodes-the-forks-first-step)
+- [2026-11-12 — The house's part of a node, out of the bridge's relay](#2026-11-12--the-houses-part-of-a-node-out-of-the-bridges-relay)
 
 ---
 
@@ -265,3 +266,35 @@ new flag. The fix of the WTS01 weighs nothing in either, since neither carries t
 |---|---|---|---|
 | panel (US) | 2 176 KB | 2 066 704 bytes | 157.7 KB |
 | bridge | 1 856 KB | 1 745 888 bytes | 151.0 KB |
+
+## 2026-11-12 — The house's part of a node, out of the bridge's relay
+
+The second step towards an appliance as a node of the house. A bridge is two things: the coordinator of a Zigbee network, and a node with no
+screen, which the panels of the house reach over the mesh. The second is what an appliance is too, and it was written inside the bridge's relay.
+It is now a file of its own, `berry/node_host.be`, and the relay hands over to it ([03 §3](03-architecture.md)).
+
+**What went to `NodeHost`**: the house's layer and the mesh's commands started at boot; the panels that hear the node, and the events sent to
+them; the words every node takes from a panel (the one that keeps it as the node of the house's words, the factory reset, the web password); its
+Wi-Fi, its OTA, the house's server and its backup; the house's MQTT; its Main settings, with the node's own rows, and its Wireless settings on a
+panel; and its way out of the house. **What stayed in the relay**: the Zigbee network and what it says, the closed list of commands a panel
+sends a bridge, the coordinator's firmware, the window of entering the house with the button and the LED, and the clock.
+
+**Static functions over the node, not a class the relay extends.** The node's own object keeps the fields (`house`, `wifi`, `ota`, `link`,
+`backup`, the panels heard from) and is asked for what is its own: its rows of the Main settings, its part of the house's MQTT, its wipe. The
+firmware's build runs the files in the order of their names, with each of our classes declared empty until its own file has run, so a class could
+only extend one whose file's name came first; a class of static functions has no such order ([12 §1](12-berry-notes.md)). And with the fields
+where they were, the tests and the simulator, which read and set them, did not change.
+
+**A bridge does what it did**: the same log lines and the same names of timers and rules, which the node tells `NodeHost` (`TAG`, `ID`). The
+relay's tests pass as they were, but for three constants named by their new owner, and the house's end-to-end tests on the simulated bridge
+pass. A new test runs `NodeHost` over a node that is no bridge, the appliance's stand-in: 70 checks.
+
+**Open:** the window of entering the house, the button, the pairing's link and the clock are a bridge's still. An appliance needs them too, and
+they move when its class is written, as their second user.
+
+**The image, measured** on the build of this change (`367639c/592f7062`): the bridge's, 1 472 bytes larger than on `479358b/592f7062`. The
+panel's image carries none of the files that changed, and was not built:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| bridge | 1 856 KB | 1 747 360 bytes | 149.6 KB |
