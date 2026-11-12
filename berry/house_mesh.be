@@ -68,7 +68,7 @@ class HouseMesh
     static MSG_GOING = 0x2B       # a node leaves the house by itself: said to the panels first
     static MSG_MOVE = 0x2C        # a node told to join another house
     # THE PRESENCE. A heartbeat is not repeated, so a node sees by its heartbeat only its neighbours, and by theirs the nodes
-    # two hops away. Every node of a house of more than one floods, every HERE_BRIDGE_S (a bridge) or HERE_PANEL_S (a panel), [MSG_HERE, WIRE, its period
+    # two hops away. Every node of a house of more than one floods, every HERE_BRIDGE_S (a bridge or an appliance) or HERE_PANEL_S (a panel), [MSG_HERE, WIRE, its period
     # in s, its heartbeat's 32 bytes of the application], with the bit "synced" of the byte 19 its clock says (the core writes that bit only on the air):
     # what a node three hops away or more needs to know it is there and in step, and the sequence of its state, the digest of its alarm and its radio. It
     # is fresh for 2.5 of its periods. Its flood also teaches every node the way back to it. After the 32 bytes, three more (the mesh's
@@ -110,7 +110,7 @@ class HouseMesh
     static ADDED_MS = 120000
 
     var list        # the HouseList
-    var role        # the role this node has in the house: HouseList.ROLE_PANEL or ROLE_BRIDGE
+    var role        # the role this node has in the house: HouseList.ROLE_PANEL, ROLE_BRIDGE or ROLE_DEVICE
     var asked       # node -> millis when it was last asked
     var answered    # node -> millis when it was last answered
     var count       # the seconds, for the poll
@@ -395,7 +395,7 @@ class HouseMesh
     def say_here()
         import global
         if !self.up || self.leaving || size(self.list.ids(false)) < 2 || !global.contains("espnow_mesh_send") return end
-        var s = self.role == HouseList.ROLE_BRIDGE ? HouseMesh.HERE_BRIDGE_S : HouseMesh.HERE_PANEL_S
+        var s = self.here_s()
         var period = s * 1000
         var now = tasmota.millis()
         if self.here_at == nil  self.here_at = now - period + 1000 + (self.list.me * 1300) % period end
@@ -437,8 +437,13 @@ class HouseMesh
     # its presence said in the next second: a node it hears went into its safeboot image or came out of it
     def here_soon()
         if self.here_at == nil return end
-        var s = self.role == HouseList.ROLE_BRIDGE ? HouseMesh.HERE_BRIDGE_S : HouseMesh.HERE_PANEL_S
-        self.here_at = tasmota.millis() - s * 1000
+        self.here_at = tasmota.millis() - self.here_s() * 1000
+    end
+
+    # the period of this node's presence, in seconds: a panel's, or that of a node with no screen, a bridge or an appliance, which the others' pages show
+    # and reach the devices of
+    def here_s()
+        return self.role == HouseList.ROLE_PANEL ? HouseMesh.HERE_PANEL_S : HouseMesh.HERE_BRIDGE_S
     end
 
     # How this node is tied to the mesh and to the Wi-Fi, for its presence and its own row of the mesh's screen: [how many nodes of the house it hears on the
@@ -571,7 +576,8 @@ class HouseMesh
         self.saved = self.list.rev
         self.revoked_me = self.list.revoked(id)
         self.key.attach()
-        if self.role == HouseList.ROLE_BRIDGE self.state.load() end
+        # a node that owns devices has the panels' marks of them back from its flash (house_state.be)
+        if HouseList.owns(self.role) self.state.load() end
         if self.role == HouseList.ROLE_PANEL
             import persist
             var f = persist.find(HouseMesh.FAV, 0)
@@ -1724,8 +1730,8 @@ class HouseMesh
         return true
     end
 
-    # A panel leaves the house by itself, with its bridge when `bridge` is that bridge's number (0: the bridge stays in the house), or with every bridge of the house when it is -1:
-    # the last panel's, since a house always has a panel. The bridges taken are told to leave, the list says that they and this panel are out of the house, and those
+    # A panel leaves the house by itself, with its bridge when `bridge` is that bridge's number (0: the bridge stays in the house), or with every node of the house that has no
+    # screen, its bridges and its appliances, when it is -1: the last panel's, since a house always has a panel. The nodes taken are told to leave, the list says that they and this panel are out of the house, and those
     # entries are given to every node that stays, from here, since this panel will not be there to answer an ask; LEAVE_MS later this panel leaves. No key changes: a node that
     # leaves wipes its own. A bridge leaves by leave() alone: it writes nothing
     def leave_house(bridge)
@@ -1737,7 +1743,7 @@ class HouseMesh
         end
         self.leaving = true
         var above = self.list.mine
-        var taken = bridge == -1 ? self.bridges() : (bridge > 0 && bridge != self.list.me && self.list.field(HouseList.K_IDENT, bridge) != nil && !self.list.revoked(bridge) ? [bridge] : [])
+        var taken = bridge == -1 ? self.screenless() : (bridge > 0 && bridge != self.list.me && self.list.field(HouseList.K_IDENT, bridge) != nil && !self.list.revoked(bridge) ? [bridge] : [])
         for b: taken
             self.tell_leave(b)
             tasmota.set_timer(HouseMesh.LEAVE_AGAIN_MS, / -> self.tell_leave(b))
@@ -1757,6 +1763,16 @@ class HouseMesh
         var out = []
         for id: self.list.ids(false)
             if id != self.list.me && self.list.role(id) == HouseList.ROLE_BRIDGE out.push(id) end
+        end
+        return out
+    end
+
+    # the other nodes of the house with no screen that are not struck off, its bridges and its appliances: none of them writes the list, so in a house
+    # with no panel nobody could add or remove one
+    def screenless()
+        var out = []
+        for id: self.list.ids(false)
+            if id != self.list.me && !self.list.is_panel(id) out.push(id) end
         end
         return out
     end

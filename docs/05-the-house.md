@@ -12,7 +12,7 @@ panel:
 
 | kind | what it says |
 |---|---|
-| `IDENT` | a node's number and what it is: its role (bridge, panel, or the house's server), its public key (32 bytes) and its radio address (6) |
+| `IDENT` | a node's number and what it is: its role (bridge, panel, appliance, or the house's server), its public key (32 bytes) and its radio address (6) |
 | `NAME` | a node's name, or, for the number 0, the house's |
 | `REVOKE` | the node is struck off: every field of it goes, and the mark alone stays, so that its number is never used again |
 | `SLOT` | a bridge's alarm number (1 to 15), the replica's counter |
@@ -33,6 +33,16 @@ sealed with the key of the pair, and only from a panel of the list. A node keeps
 know, so the list can grow without stopping at an older node; a list saved by an older format forgets its vector when read, and asks every author
 again.
 
+**The roles.** The nodes of the mesh are the bridges, the panels and the **appliances** (`HouseList.meshed`); the house's server is a member of
+the list with no radio. An appliance is a node that is itself a device of the house, a thermostat on a water heater: it has no screen and no
+Zigbee network. In the house's layer it is as a bridge in what a node with no screen is: it writes nothing into the list, says its presence at a
+bridge's period, keeps the panels' marks of its device across a restart, and leaves with the last panel of the house. It **owns** a device, as a
+bridge owns those of its network (`HouseList.owns`), and it is not a bridge in what is Zigbee's: it has no alarm number, is no panel's favourite
+bridge, and unnamed is called "Device" and the end of its radio address. A node whose build does not know the role keeps its identity in the
+list and does not speak to it (it gives the mesh's driver none of them, and sends them no new key), so **a house takes an appliance once every
+node of it runs a build that knows the role**. The list and the mesh know the role; the panels' screens do not show an appliance's device yet,
+and no image is an appliance's.
+
 ## 2. Coming in and going out
 
 **A node comes in through "Add to this house"** (`berry/zigbee_pairing.be`, `berry/house_link.be`). A panel of the house that writes opens the search
@@ -48,7 +58,8 @@ after a touch on the glass.
 and as soon as it leaves a house, unless it is waiting at its window to be taken by another. From its own house its mesh page offers to join another;
 from another's, to leave.
 
-**Going out**: a panel **removes** a node (the word to leave, and the node struck off with a change of the key); a panel **leaves** by itself; a
+**Going out**: a panel **removes** a node (the word to leave, and the node struck off with a change of the key); a panel **leaves** by itself, and
+the last panel of a house takes along every node that has no screen, since none of them writes the list; a
 bridge's **Remove from house** sends it back to its factory state; **Join another house** sends a node out and opens its window for the other house.
 A node that leaves loses the list, the keys and its number, here and in the driver (`EspNowMeshLeave`), and is a new node to any house. A node that
 finds itself struck off leaves. A node removed is forgotten whole, by every node, the ones that were off included.
@@ -93,7 +104,7 @@ bridge; the panel keeps only its own view.
   goes as frames of the mesh.
 
 **Presence.** A node's heartbeat is not repeated, so by heartbeats a node sees only its neighbours. Every node of a house of more than one also
-floods its **presence** (`MSG_HERE`) every 10 s on a bridge and 30 s on a panel, with how it is tied to the mesh and the nodes it hears in their
+floods its **presence** (`MSG_HERE`) every 10 s on a bridge or an appliance and 30 s on a panel, with how it is tied to the mesh and the nodes it hears in their
 safeboot ([06 §5](06-ota-and-backup.md)): the house sees a node at any distance.
 
 ## 5. The alarm

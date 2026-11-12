@@ -2,7 +2,7 @@
 # console and the HTTP API, one line each.
 #
 #   HouseFound [name[,number]]            this node founds the house (a panel): draws the key, writes itself in. `number` is the one a node that has none takes
-#   HouseAdd role,number,public,mac[,name]   a node written into the list (a panel): `role` is bridge or panel, `number` 0 for the next, `public` and `mac` as the new node's
+#   HouseAdd role,number,public,mac[,name]   a node written into the list (a panel): `role` is bridge, panel or device (an appliance), `number` 0 for the next, `public` and `mac` as the new node's
 #                                         EspNowMeshPublic says them (Public and Mac, with or without the colons), and the name is the one it will have
 #   HouseBench [0]                        opens (or, with 0, closes) the window of BENCH_MS in which the two commands below work: the pieces carry the network's KEY, and the console,
 #                                         the web console and MQTT show a command and its answer. A closed window is the rule, and a deliberate act opens it
@@ -108,7 +108,14 @@ class HouseCommands
     def add(payload)
         var f = HouseCommands.parts(payload)
         if size(f) < 4 return tasmota.resp_cmnd_failed() end
-        var role = f[0] == "bridge" ? HouseList.ROLE_BRIDGE : (f[0] == "panel" ? HouseList.ROLE_PANEL : 0)
+        var role = 0
+        if f[0] == "bridge"
+            role = HouseList.ROLE_BRIDGE
+        elif f[0] == "panel"
+            role = HouseList.ROLE_PANEL
+        elif f[0] == "device"
+            role = HouseList.ROLE_DEVICE
+        end
         var pub = size(f[2]) == 64 ? bytes(f[2]) : nil
         var mac = HouseCommands.mac_bytes(f[3])
         if role == 0 || pub == nil || size(pub) != 32 || mac == nil return tasmota.resp_cmnd_failed() end
@@ -150,6 +157,13 @@ class HouseCommands
         end
     end
 
+    # a node's role as HouseStatus says it
+    static def role_word(role)
+        if role == HouseList.ROLE_BRIDGE return "Bridge" end
+        if role == HouseList.ROLE_DEVICE return "Device" end
+        return "Panel"
+    end
+
     def status()
         import json
         var l = self.host.list
@@ -157,7 +171,7 @@ class HouseCommands
         for id: l.ids(true)
             var n = l.node(id)
             # a number struck off is the mark alone
-            nodes.push(n == nil ? {"Id": id, "Revoked": 1} : {"Id": id, "Role": n["role"] == HouseList.ROLE_BRIDGE ? "Bridge" : "Panel", "Name": n["name"], "Revoked": 0})
+            nodes.push(n == nil ? {"Id": id, "Revoked": 1} : {"Id": id, "Role": HouseCommands.role_word(n["role"]), "Name": n["name"], "Revoked": 0})
         end
         tasmota.resp_cmnd(json.dump({"HouseStatus": {"Me": l.me, "Up": self.host.up ? 1 : 0, "Name": l.name(), "Key": self.host.key.version, "Pending": self.host.key.pend != nil ? 1 : 0, "Nodes": nodes}}))
     end

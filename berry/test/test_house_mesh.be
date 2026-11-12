@@ -2246,6 +2246,74 @@ def section_sweep()
     check("a node that leaves tells every part that no node is the house's", lt[-1], {})
 end
 
+# An appliance in the house: a node of the mesh, as a bridge is, that owns a device and has no Zigbee network, no alarm number and no word in the list
+def section_device()
+    import global as natives
+    # the panel that adds it
+    var p = fresh(HouseList.ROLE_PANEL, 4)
+    p.found("Cottage")
+    check("an appliance is added as any node: it takes the number, and the list says its role",
+          [p.add_node(HouseList.ROLE_DEVICE, key(8), mac(8), nil, nil, 8), p.list.role(8), p.list.ids(false)], [8, HouseList.ROLE_DEVICE, [4, 8]])
+    check("it has no alarm number, and is no bridge for the panel to keep as its favourite", [p.list.node(8)["slot"], p.favorite(), p.bridges(), persist.find(HouseMesh.FAV, nil)],
+          [0, 0, [], nil])
+    check("the screens call it by its role and its radio address, and it owns a device", [p.list.label(8), p.list.is_owner(8), p.list.is_owner(4)], ["Device 000008", true, false])
+    p.add_node(HouseList.ROLE_BRIDGE, key(6), mac(6), nil, "Living room", 6)
+    check("a bridge added after it is the favourite, and has the first alarm number", [p.favorite(), p.list.node(6)["slot"], p.bridges(), p.screenless()], [6, 1, [6], [6, 8]])
+    check("it is no favourite to choose", [p.set_favorite(8), p.favorite()], [false, 6])
+    empty(tasmota.cmds)
+    p.every_second()
+    var lines = []
+    for c: tasmota.cmds if size(c) > 15 && c[0 .. 14] == "EspNowMeshNode " lines.push(c) end end
+    check("the mesh's driver is given it, as every node of the house", lines.find("EspNowMeshNode 8,A0:B7:65:00:00:08," + key(8).tohex()) != nil, true)
+    var house = p.list.to_map()
+
+    # the last panel takes it along, with the bridges: a house always has a panel
+    tasmota.replies["EspNowMeshLeave 1"] = {"EspNowMeshLeave": "Done"}
+    empty(sent)
+    check("the last panel leaves with every node that has no screen", p.leave_house(-1), true)
+    p.flush_out()
+    check("the appliance is told to leave as the bridge is, and both are struck off with the panel",
+          [size(frames_to(8, HouseMesh.MSG_LEAVE)), size(frames_to(6, HouseMesh.MSG_LEAVE)), p.list.revoked(8), p.list.revoked(6), p.list.revoked(4)], [1, 1, true, true, true])
+
+    # the appliance's own side
+    var d = fresh(HouseList.ROLE_DEVICE, 8)
+    d.adopt(house)
+    check("the appliance is in the house, and writes nothing: it founds no house, adds no node, and is no panel",
+          [d.up, d.list.me, d.writes(), d.found("Another"), d.add_node(HouseList.ROLE_BRIDGE, key(9), mac(9), nil, nil, 9), d.set_favorite(6)], [true, 8, false, false, 0, false])
+    natives.espnow_mesh_clock = def () return {"synced": true} end
+    empty(sent)
+    for i: 1 .. 11
+        tasmota.timers.advance(1000)
+        d.every_second()
+    end
+    var heres = []
+    for x: sent
+        if x[0] == 255 && x[1] == HouseState.T_FLOOD && x[3][0] == HouseMesh.MSG_HERE  heres.push(x[3]) end
+    end
+    check("it says its presence as a node that stays plugged in: once in a bridge's period, with that period", [size(heres), heres[0][2], d.here_s()], [1, HouseMesh.HERE_BRIDGE_S, HouseMesh.HERE_BRIDGE_S])
+    check("a panel's period is its own", fresh(HouseList.ROLE_PANEL, 4).here_s(), HouseMesh.HERE_PANEL_S)
+    # the panels' marks of its device, kept in the flash, are back when it starts: a panel keeps none
+    fresh(HouseList.ROLE_DEVICE, 8)
+    persist.setmember(HouseState.KEEP, {"5": [lamp1]})
+    var again = HouseMesh(HouseList.ROLE_DEVICE)
+    again.every_second()
+    check("an appliance that starts has the marks of its device from the flash, as a bridge has", [again.up, again.state.marks.contains(5), again.state.marks[5]["s"].contains(lamp1)], [true, true, true])
+    var pan = HouseMesh(HouseList.ROLE_PANEL)
+    pan.every_second()
+    check("and a panel, which owns no device, reads none", [pan.up, size(pan.state.marks)], [true, 0])
+
+    # the console
+    var cp = fresh(HouseList.ROLE_PANEL, 4)
+    HouseCommands(cp)
+    say("HouseFound", "Sample House")
+    check("the console writes an appliance into the list by its role's word", [say("HouseAdd", "device,0," + key(8).tohex() + ",A0:B7:65:00:00:08,Boiler"), cp.list.role(1), cp.list.label(1)],
+          [['{"HouseAdd":{"Id":1}}', nil], HouseList.ROLE_DEVICE, "Boiler"])
+    var st = json.load(say("HouseStatus", "")[0])["HouseStatus"]
+    var roles = {}
+    for n: st["Nodes"]  roles[n["Id"]] = n["Role"] end
+    check("and the status says it", [size(st["Nodes"]), roles[1], roles[4]], [2, "Device", "Panel"])
+end
+
 def run_all()
     section_own()
     section_start()
@@ -2282,6 +2350,7 @@ def run_all()
     section_view()
     section_leave()
     section_sweep()
+    section_device()
 end
 run_all()
 

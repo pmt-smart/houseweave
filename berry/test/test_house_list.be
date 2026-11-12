@@ -518,6 +518,43 @@ do
           [o.ids(false), o.name(), o.v], [[1, 2], "Sample House", {}])
 end
 
+# An appliance: a node that is itself a device of the house. A node of the mesh, as a bridge and a panel are, that owns a device, as a bridge does, and
+# has no alarm number
+do
+    var h = founded()
+    check("an identity of an appliance is one", HouseList.shape(HouseList.K_IDENT, 3, ident(HouseList.ROLE_DEVICE, 3)), true)
+    check("the roles that are nodes of the mesh: a bridge, a panel and an appliance; not a server, nor a role this build does not know",
+          [HouseList.meshed(HouseList.ROLE_BRIDGE), HouseList.meshed(HouseList.ROLE_PANEL), HouseList.meshed(HouseList.ROLE_DEVICE), HouseList.meshed(HouseList.ROLE_SERVER),
+           HouseList.meshed(7), HouseList.meshed(0)], [true, true, true, false, false, false])
+    check("the roles that own devices: a bridge and an appliance", [HouseList.owns(HouseList.ROLE_BRIDGE), HouseList.owns(HouseList.ROLE_DEVICE), HouseList.owns(HouseList.ROLE_PANEL),
+          HouseList.owns(HouseList.ROLE_SERVER), HouseList.owns(7), HouseList.owns(0)], [true, true, false, false, false, false])
+    var d = bytes()
+    d.add(HouseList.ROLE_DEVICE, 1)
+    d .. key(3)
+    d .. bytes("a0b7650c11f2")
+    var id = h.next_id()
+    check("an appliance takes the next number", [id, h.author(HouseList.K_IDENT, id, d) != nil], [3, true])
+    check("it is a node of the mesh, and no server", [h.ids(false), h.servers()], [[1, 2, 3], []])
+    var n = h.node(3)
+    check("its role, and no alarm number", [n["role"], n["slot"]], [HouseList.ROLE_DEVICE, 0])
+    check("with no name, the screens call it by its role and the end of its radio address", [h.label(3), h.label(2)], ["Device 0C11F2", "Living room"])
+    h.author(HouseList.K_NAME, 3, text("Boiler"))
+    check("and by its name once it has one", h.label(3), "Boiler")
+    check("it owns a device, as the bridge does and the panel does not, and is no panel", [h.is_owner(3), h.is_owner(2), h.is_owner(1), h.is_owner(9), h.is_panel(3)],
+          [true, true, false, false, false])
+    check("it is found by its radio address under its role, and by its key", [h.by_mac(bytes("a0b7650c11f2"), HouseList.ROLE_DEVICE), h.by_mac(bytes("a0b7650c11f2"), HouseList.ROLE_BRIDGE),
+          h.find_key(key(3))], [3, 0, 3])
+    check("the alarm number of the next bridge is not its to take", h.free_slot(), 2)
+    # a node whose build did not know the role kept the identity as it came, under the same format: read by this build, the appliance is a node, and the
+    # vector stays, so nothing is asked for again
+    var g = HouseList(2)
+    g.from_map(h.to_map())
+    check("read back from the flash: a node of the mesh, with the vector kept", [g.ids(false), g.role(3), g.label(3), g.v.find(1) != nil, h.to_map()["k"]],
+          [[1, 2, 3], HouseList.ROLE_DEVICE, "Boiler", true, HouseList.FORMAT])
+    h.author(HouseList.K_REVOKE, 3, bytes())
+    check("struck off, it is forgotten, and its number stays taken", [h.ids(false), h.ids(true), h.is_owner(3), h.node(3), h.next_id()], [[1, 2], [1, 2, 3], false, nil, 4])
+end
+
 if failures == 0
     print("ok - " + str(checks) + " checks")
 else

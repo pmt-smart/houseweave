@@ -2,7 +2,7 @@
 # The model only: no mesh, no clock, no flash but the one key it persists. house_mesh.be carries it between the nodes, and the panels' screens read it.
 #
 # WHAT IT IS. A house is a list that only the panels write. Each write is an ENTRY of one panel (its author), numbered by that panel, 1, 2, 3 ... (seq):
-#   IDENT   the number of a node and what it is: its role (bridge or panel), its public key (32 bytes) and its radio address (6); or of the house's SERVER,
+#   IDENT   the number of a node and what it is: its role (bridge, panel or appliance), its public key (32 bytes) and its radio address (6); or of the house's SERVER,
 #           the one that keeps the backups and the releases, which a panel pairs with: a member of the list with a number, no node of the mesh (it has no
 #           radio, and its radio address is six zeros); its address is its ADDR and its PORT, and its public key is its credential
 #   NAME    a node's name (Garage), or, for the number 0, the house's
@@ -30,9 +30,12 @@
 #
 # WHAT IS NOT KNOWN. An entry of a kind this build does not know, or an identity of a role it does not know, is kept and carried on as it came, and means nothing
 # here: a list that grows does not stop at a node that runs an older build (an older build that refuses it is updated before a
-# server is paired). The nodes of the mesh are the bridges and the panels alone (ids). A node that skipped what it did
+# server is paired). The nodes of the mesh are the bridges, the panels and the appliances alone (ids, meshed). A node that skipped what it did
 # not know, and starts with a build that knows it, has the author's entries again: the list keeps the FORMAT it was saved by, and one saved by an older format
-# forgets its vector (not its fields) as it is read, so every author's entries are asked for again, and what was skipped is taken.
+# forgets its vector (not its fields) as it is read, so every author's entries are asked for again, and what was skipped is taken. A role up to MAX_ROLE
+# is skipped by no build of this FORMAT: one that learns a role (the appliance's) finds its identities in the fields it kept, and the FORMAT stays.
+# Until a node runs such a build it does not speak to the nodes of that role (it gives the mesh's driver none of them, and sends them no new key): a
+# house takes an appliance once every node of it runs a build that knows the role.
 #
 # WHO MAY WRITE is checked by whoever carries the entries (house_mesh.be): an entry is taken only from its author, in a frame the mesh sealed for this node with the key
 # of the pair, and only from a node that is a panel in this list. This class does not know the mesh and takes what it is given; it checks the shape of an entry.
@@ -63,6 +66,7 @@ class HouseList
     static ROLE_BRIDGE = 1
     static ROLE_PANEL = 2
     static ROLE_SERVER = 3
+    static ROLE_DEVICE = 4    # an appliance: a node that is itself a device of the house (a thermostat on a water heater), with no screen and no Zigbee network
     static MAX_ROLE = 15
     static K_IDENT = 1
     static K_NAME = 2
@@ -541,13 +545,25 @@ class HouseList
                 "name": nm == nil ? "" : nm[2].asstring(), "slot": sl == nil ? 0 : sl[2][0], "by": x[0], "port": pt == nil ? 0 : (pt[2][0] << 8) | pt[2][1]}
     end
 
-    # the numbers of the nodes of the house, the bridges and the panels, in order; with `all` the numbers struck off too, of which the list keeps the mark alone.
-    # A server, or a member of a role this build does not know, is no node of the mesh, and is not here
+    # whether a member of this role is a node of the mesh: a bridge, a panel or an appliance. A server has no radio, and a role this build does not know
+    # is nothing it can speak to
+    static def meshed(role)
+        return role == HouseList.ROLE_BRIDGE || role == HouseList.ROLE_PANEL || role == HouseList.ROLE_DEVICE
+    end
+
+    # whether a node of this role owns devices, which a panel puts in its zones, commands over the mesh and hears the state of: a bridge, those of its
+    # Zigbee network, and an appliance, the one it is
+    static def owns(role)
+        return role == HouseList.ROLE_BRIDGE || role == HouseList.ROLE_DEVICE
+    end
+
+    # the numbers of the nodes of the house, the bridges, the panels and the appliances, in order; with `all` the numbers struck off too, of which the list
+    # keeps the mark alone. A server, or a member of a role this build does not know, is no node of the mesh, and is not here
     def ids(all)
         var out = []
         for i: 1 .. HouseList.MAX_NODE
             var x = self.field(HouseList.K_IDENT, i)
-            if (x != nil && (x[2][0] == HouseList.ROLE_BRIDGE || x[2][0] == HouseList.ROLE_PANEL)) || (all && self.field(HouseList.K_REVOKE, i) != nil) out.push(i) end
+            if (x != nil && HouseList.meshed(x[2][0])) || (all && self.field(HouseList.K_REVOKE, i) != nil) out.push(i) end
         end
         return out
     end
@@ -571,19 +587,30 @@ class HouseList
 
     # a node's name as the screens say it: its own, or its role and the end of its radio address, as Tasmota's host name has it (tasmota-0D5E5F-...);
     # nil for a number nobody has. The number is the mesh's, and the screens do not show it, and Tasmota's own host name is no name anyone gave the
-    # node: "Bridge 4A7E21", as "Panel 5D02E9"
+    # node: "Bridge 4A7E21", as "Panel 5D02E9" and "Device 0C11F2"
     def label(id)
         import string
         var n = self.node(id)
         if n == nil return nil end
         if n["name"] != "" && string.find(n["name"], "tasmota-") != 0 return n["name"] end
         if n["role"] == HouseList.ROLE_SERVER return "Server" end
-        return (n["role"] == HouseList.ROLE_BRIDGE ? "Bridge " : "Panel ") + n["mac"][3 .. 5].tohex()
+        var word = "Panel "
+        if n["role"] == HouseList.ROLE_BRIDGE
+            word = "Bridge "
+        elif n["role"] == HouseList.ROLE_DEVICE
+            word = "Device "
+        end
+        return word + n["mac"][3 .. 5].tohex()
     end
 
     # whether this number is a panel of the house, that has not been struck off
     def is_panel(id)
         return self.role(id) == HouseList.ROLE_PANEL
+    end
+
+    # whether this number is a node of the house that owns devices, a bridge or an appliance, that has not been struck off
+    def is_owner(id)
+        return HouseList.owns(self.role(id))
     end
 
     # the number of the node of the house with this radio address (6 bytes) and this role, not struck off, or 0: a panel's own bridge, and a bridge's panel, which
