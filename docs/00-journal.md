@@ -15,6 +15,7 @@ was wrong and what holds.
 - [2026-11-12 — A panel takes an appliance: its device, its page, its pairing](#2026-11-12--a-panel-takes-an-appliance-its-device-its-page-its-pairing)
 - [2026-11-13 — An appliance's own side: its node, the water heater's thermostat and its history](#2026-11-13--an-appliances-own-side-its-node-the-water-heaters-thermostat-and-its-history)
 - [2026-11-13 — The THR320D's image: an appliance in a firmware of its own](#2026-11-13--the-thr320ds-image-an-appliance-in-a-firmware-of-its-own)
+- [2026-11-13 — A thermostat's range is its own two limits](#2026-11-13--a-thermostats-range-is-its-own-two-limits)
 
 ---
 
@@ -500,3 +501,48 @@ bridge's the same size. The THR320D's is the first of its kind, 277 824 bytes un
 | panel (US) | 2 176 KB | 2 071 312 bytes | 153.2 KB |
 | bridge | 1 856 KB | 1 752 896 bytes | 144.2 KB |
 | THR320D | 1 856 KB | 1 475 072 bytes | 415.5 KB |
+
+## 2026-11-13 — A thermostat's range is its own two limits
+
+**What started it.** The schedule took a thermostat's target between 5 and 45 degrees, a room's, whatever the device: a water heater's event
+at 60 was refused. A first answer added the device's range beside the room's, two rules, one of them a kind of device's numbers inside the
+panel. It was not committed: the rule was asked for as one, from the devices themselves.
+
+**The rule.** Every thermostat has, among its settings, the lowest and the highest its target is set to, under the same keys (`lmin`, `lmax`)
+and the same words ("Operating min", "Operating max") whatever it is. What they are is the range the device is described with, and a limit that
+changes describes the device again. A panel already kept the range of a description and brought it up to a new one
+(`PanelUi.described_known`): its record, the − and the + of the page and the schedule follow with nothing of a kind of device in them
+([08 §4](08-screens.md)).
+
+**The Zigbee thermostat** (`berry/zbdriver_thermostat.be`). The Moes ZHT-SR had the two settings, its datapoints 18 and 34, as "Min limit" and
+"Max limit", and a range that was its profile's whatever they said: a limit raised to 40 on the device left the page stopping at 35. The
+driver keeps the limits each device says and its range is those, its profile's for an end the device has not said. A limit that moves the
+range is kept in the flash, so a bridge that restarts describes the device with the range it had, and the host describes the device again.
+A ZCL thermostat keeps its profile's range: it has no settings here, and the house has none to check its limit attributes against.
+
+**The water heater's** (`berry/boiler_thermostat.be`). Its range was a constant, 30 to 70 degrees. It has the two settings now, 30 and 70 out
+of its box, the lowest between 20 and 45 and the highest between 50 and 75. A window's target is taken within them, on the page and in the
+settings; a limit that moves takes a target left outside to that limit, at once and at a boot; a panel with the settings on show hears their
+schema again, for the targets' new ends; and the node tells each panel that shows the device what it is again (`ApplianceNode.described`).
+
+**The schedule** (`berry/panel_schedule.be`). A thermostat's target is one a device of the event takes: within that device's range. A zone's
+event takes what one of its thermostats does, and each is given the nearest it takes, as before; a device that said no range takes any. The
+ends no target goes past, 5 and 100 degrees, are only what keeps a document sound. **What changes for an event that was taken before**: one
+between 5 and 45 degrees but outside its device's range was taken and fitted when it ran; it is refused when it is made now, with the same
+sentence. An event already saved still runs, fitted. A new event of a thermostat that has said no target yet starts at the nearest to 21
+degrees the device takes.
+
+**The tests.** The water heater's suite has the limits (92 checks), the Zigbee driver's the range that follows what the device says, the
+flash and the description again (88), the node's the panels told again (72), the schedule's the one rule over a room's thermostat, a water
+heater, a zone of both and a device with no range (138), its screens a water heater's event (127). In the simulator, the house test sets
+"Operating max" to 40 on the glass of a panel: the thermostat takes it, the bridge describes it again over the mesh, and the panel's record
+of its range goes from 5–35 to 5–40.
+
+**The images, measured** on the build of this change (`3ee439c/592f7062`), against `863582a/592f7062`: the panel's is 624 bytes larger, the
+bridge's 880 bytes larger, and the THR320D's 1 264 bytes larger:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 071 936 bytes | 152.6 KB |
+| bridge | 1 856 KB | 1 753 776 bytes | 143.3 KB |
+| THR320D | 1 856 KB | 1 476 336 bytes | 414.3 KB |
