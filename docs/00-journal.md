@@ -12,6 +12,7 @@ was wrong and what holds.
 - [2026-11-12 — Appliances as nodes: the fork's first step](#2026-11-12--appliances-as-nodes-the-forks-first-step)
 - [2026-11-12 — The house's part of a node, out of the bridge's relay](#2026-11-12--the-houses-part-of-a-node-out-of-the-bridges-relay)
 - [2026-11-12 — The house's list and mesh know an appliance](#2026-11-12--the-houses-list-and-mesh-know-an-appliance)
+- [2026-11-12 — A panel takes an appliance: its device, its page, its pairing](#2026-11-12--a-panel-takes-an-appliance-its-device-its-page-its-pairing)
 
 ---
 
@@ -331,3 +332,52 @@ bridge's than on `367639c/592f7062`:
 |---|---|---|---|
 | panel (US) | 2 176 KB | 2 067 696 bytes | 156.8 KB |
 | bridge | 1 856 KB | 1 748 352 bytes | 148.6 KB |
+
+## 2026-11-12 — A panel takes an appliance: its device, its page, its pairing
+
+The fourth step towards an appliance as a node: the panels' side. Where a panel asked whether a node is a bridge and meant whether it owns
+devices, it asks the second (`HouseList.owns`); where it meant Zigbee, it asks the first still ([05 §4](05-the-house.md)).
+
+**Its device in a zone.** The zone's + has a row of its own, **Mesh device**, in a house with an appliance, with or without a bridge
+([08 §5](08-screens.md)). "Existing device" is under "Zigbee device", and the device an appliance is, is not one. The page is the same, asked
+of the appliance as of a bridge. An appliance has no Z2T to give a Config, so its item carries what the device is: `"d"`, the description a
+driver gives of a device, which `PanelStore.item_profile` reads as a pairing reads one.
+
+**Its state and its words.** A frame of state and an item of a page are taken from an owner, a bridge or an appliance, and from no other
+(`HouseState.take_state`, `HouseDevices.take_item`). What a node says over the mesh that a panel takes is a function of its own now, with its
+test (`PanelBoot.takes`): an appliance is heard as a bridge that is not the house's. The sync gate looks at it by the same heartbeat, and the
+reason on its device's page calls it the device: "Device not heard".
+
+**The pairing and the mesh's page.** The search reads the window's `Appliance` flag: the node is listed as "Device" and the end of its radio
+address, with the hint "device", and is never the "nearest" bridge. It is written into the list with its role, and offered the Wi-Fi as a
+bridge is, in words that call it the device. Its page has no Favorite row; Remove from house sends it the word of its factory reset, as to a
+bridge; and the last panel's question counts every node with no screen, "Leave with 3 nodes" with an appliance among them, where it counted
+the bridges alone while leaving took them all.
+
+**The thermostat's page.** A description may name what the thermostat measures (`"measure"`), and the line says it in the room's place:
+"Water 58.0°". A state may carry a few words (`"note"`), which follow the temperature while they hold: "Water 58.0°  No clock"
+([08 §4](08-screens.md)).
+
+**The device's options.** The device an appliance is has no Replace, and leaves this panel only: out of the house it goes with its node.
+
+**A fix on the way.** A device taken from a house of one bridge left the screens one past the zone, on the plan: the +'s screens were counted
+as two, the page and the list of bridges, and a house of one has no list. They are removed as many as there are.
+
+**The vectors did not change**: what a house with no appliance draws and does is what it was. The new checks are in the suites of the sync
+gate (40 checks), the mesh (482), the mesh's page (223), the + (77), the thermostat (202), the pairing (77) and the boot (30), on both VMs.
+
+**What `verify` caught.** `berry/panel_gate.be` named `HouseList` outright, and a panel loads the list's file after it. The Berry suites put
+the files of a test in an order of their own and passed; the simulator, which loads them as a panel does, booted no panel, and its step
+failed. The file reads the list by its global name, as the files that come before the list's do, and the second run passed whole.
+
+**Open:** the appliance's own side, which answers all of this, is the next step. The schedule takes a thermostat's target between 5 and 45
+degrees, a room's: an event with a water heater's target is refused. The simulator's House tab and the house's server name the roles 1 to 3.
+Nothing holds a panel from adding an appliance to a house where a node runs a build that does not know the role.
+
+**The images, measured** on the build of this change (`7d99467/592f7062`), against `d8491f0/592f7062`: the panel's is 3 440 bytes larger,
+and the bridge's, which shares the house's layer, 48:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 071 136 bytes | 153.4 KB |
+| bridge | 1 856 KB | 1 748 400 bytes | 148.6 KB |
