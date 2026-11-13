@@ -334,7 +334,7 @@ def schema_entries()
     return [{"k": "preset", "l": "Preset", "t": "e", "o": ["Manual", "Temporary", "Program", "Eco"]},
             {"k": "lock", "l": "Child lock", "t": "b"},
             {"k": "calib", "l": "Calibration", "t": "r", "min": -10, "max": 10, "u": "°"},
-            {"k": "lmax", "l": "Max limit", "t": "n", "min": 35, "max": 45, "u": "°"},
+            {"k": "lmax", "l": "Operating max", "t": "n", "min": 35, "max": 45, "u": "°"},
             {"k": "sensor", "l": "Sensor", "t": "e", "o": ["Internal", "Both", "External"], "w": 0}]
 end
 
@@ -427,10 +427,10 @@ def screen_checks()
     check("before the schema, the screen reads the device", [labels(rows_of(f, TH)), taps(rows_of(f, TH))], [[["Reading the device", ""]], [nil]])
     say_schema(f, TH, schema_entries(), 2)
     check("a schema with no values: every row is a question mark", labels(rows_of(f, TH)),
-          [["Preset", "?"], ["Child lock", "?"], ["Calibration", "?"], ["Max limit", "?"], ["Sensor", "?"]])
+          [["Preset", "?"], ["Child lock", "?"], ["Calibration", "?"], ["Operating max", "?"], ["Sensor", "?"]])
     driver_says(f, TH, {"v": {"preset": 2, "lock": false, "calib": -2, "lmax": 40, "sensor": 1}})
     check("the values as each kind says one: a choice by its label, a flag, a range with its sign and its unit, a number", labels(rows_of(f, TH)),
-          [["Preset", "Program"], ["Child lock", "Off"], ["Calibration", "-2°"], ["Max limit", "40°"], ["Sensor", "Both"]])
+          [["Preset", "Program"], ["Child lock", "Off"], ["Calibration", "-2°"], ["Operating max", "40°"], ["Sensor", "Both"]])
     driver_says(f, TH, {"v": {"calib": 3, "lock": true}})
     check("a range above zero has its plus sign", [labels(rows_of(f, TH))[2], labels(rows_of(f, TH))[1]], [["Calibration", "+3°"], ["Child lock", "On"]])
     check("each kind has its touch: a choice and a range open their list, a flag toggles, a number the keypad, and what is only read, none", taps(rows_of(f, TH)),
@@ -445,7 +445,7 @@ def screen_checks()
     check("and one below the first is too, and not the last", labels(rows_of(f, TH))[0], ["Preset", "?"])
     driver_says(f, TH, {"v": {"preset": "Eco", "calib": "x", "lmax": true}})
     check("and what is no number, in a choice, a range or a number, is a question mark and not an error", [labels(rows_of(f, TH))[0], labels(rows_of(f, TH))[2], labels(rows_of(f, TH))[3]],
-          [["Preset", "?"], ["Calibration", "?"], ["Max limit", "?"]])
+          [["Preset", "?"], ["Calibration", "?"], ["Operating max", "?"]])
     driver_says(f, TH, {"v": {"preset": 2, "calib": 3, "lmax": 40}})
 
     # the choice lists: the options of a list, the whole numbers of a range, a dot on the one the device has

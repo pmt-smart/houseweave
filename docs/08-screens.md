@@ -70,13 +70,17 @@ kind on one relay in the zone at once, and its Settings opens the zone's Tap.
   Heat). A touch moves the target one step of the thermostat's own, shown at once
 and sent a moment after the last touch, so a few touches are one write. For a group, the target shown is the median of theirs and the
   room the mean. Its settings come from the bridge's driver and its profile of the model: for the Moes ZHT-SR its preset, child lock,
-  calibration, dead zone, temperature limits, sensor, backlight, screen time, ring light and eco temperature, each within the profile's range.
+  calibration, dead zone, sensor, backlight, screen time, ring light and eco temperature, each within the profile's range, and its two
+  limits. **The limits are the range of the target**: every thermostat has, among its settings, the lowest and the highest its target is set
+  to ("Operating min" and "Operating max"), and what it says they are is the range the panel keeps of it. The − and the + stop at them, the
+  schedule takes a target within them, and when one is changed the device says what it is again and the panel follows.
   A thermostat that measures something other than a room says so in its description, and the line names it: "Water 58.0°" for one on a water
   heater. A few words its state carries follow the temperature while they hold, "Water 58.0°  No clock" for one that keeps a target with no
   clock to follow its hours by. The water heater's thermostat is an appliance ([05 §4](05-the-house.md)): its target is the one of the window of
   the day in force, or of the next to begin, and a touch changes that window's. Its settings are its two windows (from, to and target of each),
-  its hysteresis, its ceiling, its probe's calibration and its heater's power; with no clock, a first row that is only read says the target it
-  holds.
+  its two limits, 30 and 70 degrees out of its box, its hysteresis, its ceiling, its probe's calibration and its heater's power; with no
+  clock, a first row that is only read says the target it holds. A window's target is kept within the limits. The schedule turns it off and
+  on and sets its target, which is that window's too.
 - **A blind**: its position in large type and what it is doing; up, stop and down, as on the wall; a slider from 100% at the top to 0% at the
   bottom in steps of 5, whose release sends the blind there; and the ventilation, a position almost closed, in one touch.
 - **A switch of two channels** that opens and closes something (a gate, a window) has a **driver** on the bridge: its mode (Motor or Pulse) and
@@ -155,7 +159,9 @@ delete it when it has no zones.
   says how many: "Leave with 2 bridges", or "Leave with 3 nodes" with an appliance among them.
 - **The calendar**: the house's schedule, a month at a time (a swipe changes the month). A day touched is chosen, an event touched opens, and the
   + adds one for a device; an event has a start and an end, each with its own action, at an hour or at the sunrise or the sunset. A device's own
-  schedule opens from its page's Schedule button, and the schedule runs on the panels, with or without Home Assistant.
+  schedule opens from its page's Schedule button, and the schedule runs on the panels, with or without Home Assistant. A thermostat's event
+  heats to a target within the range of a device of the event, the device's own limits: a zone's event takes what one of its thermostats
+  does, and each is given the nearest it takes.
 - **The alarm**: its state, arming away or home, and disarming with the pattern; its settings (the exit, entry and siren times, what the panic
   does) are the house's, edited on any panel ([05 §5](05-the-house.md)). With no bridge in step, the screen says No link, and its buttons do
   nothing.

@@ -333,6 +333,43 @@ def a_blinds_event()
     check("saved, the ventilation from 10:00 and closed from 19:00", [out[0], sched.events()[0][7], sched.events()[0][8]], [["save"], "vent", 0])
 end
 
+# what a water heater's thermostat said: whole degrees, and a target past a room's, or none yet
+class FakeHeater : FakeThermostat
+    var target
+    def init()
+        super(self).init()
+        self.shape["0xA0B765FFFE00000A"] = {"step": 10, "modes": ["off", "heat"]}
+        self.target = 690
+    end
+    def get(id, field, missing) return field == "set" && self.target != nil ? self.target : missing end
+end
+
+# a water heater's event: a thermostat whose range goes past a room's. Its new event heats to the target it has, its page for the event
+# steps to the end of its range, and the event is saved; with no word of its target, the event starts at the nearest to a room's it takes
+def a_water_heaters_event()
+    var h = house()
+    var ui = h[0]
+    var sched = h[1]
+    var H = "0xA0B765FFFE00000A"
+    ui.store.register_device([H, "Boiler", "thermostat", 48, 300, 700, "THR320D", 1, 0, 0])
+    ui.store.add_to_zone("hall", H)
+    ui.network.thermostat = FakeHeater()
+    ui.act(["schedule", "open", H])
+    ui.action()
+    check("a water heater's new event heats to the target it has, past a room's", rows(ui)[4], ["Action", "69.0°C", ["schedule", "action", 7]])
+    ui.act(["schedule", "action", 7])
+    ui.thermostat_step("$thermostat.plus.count")
+    var s = said(ui.thermostat_step("$thermostat.plus.count"))
+    check("its + stops at the heater's highest, dimmed there", [h[2].draft[7], s["$thermostat.plus.iconColor"], s["$thermostat.target"]],
+          [700, PanelThermostatView.DIM, "70.0°C"])
+    ui.close()
+    var out = ui.action()
+    check("and the event is saved", [out[0], sched.events()[0][7]], [["save"], 700])
+    ui.network.thermostat.target = nil
+    check("with no word of its target, the nearest to a room's the heater takes, and a room's thermostat's is a room's",
+          [h[2].touch_during(H), h[2].touch_during(T)], [300, 210])
+end
+
 def no_clock_and_no_editing()
     var h = house()
     var ui = h[0]
@@ -597,6 +634,7 @@ a_thermostats_evening()
 the_sun_and_the_day()
 a_lamps_levels()
 a_blinds_event()
+a_water_heaters_event()
 no_clock_and_no_editing()
 the_calendar()
 the_row()

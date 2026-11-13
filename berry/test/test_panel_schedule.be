@@ -425,6 +425,46 @@ def blinds()
     check("off is all the way down", s.effects([nil, CV, WED, 420, nil, nil, [], "off", nil], [CV], "off", false), [["cover", [CV], "goto", 0]])
 end
 
+# A thermostat's target is one a device of the event takes: within the range the device said of itself, whatever kind of thermostat it is. A
+# water heater's goes from 30 to 70 degrees and a room's here from 5 to 35; a zone's event takes what one of its devices does, each device given
+# the nearest it takes; and a device that said no range takes any
+def a_target_in_the_devices_range()
+    var store = living_room()
+    var s = PanelSchedule(store, FakeClock())
+    s.ui = FakeUi()
+    var H = "0xA0B765FFFE00000A"
+    var N = "0x00124B0000B00009"
+    store.register_device([H, "Boiler", "thermostat", 48, 300, 700, "THR320D", 1, 0, 0])
+    store.register_device([N, "Thermostat 9", "thermostat", 48, 0, 0, "", 1, 0, 0])
+    store.add_to_zone("hall", H)
+    store.add_to_zone("living", N)
+    check("the heater at 60 degrees in the evening", s.put(ev(H, MON, 1080, 1260, nil, 600))["ok"], true)
+    check("and to 55 from its end on", s.put([nil, H, MON + 1, 1080, 1260, nil, nil, 600, 550])["ok"], true)
+    var refused = []
+    for e: [ev(T, MON + 2, 600, 660, nil, 600), ev(T, MON + 2, 600, 660, nil, 355), ev(H, MON + 2, 600, 660, nil, 710), ev(H, MON + 2, 600, 660, nil, 290),
+            [nil, H, MON + 2, 600, 660, nil, nil, 600, 710], ev(H, MON + 2, 600, 660, nil, 1010), ev(H, MON + 2, 600, 660, nil, 40)]
+        refused.push(s.put(e).find("refusal", "accepted"))
+    end
+    check("a target outside the device's own range is refused, a room's thermostat's and the heater's alike, at the start or at the end", refused,
+          ["bad_during", "bad_during", "bad_during", "bad_during", "bad_during", "bad_during", "bad_during"])
+    check("the ends of a device's range are in it", [s.put(ev(T, MON + 2, 600, 660, nil, 350))["ok"], s.put(ev(H, MON + 2, 700, 760, nil, 300))["ok"]], [true, true])
+    check("the Hall's thermostats at 60: taken, since one of them takes it, and each is given the nearest it takes",
+          [s.put(ev(["hall", "thermostat", 0], MON + 4, 600, 660, nil, 600))["ok"],
+           s.effects(ev(["hall", "thermostat", 0], MON + 4, 600, 660, nil, 600), [T, H], 600, true)],
+          [true, [["thermostat", [T, H], "mode", "heat"], ["thermostat", [T], "target", 350], ["thermostat", [H], "target", 600]]])
+    check("and at 80, which neither takes: refused", s.put(ev(["hall", "thermostat", 0], MON + 5, 600, 660, nil, 800))["refusal"], "bad_during")
+    check("a thermostat that said no range takes any target", s.put(ev(N, MON, 600, 660, nil, 900))["ok"], true)
+    # the device's range moves, as its description says: the store follows, and the schedule with it
+    var d = store.find_device(H)
+    d[5] = 550
+    check("the heater's highest lowered to 55: a new event at 60 is refused, and one at 55 taken",
+          [s.put(ev(H, MON + 6, 600, 660, nil, 600))["refusal"], s.put(ev(H, MON + 6, 600, 660, nil, 550))["ok"]], ["bad_during", true])
+    check("the event it had at 60 is still one the engine runs, to the highest the heater takes now",
+          [s.sound(s.events()[0]), s.sweep(), s.effects(s.events()[0], [H], 600, false)[1]], [true, false, ["thermostat", [H], "target", 550]])
+    check("the ends no target goes past", [PanelSchedule.during_ok("thermostat", 50), PanelSchedule.during_ok("thermostat", 1000),
+          PanelSchedule.during_ok("thermostat", 49), PanelSchedule.during_ok("thermostat", 1001)], [true, true, false, false])
+end
+
 # An event the engine cannot run is said and left, and the others' minute is theirs. They are in the document by a
 # way put does not take: a restore, a hand, a version before, a Replace that gave an event to a device of another kind
 def a_bad_event_is_no_end_of_the_others()
@@ -555,6 +595,7 @@ icalendar()
 engine()
 starts_and_ends()
 blinds()
+a_target_in_the_devices_range()
 a_bad_event_is_no_end_of_the_others()
 the_sweep()
 a_clock_set_back_a_little()

@@ -325,8 +325,9 @@ def say_checks()
         of = x["of"]
         for e: x["l"]  got.push(e) end
     end
-    check("the settings' schema comes whole, in frames a panel puts together", [of, size(got), got[0]["k"], got[-1]["k"], fits], [10, 10, "w1s", "power", true])
-    check("and the values with it", section(h, 4, "v"), {"w1s": 17, "w1e": 21, "w1t": 60, "w2s": 5, "w2e": 7, "w2t": 50, "hyst": 3, "ceil": 75, "calib": 0, "power": 3000})
+    check("the settings' schema comes whole, in frames a panel puts together", [of, size(got), got[0]["k"], got[-1]["k"], fits], [12, 12, "w1s", "power", true])
+    check("and the values with it", section(h, 4, "v"), {"w1s": 17, "w1e": 21, "w1t": 60, "w2s": 5, "w2e": 7, "w2t": 50, "lmin": 30, "lmax": 70, "hyst": 3, "ceil": 75,
+                                                           "calib": 0, "power": 3000})
     # a queue that grows with nobody to take it does not grow for ever
     a.outbox = []
     a.pumping = true
@@ -366,6 +367,23 @@ def mark_checks()
     h.state.marks[5] = {"u": 0, "s": {IEEE: true}}
     h.state.prime(IEEE)
     check("a second panel that shows it: both are told, each alone", [size(h.to(4)), size(h.to(5))], [2, 2])
+    h.sent.clear()
+    # the highest the range a description says: the description a panel was sent last, or nil for none
+    var range_told = def (n)
+        var top = nil
+        for m: h.to(n)
+            var z = m.find("ZbDriver")
+            var d = z != nil && z.contains(IEEE) ? z[IEEE].find("d") : nil
+            if d != nil  top = d["max"] end
+        end
+        return top
+    end
+    check("a limit of the target set from a panel: the panels that show the device hear what it is again, with its new range",
+          [a.drive(json.dump({"id": IEEE, "do": "setting", "k": "lmax", "v": 65})), range_told(4), range_told(5), a.brief()["max"]], [true, 650, 650, 650])
+    settle(a)
+    h.sent.clear()
+    check("and a setting that is no limit describes nothing again", [a.drive(json.dump({"id": IEEE, "do": "setting", "k": "hyst", "v": 4})), range_told(4)], [true, nil])
+    settle(a)
     h.sent.clear()
     tasmota.at_ms += ApplianceNode.TELL_GAP_MS
     check("the mark of a device that is not this node's says nothing", [h.state.prime("0x00124B0000B00001"), h.sent], [true, []])

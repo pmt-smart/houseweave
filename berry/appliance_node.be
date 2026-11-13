@@ -10,7 +10,7 @@
 #   methods    describe(), a new map, what a panel registers it with; state(), its whole state; command(cmd), a panel's command, true when taken;
 #              tick(), every second; stop(), the node is about to restart; rows(), its rows of the node's Main settings; signal(), whether the
 #              node's LED is to blink slowly; telemetry(), what Tasmota's telemetry says of it
-# and it says what changes through this node: say(section, fields) and send_list(section, entries).
+# and it says what changes through this node: say(section, fields), send_list(section, entries), and described() when what describe() says changed.
 #
 # ITS ADDRESS is shaped as a Zigbee device's, for everything on a panel that reads one: the EUI-64 of the node's radio address, its first three
 # bytes, FFFE, and its last three.
@@ -339,6 +339,11 @@ class ApplianceNode : Driver
                 log("APPLIANCE: what the device is did not go to the panel " + str(p), 3)
             end
         end
+    end
+
+    # the device is another than the panels were told, the range of its target for one: each panel that shows it hears what it is again
+    def described()
+        self.tell_marking()
     end
 
     # --- Tasmota's own turns --------------------------------------------------------------------

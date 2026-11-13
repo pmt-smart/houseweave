@@ -394,7 +394,8 @@ def settings_checks()
     for e: entries by[e["k"]] = e end
     check_same("a choice has its options", by["preset"], {"k": "preset", "l": "Preset", "t": "e", "o": ["Manual", "Temporary", "Program", "Eco"]})
     check_same("a flag has none", by["lock"], {"k": "lock", "l": "Child lock", "t": "b"})
-    check_same("a number has its range and its unit", by["lmin"], {"k": "lmin", "l": "Min limit", "t": "n", "min": 1, "max": 15, "u": "°"})
+    check_same("a number has its range and its unit", by["lmin"], {"k": "lmin", "l": "Operating min", "t": "n", "min": 1, "max": 15, "u": "°"})
+    check_same("and the highest a target is set to, beside it", by["lmax"], {"k": "lmax", "l": "Operating max", "t": "n", "min": 35, "max": 45, "u": "°"})
     check_same("and one that may be below zero is a range, chosen from a list the NSPanel makes", by["calib"], {"k": "calib", "l": "Calibration", "t": "r", "min": -10, "max": 10, "u": "°"})
     check("the deadzone is a choice of ten", [by["dead"]["t"], size(by["dead"]["o"])], ["e", 10])
     check("the sensor is read, and not written", by["sensor"].find("w"), 0)
@@ -441,6 +442,50 @@ def settings_checks()
     check("a setting with no value, and a verb the driver does not have, are refused", [told[0]["ZbDriver"][TH_A].find("e"), told[1]["ZbDriver"][TH_A].find("e")], ["refused", "refused"])
 end
 settings_checks()
+
+# --- the limits of the target ---------------------------------------------------------------------------
+# The lowest and the highest a ZHT-SR lets its target be set to are two of its settings, and the range it is described with: a limit the device
+# says moves the range, the NSPanel hears what the device is again, and the flash keeps it for a bridge that restarts
+def limit_checks()
+    var moes = {"IEEEAddr": TH_A, "Manufacturer": "_TZE204_lpedvtvr"}
+    check("the limits the device said are the profile's own: its range is as it was", [thermostat.limits[TH_A], thermostat.range_of(moes)], [[5, 35], [50, 350]])
+    check("and nothing waits to be described again, nor is in the flash", [tasmota.timers.count("zbbridge_drivers_announce"), persist.find("zbthermostat_limits", nil)], [0, nil])
+    told.clear()
+    report(0x1001, {"EF00/0222": 400})
+    check_same("the highest raised to 40 on the device: its value is said", collect(TH_A, "v"), {"lmax": 40})
+    check("the range goes with it, kept in the flash, and the device waits to be described again",
+          [thermostat.range_of(moes), persist.find("zbthermostat_limits")[TH_A], tasmota.timers.count("zbbridge_drivers_announce")], [[50, 400], [5, 40], 1])
+    told.clear()
+    fire("zbbridge_drivers_announce")
+    check("the NSPanel hears what the device is again, with the new range", [collect(TH_A, "d")["min"], collect(TH_A, "d")["max"]], [50, 400])
+    tasmota.cmds.clear()
+    drive(TH_A, {"do": "target", "v": 400})
+    check("a target at the new highest is written", last_zb()["Write"], {"EF00/0232": 400})
+    var before = size(zb_cmds())
+    drive(TH_A, {"do": "target", "v": 405})
+    check("and one past it refused", [told[-1]["ZbDriver"][TH_A].find("e"), size(zb_cmds()) - before], ["refused", 0])
+    report(0x1001, {"EF00/0212": 100})
+    told.clear()
+    fire("zbbridge_drivers_announce")
+    check("the lowest raised to 10: the range's other end", [collect(TH_A, "d")["min"], collect(TH_A, "d")["max"], persist.find("zbthermostat_limits")[TH_A]], [100, 400, [10, 40]])
+    report(0x1001, {"EF00/0222": 400, "EF00/0212": 100})
+    check("the limits it has, said again, describe nothing again", tasmota.timers.count("zbbridge_drivers_announce"), 0)
+    var again = ZbDriverThermostat(host)
+    check("a bridge that restarts has each device's range from the flash, and the profile's for one that said none",
+          [again.range_of(moes), again.range_of({"IEEEAddr": TH_C, "Manufacturer": "_TZE204_lpedvtvr"}), again.range_of({"IEEEAddr": TH_B, "Manufacturer": "Acme"})],
+          [[100, 400], [50, 350], [50, 300]])
+    var gone = "0x00124B0000FFFF01"
+    thermostat.limits[gone] = [5, 45]
+    thermostat.forget({"IEEEAddr": gone})
+    check("a device that left takes its limits with it", [thermostat.limits.contains(gone), persist.find("zbthermostat_limits").contains(gone)], [false, false])
+    # back to the limits the device came with, for what follows
+    report(0x1001, {"EF00/0222": 350, "EF00/0212": 50})
+    fire("zbbridge_drivers_announce")
+    check("the device's own limits back: the range it came with", thermostat.range_of(moes), [50, 350])
+    told.clear()
+    tasmota.cmds.clear()
+end
+limit_checks()
 
 # --- a ZCL thermostat ---------------------------------------------------------------------------------
 def zcl_checks()

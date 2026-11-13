@@ -36,10 +36,12 @@ class ZbDriverThermostat
     static DEVICE_ID = 0x0301
     # the makers of Tuya TS0601 devices whose datapoints are known here, and the profile of each
     static TUYA = {"_TZE204_lpedvtvr": "zhtsr"}
-    # the target's range, in tenths of a degree, and its step
+    # the target's range of a profile, in tenths of a degree, for a device that has not said its own (range_of), and the target's step
     static RANGE_ZCL = [50, 300]
     static RANGE_ZHTSR = [50, 350]
     static STEP = 5
+    # what the flash keeps the limits the devices said under
+    static KEEP = "zbthermostat_limits"
     # a write is read back this long after it: a ZCL device is asked, a Tuya one asked if it said nothing
     static ZCL_BACK_MS = 700
     static TUYA_BACK_MS = 1500
@@ -51,14 +53,15 @@ class ZbDriverThermostat
     # kind "b" is on or off, "e" a choice of the options, by their index, "n" a whole number between min and max,
     # typed, and "r" one chosen from the list the NSPanel makes of the range, for what may be below zero (the keypad has
     # no sign, and the options would not fit a frame). The datapoint holds (value + base) * mul, and a number below zero
-    # is stored past `wrap` (256 for the calibration). The sensor is read and not written: Zigbee2MQTT only reads it
+    # is stored past `wrap` (256 for the calibration). The sensor is read and not written: Zigbee2MQTT only reads it. The two limits, lmin and
+    # lmax, are the lowest and the highest the device lets its target be set to: they are the range the device is described with (range_of)
     static ZHTSR_SETTINGS = [
         ["preset", "Preset", "e", 2, "04", 1, 0, 0, 0, 0, "", ["Manual", "Temporary", "Program", "Eco"], 1],
         ["lock", "Child lock", "b", 39, "01", 1, 0, 0, 0, 0, "", [], 1],
         ["calib", "Calibration", "r", 101, "02", 1, 0, 256, -10, 10, "°", [], 1],
         ["dead", "Deadzone", "e", 110, "02", 5, 1, 0, 0, 0, "", ["0.5°", "1.0°", "1.5°", "2.0°", "2.5°", "3.0°", "3.5°", "4.0°", "4.5°", "5.0°"], 1],
-        ["lmin", "Min limit", "n", 18, "02", 10, 0, 0, 1, 15, "°", [], 1],
-        ["lmax", "Max limit", "n", 34, "02", 10, 0, 0, 35, 45, "°", [], 1],
+        ["lmin", "Operating min", "n", 18, "02", 10, 0, 0, 1, 15, "°", [], 1],
+        ["lmax", "Operating max", "n", 34, "02", 10, 0, 0, 35, 45, "°", [], 1],
         ["phi", "High protect", "n", 111, "02", 10, 0, 0, 10, 70, "°", [], 1],
         ["plo", "Low protect", "n", 112, "02", 10, 0, 0, 0, 10, "°", [], 1],
         ["eco", "Eco temp", "n", 113, "02", 10, 0, 0, 10, 30, "°", [], 1],
@@ -71,11 +74,15 @@ class ZbDriverThermostat
     var host      # the host (zbbridge_drivers.be): what this driver says goes through it
     var types     # IEEE -> {dp -> the type byte the device used for it}
     var waiting   # IEEE -> a write of a Tuya device that nothing has answered yet
+    var limits    # IEEE -> [lowest, highest] in degrees, the limits of its target the device said, nil for one it has not; kept in the flash
 
     def init(host)
+        import persist
         self.host = host
         self.types = {}
         self.waiting = {}
+        var kept = persist.find(ZbDriverThermostat.KEEP, nil)
+        self.limits = isinstance(kept, map) ? kept : {}
     end
 
     # --- what a device is -------------------------------------------------------------------
@@ -85,8 +92,32 @@ class ZbDriverThermostat
         return ZbDriverThermostat.TUYA.find(info.find("Manufacturer", ""), "zcl")
     end
 
-    static def range(info)
-        return ZbDriverThermostat.profile(info) == "zcl" ? ZbDriverThermostat.RANGE_ZCL : ZbDriverThermostat.RANGE_ZHTSR
+    # The range of a device's target, in tenths of a degree: the two limits it said it is set to, and its profile's own for one it has not said.
+    # The flash keeps what the devices said, so a bridge that restarts describes each with the range it had
+    def range_of(info)
+        var r = ZbDriverThermostat.profile(info) == "zcl" ? ZbDriverThermostat.RANGE_ZCL : ZbDriverThermostat.RANGE_ZHTSR
+        var l = self.limits.find(info.find("IEEEAddr", ""))
+        if !isinstance(l, list) || size(l) != 2 return r end
+        return [type(l[0]) == "int" ? l[0] * 10 : r[0], type(l[1]) == "int" ? l[1] * 10 : r[1]]
+    end
+
+    # A limit the device said, among the settings' values of a report: kept, and when the range moves with it the flash has it and the device is
+    # described again, for the panels that keep its range
+    def limit_said(info, v)
+        if !v.contains("lmin") && !v.contains("lmax") return end
+        import persist
+        var ieee = info["IEEEAddr"]
+        var before = self.range_of(info)
+        var l = self.limits.find(ieee)
+        if !isinstance(l, list) || size(l) != 2  l = [nil, nil] end
+        if v.contains("lmin")  l[0] = v["lmin"] end
+        if v.contains("lmax")  l[1] = v["lmax"] end
+        self.limits[ieee] = l
+        var after = self.range_of(info)
+        if before[0] == after[0] && before[1] == after[1] return end
+        persist.setmember(ZbDriverThermostat.KEEP, self.limits)
+        self.host.save_later()
+        self.host.announce_soon([ieee])
     end
 
     # A device is this driver's when its maker is a Tuya one it has the datapoints of, when it is a thermostat
@@ -107,7 +138,7 @@ class ZbDriverThermostat
     # What the NSPanel registers a thermostat with: 48 is the store's CAP_SETPOINT and CAP_MODE (16 and 32), the
     # range and the step are the target's, in tenths of a degree, and "floor" says there is a probe to show
     def describe(info)
-        var r = ZbDriverThermostat.range(info)
+        var r = self.range_of(info)
         var ep = info.find("Endpoint")
         return {
             "caps": 48,
@@ -208,6 +239,7 @@ class ZbDriverThermostat
         end
         if size(s) > 0  self.host.say(ieee, "s", s) end
         if size(v) > 0  self.host.say(ieee, "v", v) end
+        self.limit_said(info, v)
     end
 
     def tuya_report(ieee, attrs, s, v)
@@ -286,9 +318,9 @@ class ZbDriverThermostat
         end
     end
 
-    # the target, in tenths of a degree, in the range and a step of the profile's
+    # the target, in tenths of a degree, in the device's range and a step of the profile's
     def set_target(info, v)
-        var r = ZbDriverThermostat.range(info)
+        var r = self.range_of(info)
         if type(v) != "int" || v < r[0] || v > r[1] || v % ZbDriverThermostat.STEP != 0 return false end
         if ZbDriverThermostat.profile(info) == "zcl"
             self.send(info, {"Write": {"OccupiedHeatingSetpoint": v / 10.0}}, false)
@@ -366,9 +398,15 @@ class ZbDriverThermostat
 
     # a device that left the network
     def forget(info)
+        import persist
         var ieee = info["IEEEAddr"]
         self.types.remove(ieee)
         self.waiting.remove(ieee)
+        if self.limits.contains(ieee)
+            self.limits.remove(ieee)
+            persist.setmember(ZbDriverThermostat.KEEP, self.limits)
+            self.host.save_later()
+        end
         tasmota.remove_timer("zbdriver_thermostat_" + ieee)
     end
 end

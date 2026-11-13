@@ -23,7 +23,8 @@
 #           RRULE the panel runs (rrule, parse_rrule)
 #   skip    the days whose occurrence was deleted, iCalendar's EXDATE
 #   start   what the devices do at the start, in their screen's measures (the During it was): "off" for
-#           any kind; a thermostat's target in tenths of a degree, heating; a lamp's [brightness, white, color], each nil
+#           any kind; a thermostat's target in tenths of a degree, heating, one a device of the event takes (target_fits);
+#           a lamp's [brightness, white, color], each nil
 #           or a percentage, the white or the color and never both, or nil for on; a blind's position, 0 closed to 100
 #           open, or "vent", its ventilation; nil for what only turns on
 #   end     what they do from the end on, the same way; nil for an event with no end. A document from before has no
@@ -49,6 +50,9 @@ class PanelSchedule
     static RETRY = 15            # the minutes a command of an event that is not confirmed is tried again, once each
     static FREQS = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]
     static BYDAY = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"]
+    # the ends no thermostat's target goes past, in tenths of a degree, whatever its devices take: what a target is within is its devices' own
+    # range, which each says of itself (target_fits)
+    static TARGET = [50, 1000]
 
     var store
     var clock      # the panel's PanelClock: the house's place and time zone, for the sun
@@ -258,10 +262,11 @@ class PanelSchedule
         return true
     end
 
-    # an action the kind's screen could have made: off, for any kind, or how its page leaves it on
+    # an action the kind's screen could have made: off, for any kind, or how its page leaves it on. A thermostat's is a target some thermostat
+    # takes; whether the event's own devices take it is check's to say (target_fits)
     static def during_ok(kind, d)
         if d == "off" return true end
-        if kind == "thermostat" return type(d) == "int" && d >= 50 && d <= 450 end
+        if kind == "thermostat" return type(d) == "int" && d >= PanelSchedule.TARGET[0] && d <= PanelSchedule.TARGET[1] end
         if kind == "cover" return d == "vent" || (type(d) == "int" && d >= 0 && d <= 100) end
         if kind != "light" return d == nil end
         if d == nil return true end
@@ -270,6 +275,18 @@ class PanelSchedule
             if x != nil && (type(x) != "int" || x < 0 || x > 100) return false end
         end
         return true
+    end
+
+    # Whether a thermostat's target is one a device of the event takes: within the range the device said of itself, the lowest and the highest
+    # its target is set to, which the store keeps as it is told (PanelUi.described_known). One of a zone's that takes it is enough: effects
+    # gives each of the others the nearest it takes. A device that said no range takes any, and an action that is no target fits
+    def target_fits(f, v)
+        if type(v) != "int" return true end
+        for id: self.devices_of(f)
+            var d = self.store.find_device(id)
+            if d != nil && (d[5] <= d[4] || (v >= d[4] && v <= d[5])) return true end
+        end
+        return false
     end
 
     # what is wrong with an event, as the store's refusal, or nil
@@ -295,6 +312,9 @@ class PanelSchedule
         if !PanelSchedule.rule_ok(e[5]) return PanelStore.refuse("bad_rule", nil) end
         if e[6] != nil && !PanelSchedule.days_ok(e[6]) return PanelStore.refuse("bad_skip", nil) end
         if !PanelSchedule.during_ok(kind, e[7]) || (e[4] != nil && !PanelSchedule.during_ok(kind, PanelSchedule.end_of(e)))
+            return PanelStore.refuse("bad_during", nil)
+        end
+        if kind == "thermostat" && (!self.target_fits(f, e[7]) || !self.target_fits(f, PanelSchedule.end_of(e)))
             return PanelStore.refuse("bad_during", nil)
         end
         return nil

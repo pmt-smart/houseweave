@@ -23,7 +23,8 @@
 # for "off", and the logic decides the relay from it at the next second.
 #
 # THE SETTINGS are kept in the flash (persist), with the mode. The calibration is Tasmota's own temperature offset, so the display and the MQTT say the
-# water the logic reads.
+# water the logic reads. Two of them are the lowest and the highest a target is set to: they are the range a panel is told the thermostat has, a
+# window's target is kept within them, and when one moves the node describes the thermostat again to the panels that show it.
 #
 # Compiled into the appliance's firmware: one class, nothing at the top, every module imported where it is used. It comes after ClockLink, PairSign and
 # BoilerHistory, which it names; the node is handed to it (init).
@@ -38,8 +39,7 @@ class BoilerThermostat
     # what the flash keeps the settings under, and the sensor Tasmota reads the probe as
     static KEEP = "boiler"
     static PROBE = "WTS01"
-    # the target's range, in tenths of a degree, and its step
-    static RANGE = [300, 700]
+    # the target's step, in tenths of a degree. Its range is two settings, the lowest and the highest a target is set to (lmin, lmax)
     static STEP = 10
     # the water is said to the panels when it moved this many tenths from what they were told, or every CUR_AGAIN_S while it differs
     static CUR_STEP = 3
@@ -50,22 +50,27 @@ class BoilerThermostat
     static SAVE_MS = 3000
     # The settings, in the order a panel lists them: [key, label, how it is edited, min, max, unit]. "r" is chosen from the list its range makes and
     # "n" typed (panel_thermostat_settings.be). A window is from an hour up to another, past midnight when the second comes first, and none when the
-    # two are the same
+    # two are the same. A window's target is between the two limits as they are set, which the table's own ends only bound (TARGETS); the limits are
+    # the range the thermostat is described with, under the keys and the words a Zigbee thermostat's have (zbdriver_thermostat.be)
     static SETTINGS = [
         ["w1s", "Window 1 from", "r", 0, 23, ":00"],
         ["w1e", "Window 1 to", "r", 0, 24, ":00"],
-        ["w1t", "Window 1 target", "n", 30, 70, "°"],
+        ["w1t", "Window 1 target", "n", 20, 75, "°"],
         ["w2s", "Window 2 from", "r", 0, 23, ":00"],
         ["w2e", "Window 2 to", "r", 0, 24, ":00"],
-        ["w2t", "Window 2 target", "n", 30, 70, "°"],
+        ["w2t", "Window 2 target", "n", 20, 75, "°"],
+        ["lmin", "Operating min", "n", 20, 45, "°"],
+        ["lmax", "Operating max", "n", 50, 75, "°"],
         ["hyst", "Hysteresis", "r", 1, 10, "°"],
         ["ceil", "Ceiling", "n", 50, 80, "°"],
         ["calib", "Calibration", "r", -5, 5, "°"],
         ["power", "Heater power", "n", 500, 9000, " W"]
     ]
+    # the settings that are a target, each within the two limits
+    static TARGETS = ["w1t", "w2t"]
     # what a thermostat out of its box has: off, until someone turns it on
-    static DEFAULTS = [["mode", "off"], ["w1s", 17], ["w1e", 21], ["w1t", 60], ["w2s", 5], ["w2e", 7], ["w2t", 50], ["hyst", 3], ["ceil", 75],
-                       ["calib", 0], ["power", 3000]]
+    static DEFAULTS = [["mode", "off"], ["w1s", 17], ["w1e", 21], ["w1t", 60], ["w2s", 5], ["w2e", 7], ["w2t", 50], ["lmin", 30], ["lmax", 70],
+                       ["hyst", 3], ["ceil", 75], ["calib", 0], ["power", 3000]]
 
     var host       # the appliance's node: what this says of itself goes through it (say, send_list)
     var history    # what it measured, kept (boiler_history.be)
@@ -90,6 +95,7 @@ class BoilerThermostat
                 if BoilerThermostat.fair(k, kept[k])  self.cfg[k] = kept[k] end
             end
         end
+        self.fit()
         var p = tasmota.get_power()
         self.relay = size(p) > 0 && p[0] == true
         self.stopped = false
@@ -111,6 +117,27 @@ class BoilerThermostat
         return false
     end
 
+    # the range a target is set in, [lowest, highest] in degrees: the two limits as they are set
+    def limits()
+        return [self.cfg["lmin"], self.cfg["lmax"]]
+    end
+
+    # each window's target within the limits: one a limit left outside goes to that limit. Whether any moved
+    def fit()
+        var r = self.limits()
+        var moved = false
+        for k: BoilerThermostat.TARGETS
+            var v = self.cfg[k]
+            if v < r[0]  v = r[0] end
+            if v > r[1]  v = r[1] end
+            if v != self.cfg[k]
+                self.cfg[k] = v
+                moved = true
+            end
+        end
+        return moved
+    end
+
     # the mode and the settings to the flash, a moment after the last change
     def keep()
         import persist
@@ -127,16 +154,18 @@ class BoilerThermostat
         tasmota.cmd("TempOffset " + str(self.cfg["calib"]), true)
     end
 
-    # a setting as a panel's list has it
-    static def wire(e)
-        return {"k": e[0], "l": e[1], "t": e[2], "min": e[3], "max": e[4], "u": e[5]}
+    # a setting as a panel's list has it: a target's ends are the limits as they are set
+    def wire(e)
+        var r = BoilerThermostat.TARGETS.find(e[0]) != nil ? self.limits() : [e[3], e[4]]
+        return {"k": e[0], "l": e[1], "t": e[2], "min": r[0], "max": r[1], "u": e[5]}
     end
 
     # The settings' schema: with no clock, a first row that is only read and says the target held; then the settings
     def schema()
         var out = []
-        if self.exception  out.push({"k": "held", "l": "No clock: holding", "t": "n", "min": 30, "max": 70, "u": "°", "w": 0}) end
-        for e: BoilerThermostat.SETTINGS  out.push(BoilerThermostat.wire(e)) end
+        var r = self.limits()
+        if self.exception  out.push({"k": "held", "l": "No clock: holding", "t": "n", "min": r[0], "max": r[1], "u": "°", "w": 0}) end
+        for e: BoilerThermostat.SETTINGS  out.push(self.wire(e)) end
         return out
     end
 
@@ -268,9 +297,10 @@ class BoilerThermostat
     # --- what a panel hears ---------------------------------------------------------------------
 
     # what a panel registers the thermostat with: 48 is the store's CAP_SETPOINT and CAP_MODE, the range and the step are the target's, in tenths
-    # of a degree, and "measure" is what the page calls the temperature it shows
+    # of a degree, the range the two limits as they are set, and "measure" is what the page calls the temperature it shows
     def describe()
-        return {"caps": 48, "min": BoilerThermostat.RANGE[0], "max": BoilerThermostat.RANGE[1], "step": BoilerThermostat.STEP,
+        var r = self.limits()
+        return {"caps": 48, "min": r[0] * 10, "max": r[1] * 10, "step": BoilerThermostat.STEP,
                 "modes": ["off", "heat"], "floor": false, "ep": 1, "measure": "Water"}
     end
 
@@ -312,9 +342,10 @@ class BoilerThermostat
         return true
     end
 
-    # the target, in tenths of a degree, in the range and a step of it: the target of the window in force, or of the next to begin
+    # the target, in tenths of a degree, within the limits and a step of it: the target of the window in force, or of the next to begin
     def set_target(v)
-        if type(v) != "int" || v < BoilerThermostat.RANGE[0] || v > BoilerThermostat.RANGE[1] || v % BoilerThermostat.STEP != 0 return false end
+        var r = self.limits()
+        if type(v) != "int" || v < r[0] * 10 || v > r[1] * 10 || v % BoilerThermostat.STEP != 0 return false end
         var w = self.window_at(BoilerThermostat.hour_now())
         self.cfg[w == 2 ? "w2t" : "w1t"] = v / 10
         self.keep()
@@ -329,12 +360,21 @@ class BoilerThermostat
         return true
     end
 
-    # a setting, by its key: only one the table has, and a value it takes
+    # a setting, by its key: only one the table has, and a value it takes; a window's target is one within the limits. A limit that moves takes
+    # the windows' targets with it, and the thermostat is another to the panels: its range is the limits
     def set_setting(k, v)
         if k == "mode" || !BoilerThermostat.fair(k, v) return false end
+        var r = self.limits()
+        if BoilerThermostat.TARGETS.find(k) != nil && (v < r[0] || v > r[1]) return false end
+        var limit = (k == "lmin" || k == "lmax") && self.cfg[k] != v
         self.cfg[k] = v
+        if limit  self.fit() end
         self.keep()
         if k == "calib"  self.calibrate() end
+        if limit
+            self.send_settings()
+            self.host.described()
+        end
         return true
     end
 

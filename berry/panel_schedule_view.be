@@ -430,7 +430,12 @@ class PanelScheduleView
         var ui = self.sched.ui
         var t = ui != nil && ui.network != nil ? ui.network.thermostat : nil
         var v = t != nil ? t.get(id, "set", nil) : nil
-        return v != nil ? v : 210
+        if v != nil return v end
+        # with no word of its target yet, a room's, or the nearest to it the device takes
+        v = 210
+        if d[5] > d[4] && v < d[4]  v = d[4] end
+        if d[5] > d[4] && v > d[5]  v = d[5] end
+        return v
     end
 
     # a touch on a row of the schedule's screens

@@ -90,7 +90,8 @@ only to the panels that show it ([05 §4](05-the-house.md)). The device is a cla
 
 - **The water heater's thermostat** (`berry/boiler_thermostat.be`): a probe in the water, a relay on the heater, and its logic every second, on
   the appliance, with every panel off and the mesh down. The heater comes on at the target less the hysteresis and goes off at the target; each of
-  two windows of the day has its hours and its target, and outside both the heater is off. It is off in the mode off, with no reading of the
+  two windows of the day has its hours and its target, and outside both the heater is off. The lowest and the highest a target is set to are
+  two of its settings, as a Zigbee thermostat's are (`berry/zbdriver_thermostat.be`), and the range it is described with. It is off in the mode off, with no reading of the
   probe, at the ceiling, and before a restart, since its relay is bistable and stays as it is. A relay switched by another hand (the Web UI, the
   MQTT) is the mode that was asked for, and the logic decides the relay from it. With no clock at all it holds the first window's target, an
   exceptional mode said on the panel's page, in its settings, by the node's LED and in the node's telemetry, and left when the clock comes.

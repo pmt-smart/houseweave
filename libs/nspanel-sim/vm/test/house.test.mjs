@@ -1429,16 +1429,20 @@ test("a Moes ZHT-SR's settings, on the glass: opening them asks the driver, whos
   h.run(1500);
   assert.equal(dp(101), 254, `-2 is stored past 256: ${trace()}`);
   assert.ok(h.until("Calibration", 3000) && h.shows("-2°"), `and the screen shows it: ${h.texts().filter(Boolean)}`);
-  // a number, on the keyboard: the max limit
+  // a number, on the keyboard: the highest the target is set to
   drag(h, [200, 290], [200, 110]);
-  assert.ok(h.shows("Max limit"), `the next page: ${h.texts().filter(Boolean)}`);
-  h.tapRow("Max limit");
+  assert.ok(h.shows("Operating max"), `the next page: ${h.texts().filter(Boolean)}`);
+  assert.deepEqual(seen(h).device.slice(4, 6), [50, 350], "the range the panel keeps of it, before");
+  h.tapRow("Operating max");
   assert.equal(h.glass.page.name, "editboard", "the keyboard");
   // the keypad opens on the 35 the device has: it is erased, and 40 typed
   h.keys("DEL", "DEL", "4", "0", "OK");
   h.run(1500);
   assert.equal(dp(34), 400, `the limit in tenths of a degree: ${trace()}`);
   assert.ok(h.until("40°", 3000), `and the screen shows it: ${h.texts().filter(Boolean)}`);
+  // the limit is an end of the range the device is described with: the bridge describes it again, and the panel's record follows
+  h.run(8000);
+  assert.deepEqual(seen(h).device.slice(4, 6), [50, 400], `the panel's range of the thermostat is the device's limits now: ${trace()}`);
   assert.deepEqual(h.log.filter((l) => /BRY: Exception|failed on/.test(l)), [], "nothing raised on either side");
   assert.deepEqual(h.glassNotes, []);
   assert.ok(first.length > 0);

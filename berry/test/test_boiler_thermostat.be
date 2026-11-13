@@ -43,9 +43,10 @@ tasmota = BoilerTasmota()
 
 # the node the thermostat says itself through
 class FakeNode
-    var said, lists
-    def init() self.said = [] self.lists = [] end
+    var said, lists, again
+    def init() self.said = [] self.lists = [] self.again = 0 end
     def say(section, fields) self.said.push([section, fields]) end
+    def described() self.again += 1 end
     def send_list(section, entries)
         self.lists.push([section, entries])
         return true
@@ -90,8 +91,9 @@ def box_checks()
     check("out of its box: off, the two windows, the hysteresis, the ceiling and the heater's power",
           [t.cfg["mode"], t.cfg["w1s"], t.cfg["w1e"], t.cfg["w1t"], t.cfg["w2s"], t.cfg["w2e"], t.cfg["w2t"], t.cfg["hyst"], t.cfg["ceil"], t.cfg["calib"], t.cfg["power"]],
           ["off", 17, 21, 60, 5, 7, 50, 3, 75, 0, 3000])
+    check("and the lowest and the highest a target is set to", t.limits(), [30, 70])
     var d = t.describe()
-    check("what a panel registers it with: a target and a mode, 30 to 70 degrees by one, off and heat, no floor probe, and what it measures",
+    check("what a panel registers it with: a target and a mode, the range the two limits, 30 to 70 degrees by one, off and heat, no floor probe, and what it measures",
           [d["caps"], d["min"], d["max"], d["step"], d["modes"], d["floor"], d["ep"], d["measure"]], [48, 300, 700, 10, ["off", "heat"], false, 1, "Water"])
     check("before its first second: the relay as Tasmota has it, no reading, no exception", [t.relay, t.water, t.exception], [false, nil, false])
     check("the calibration is Tasmota's temperature offset, set at the boot", tasmota.cmds, ["TempOffset", "TempOffset 0"])
@@ -210,7 +212,7 @@ def exception_checks()
     check("the state says it in its note, and shows the first window's target", [s["note"], s["set"], s["mode"], s["dem"]], ["No clock", 600, "heat", 100])
     var x = t.schema()
     check("the settings have a first row that is only read and says the target held",
-          [size(x), x[0], t.values()["held"]], [11, {"k": "held", "l": "No clock: holding", "t": "n", "min": 30, "max": 70, "u": "°", "w": 0}, 60])
+          [size(x), x[0], t.values()["held"]], [13, {"k": "held", "l": "No clock: holding", "t": "n", "min": 30, "max": 70, "u": "°", "w": 0}, 60])
     check("the telemetry says it", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":1,\"NoClock\":1}")
     check("the ceiling and the probe hold as ever", [second(t, 76.0), second(t, nil), second(t, 50.0)], [false, false, true])
     t.cfg["mode"] = "off"
@@ -225,7 +227,7 @@ def exception_checks()
     check("the clock comes, outside the windows: the heater off, the mode left by itself", [second(t, 50.0), t.exception, t.signal(), t.state()["note"]], [false, false, false, ""])
     check("said in the log", logged.find(["BOILER: the clock is set: the windows hold again", 2]) != nil, true)
     check("the panel that has the settings on show hears them again, with no first row",
-          [size(t.host.lists), size(t.host.lists[-1][1]), t.host.lists[-1][1][0]["k"], t.values().contains("held")], [lists + 1, 10, "w1s", false])
+          [size(t.host.lists), size(t.host.lists[-1][1]), t.host.lists[-1][1][0]["k"], t.values().contains("held")], [lists + 1, 12, "w1s", false])
     check("and the telemetry", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":0,\"NoClock\":0}")
     # one that asked long ago hears nothing
     tasmota.at_ms = BoilerThermostat.ASKED_MS + 5
@@ -276,15 +278,53 @@ def command_checks()
     t.host.lists.clear()
     t.host.said.clear()
     check("the settings: the schema as a list, and the values", [t.command({"do": "settings"}), t.host.lists[0][0], size(t.host.lists[0][1]), t.host.last("v")],
-          [true, "x", 10, {"w1s": 17, "w1e": 18, "w1t": 55, "w2s": 5, "w2e": 7, "w2t": 48, "hyst": 5, "ceil": 75, "calib": -2, "power": 3000}])
-    check("a setting as a panel lists it", [t.host.lists[0][1][0], t.host.lists[0][1][8], t.host.lists[0][1][9]],
+          [true, "x", 12, {"w1s": 17, "w1e": 18, "w1t": 55, "w2s": 5, "w2e": 7, "w2t": 48, "lmin": 30, "lmax": 70, "hyst": 5, "ceil": 75, "calib": -2, "power": 3000}])
+    check("a setting as a panel lists it", [t.host.lists[0][1][0], t.host.lists[0][1][10], t.host.lists[0][1][11]],
           [{"k": "w1s", "l": "Window 1 from", "t": "r", "min": 0, "max": 23, "u": ":00"}, {"k": "calib", "l": "Calibration", "t": "r", "min": -5, "max": 5, "u": "°"},
            {"k": "power", "l": "Heater power", "t": "n", "min": 500, "max": 9000, "u": " W"}])
+    check("the two limits under a Zigbee thermostat's keys and words, and a window's target between them as they are set",
+          [t.host.lists[0][1][6], t.host.lists[0][1][7], t.host.lists[0][1][2]],
+          [{"k": "lmin", "l": "Operating min", "t": "n", "min": 20, "max": 45, "u": "°"}, {"k": "lmax", "l": "Operating max", "t": "n", "min": 50, "max": 75, "u": "°"},
+           {"k": "w1t", "l": "Window 1 target", "t": "n", "min": 30, "max": 70, "u": "°"}])
     t.host.said.clear()
     check("a read says the state", [t.command({"do": "read"}), t.host.last("s") != nil], [true, true])
     check("what is no verb of it is not taken", [t.command({"do": "open"}), t.command({})], [false, false])
 end
 command_checks()
+
+# The lowest and the highest a target is set to are two settings, and the range the thermostat is described with: a target is taken within them,
+# a limit that moves takes the windows' targets inside it, and the node is told the thermostat is another to the panels
+def limit_checks()
+    at_hour(18)
+    var t = fresh(50.0)
+    second(t, 50.0)
+    t.host.lists.clear()
+    check("the highest lowered to 65: taken, the range a panel is told goes with it, and the targets under it stay",
+          [t.command({"do": "setting", "k": "lmax", "v": 65}), t.limits(), t.describe()["min"], t.describe()["max"], t.cfg["w1t"], t.cfg["w2t"]],
+          [true, [30, 65], 300, 650, 60, 50])
+    check("the node is told the thermostat is another, once, and a panel with the settings on show hears their new ends",
+          [t.host.again, size(t.host.lists), t.host.lists[-1][1][2]["max"], t.host.last("v")["lmax"]], [1, 1, 65, 65])
+    check("to 55: the first window's target, above it, comes down to it, and the state says it",
+          [t.command({"do": "setting", "k": "lmax", "v": 55}), t.cfg["w1t"], t.cfg["w2t"], t.host.last("s")["set"], t.host.last("v")["w1t"], t.host.again],
+          [true, 55, 50, 550, 55, 2])
+    check("a target past the limit is refused, on the page and in the settings, and one at it taken",
+          [t.command({"do": "target", "v": 560}), t.command({"do": "setting", "k": "w2t", "v": 56}), t.command({"do": "target", "v": 550}),
+           t.command({"do": "setting", "k": "w2t", "v": 55}), t.cfg["w1t"], t.cfg["w2t"]], [false, false, true, true, 55, 55])
+    check("the lowest raised to 45: nothing under it, and a target under it is refused from then on",
+          [t.command({"do": "setting", "k": "lmin", "v": 45}), t.cfg["w1t"], t.command({"do": "target", "v": 440}), t.command({"do": "setting", "k": "w2t", "v": 44}),
+           t.describe()["min"]], [true, 55, false, false, 450])
+    check("a limit takes what its own row does: the lowest 20 to 45, the highest 50 to 75",
+          [t.command({"do": "setting", "k": "lmin", "v": 46}), t.command({"do": "setting", "k": "lmin", "v": 19}), t.command({"do": "setting", "k": "lmax", "v": 49}),
+           t.command({"do": "setting", "k": "lmax", "v": 76}), t.limits()], [false, false, false, false, [45, 55]])
+    var told = t.host.again
+    check("the limit it has, set again, describes nothing again", [t.command({"do": "setting", "k": "lmax", "v": 55}), t.host.again], [true, told])
+    check("nor does a setting that is no limit", [t.command({"do": "setting", "k": "hyst", "v": 4}), t.host.again], [true, told])
+    persist.setmember("boiler", {"lmin": 40, "lmax": 50, "w1t": 60, "w2t": 30})
+    var kept = BoilerThermostat(FakeNode())
+    check("at a boot, a target the flash keeps outside the limits it keeps is brought to them", [kept.limits(), kept.cfg["w1t"], kept.cfg["w2t"]], [[40, 50], 50, 40])
+    persist.zero()
+end
+limit_checks()
 
 def say_checks()
     at_hour(12)
