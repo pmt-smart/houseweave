@@ -214,7 +214,7 @@ test("the bridge's button: let go after the hold, the window opens and the bridg
   assert.ok(until(h, 1, `!${hm(1)}.up`, 20_000), "held on to 20 s: the bridge leaves the house");
   assert.deepEqual([h.status(1).Id, h.status(1).GroupVersion], [0, 0], "no number, no key");
   assert.ok(bridge.blinking(3000) || bridge.ledLog.length > 0, "and its LED blinked");
-  assert.ok(h.logs.some((l) => /the button held 20 s: this bridge leaves the house/.test(l.line)), "the log says why");
+  assert.ok(h.logs.some((l) => /ZBBRIDGE_RELAY: the button held 20 s: this node leaves the house/.test(l.line)), "the log says why");
 });
 
 test("from the box, with the bench image: the bridge has no number, the panel founds its own house at its first second, named by its address, and Add bridge brings the bridge in with the next number", async () => {

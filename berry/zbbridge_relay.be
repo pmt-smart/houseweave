@@ -7,13 +7,13 @@
 # filtered and merged to fit a frame of the mesh.
 #
 # What a bridge is to the house as any node with no screen is (the house's layer, the panels that hear it, its Wi-Fi, its OTA, the server and its backup,
-# the house's MQTT, the screens a panel shows of it) is NodeHost's (node_host.be), over this object: the fields are here, and the methods of those names
-# hand over to it. What is a bridge's own is here: the Zigbee network and what it says, the commands a panel sends it, the window of entering the house,
-# the button, the clock.
+# the house's MQTT, the screens a panel shows of it, the window of entering the house, the button, the clock) is NodeHost's (node_host.be), over this
+# object: the fields are here, and the methods of those names hand over to it. What is a bridge's own is here: the Zigbee network and what it says,
+# and the commands a panel sends it.
 #
 # COMPILED INTO THE BRIDGE'S FIRMWARE,
 # for the bridge to update by OTA, which carries the app and not the file
-# system: one class a file (this, NodeHost, ZbBridgeRelayPairing, ZbBridgeDiscovery,
+# system: one class a file (this, NodeHost, NodePairing, ZbBridgeDiscovery,
 # ZbBridgeDrivers, ZbDriverThermostat, ZbDriverCover and PairSign), nothing at the
 # top, every module imported where it is used, the statics read only.
 # `ZbBridgeRelay.start()` is the whole of the bridge's autoexec.be
@@ -48,13 +48,6 @@ class ZbBridgeRelay
     static FRAME_GAP_MS = 80
     static FRAME_BURST = 2
     static OUT_MAX = 64
-    # the button held: the hold comes at HOLD_AT_MS (SetOption32 50), and held on to LEAVE_HOLD_MS the bridge leaves the house; the pin is read every
-    # HOLD_STEP_MS, and the LED says it left with LEFT_BLINKS blinks of LEFT_BLINK_MS
-    static HOLD_AT_MS = 5000
-    static LEAVE_HOLD_MS = 20000
-    static HOLD_STEP_MS = 500
-    static LEFT_BLINKS = 6
-    static LEFT_BLINK_MS = 150
     # the devices an alarm's panic acts on, at most: one verb a device (alarm_cmd), and the list kept is not longer than this
     static PANIC_MAX = 32
     # the clusters of an endpoint the NSPanel's pages read to tell what a device is
@@ -71,34 +64,21 @@ class ZbBridgeRelay
     static CHANNEL_MAX = 8
     # The commands a panel sends over the mesh, and all this side runs of what arrives there: a line run as the console would
     # run it would give whoever held the link the bridge, ZbReset and the ZNP's raw frames included. By the command's
-    # word, in any case. ZbRelayListen and ZbRelayAdmin are this side's own (listen, admin)
+    # word, in any case. ZbRelayListen, ZbRelayTime and ZbRelayAdmin are every node's (node_host.be)
     static ALLOWED = ["ZBSEND", "ZBPING", "ZBINFO", "ZBLEAVE", "ZBFORGET", "ZBPERMITJOIN",
-                      "SETOPTION116", "ZBRELAYNAME", "ZBRELAYDRIVE", "ZBRELAYTIME", "ZBRELAYALARM"]
+                      "SETOPTION116", "ZBRELAYNAME", "ZBRELAYDRIVE", "ZBRELAYALARM"]
     # what NodeHost reads of the node it serves (node_host.be): what its log lines and the names of its timers and rules begin with, what it tells the
-    # house's server it is, and how many rows of its Main settings are its own (settings_rows)
+    # house's server it is, how many rows of its Main settings are its own (settings_rows), and the LED its window blinks, the board's only one
     static TAG = "ZBBRIDGE_RELAY"
     static ID = "zbbridge_relay"
     static ROLE = "bridge"
     static MAIN_ROWS = 2
-    # after a boot, the house looked at every AGAIN_MS, AGAIN_TRIES times at most, for this bridge to say everything again once it is in step
-    static AGAIN_MS = 1000
-    static AGAIN_TRIES = 180
-    # The button's window: held 5 s
-    # (SetOption32 50 in the bridge's template), the button opens 2 minutes in
-    # which another panel may pair this bridge, the LED blinking all the while.
-    static WINDOW_MS = 120000
-    static BLINK_MS = 250
-    # A bridge with no network saved opens it alone for 5 minutes at every boot:
-    # being plugged in is the gesture there
-    static BOOT_WINDOW_MS = 300000
-    # asked to identify itself, it blinks this fast for a while
-    static IDENTIFY_MS = 80
-    static IDENTIFY_FOR_MS = 10000
+    static LED = 0
 
     var pending    # {address -> filtered attributes} accumulated, pending send (a map,
                    # serialised only when actually sending, send_now)
     var budget     # the most an event carries, before the mesh's room to each panel that hears it (frame_budget)
-    var pairing    # the pairing's driver (zbbridge_relay_pairing.be)
+    var pairing    # what a panel says to it while it enters the house (node_pairing.be)
     var window_until  # when the pairing's window closes, or nil with none open
     var by_button     # the window was the button's: only then the bridge gives its Wi-Fi
     var identify_until # while a panel's request to identify goes, the blink is faster
@@ -149,7 +129,7 @@ class ZbBridgeRelay
         self.zb_aborted = false
         self.leaving = {}
         self.boot_fix = nil
-        self.pairing = ZbBridgeRelayPairing(self)
+        self.pairing = NodePairing(self)
     end
 
     # The relay, with its commands, its rules and its link at boot: the whole of
@@ -183,7 +163,7 @@ class ZbBridgeRelay
         NodeHost.start(r, global.contains("HouseList") ? global.HouseList.ROLE_BRIDGE : 0, global.contains("BridgeBackup") ? global.BridgeBackup : nil)
         if r.house != nil
             # told to join another house: out of this one, its window opens for a panel of the other, with its Wi-Fi and its devices kept
-            r.house.on_move = / -> r.open_window(ZbBridgeRelay.BOOT_WINDOW_MS, false)
+            r.house.on_move = / -> r.open_window(NodeHost.BOOT_WINDOW_MS, false)
             # and of the nodes the house forgets (house_mesh.be, sweep()), the alarm's losses of a bridge that is no more
             r.house.forgets.push(/ m, forgot -> r.alarm != nil ? r.alarm.sweep(m) : nil)
             # and the alarm's configuration, which is the house's: this bridge's alarm takes the part that is its own
@@ -197,11 +177,8 @@ class ZbBridgeRelay
             r.house.devices.ask_info = / -> tasmota.defer(/ -> tasmota.cmd("ZbInfo", true))
             r.house.devices.name_of = / ieee -> r.discovery != nil ? r.discovery.names.find(ieee) : nil
         end
-        # the time over the link: the panel's word, and the bridge's own clock, set by
-        # the internet, kept across a restart, or the panel's
-        r.time_boot()
-        tasmota.add_cmd("ZbRelayTime", / cmd, idx, payload -> r.time_cmd(payload))
-        tasmota.add_rule("Time#Set", / -> r.time_set(), "zbbridge_relay_time")
+        # the bridge's own clock, set by the internet, kept across a restart, or taken from a panel's word or the house's (node_host.be)
+        NodeHost.clock(r)
         tasmota.add_rule("ZbReceived", / value, trigger, payload -> r.forward(value, trigger, payload), "zbbridge_relay_out")
         tasmota.add_rule("ZbState", / value, trigger, payload -> r.forward_state(value, trigger, payload), "zbbridge_relay_out")
         tasmota.add_rule("ZbResponse", / value, trigger, payload -> r.forward_response(value, trigger, payload), "zbbridge_relay_out")
@@ -344,20 +321,7 @@ class ZbBridgeRelay
     # After a boot, once this bridge is in its house and in step on the mesh, everything said again to the panels that show its devices (their marks, which the
     # flash kept): a restart quicker than the mesh's heartbeats is no session a panel saw go down, and the drivers' and the alarm's state begin again here
     def again_after_boot(tries)
-        import global
-        var h = self.house
-        if h == nil || tries <= 0 return end
-        # a bridge in no house at its boot has nobody to tell: the panel that adds it asks for everything when its session rises (ZbRelayListen 1)
-        if tries == ZbBridgeRelay.AGAIN_TRIES
-            var r = tasmota.cmd("_EspNowMeshId", true)
-            if !isinstance(r, map) || int(r.find("EspNowMeshId", 0)) < 1 return end
-        end
-        if h.up && global.contains("espnow_mesh_stamp") && global.espnow_mesh_stamp() != false
-            log("ZBBRIDGE_RELAY: in the house and in step after the boot: everything said again to the panels that hear this bridge", 2)
-            self.say_all()
-            return
-        end
-        tasmota.set_timer(ZbBridgeRelay.AGAIN_MS, / -> self.again_after_boot(tries - 1), "zbbridge_relay_again")
+        NodeHost.again_after_boot(self, tries)
     end
 
     # a panel of the house asks for this bridge's factory reset, or sets or removes its web password: every node's (node_host.be), with this bridge's wipe
@@ -637,40 +601,9 @@ class ZbBridgeRelay
         return out
     end
 
-    # The bridge's clock at the boot: kept across a restart (the fork's RtcRetain), or none yet, which the internet or the
-    # panel sets. Its time is not known fresh: the link's rule takes it as the oldest
+    # the bridge's clock at the boot: kept across a restart, or none yet (node_host.be)
     def time_boot()
-        self.clock_at = 0
-        self.clock_src = nil
-        if tasmota.rtc()["utc"] >= ClockLink.VALID
-            self.clock_src = ClockLink.kept_across() ? "restart" : "internet"
-        end
-    end
-
-    # The panel's word on its time (ClockLink): the bridge takes the panel's when the rule says so, and answers with its
-    # own. A time taken gives the clock back to the NTP: the bridge's internet, when it has one, corrects it
-    def time_cmd(payload)
-        import json
-        var peer = json.load(str(payload))
-        if ClockLink.takes(tasmota.rtc()["utc"] >= ClockLink.VALID, self.clock_at, peer)
-            self.clock_src = "panel"
-            self.clock_expect = "panel"
-            self.clock_at = peer["at"]
-            tasmota.cmd("Time " + str(peer["utc"]))
-            tasmota.cmd("Time 0")
-        end
-        self.send_event({"ZbTime": ClockLink.word(self.clock_src, self.clock_at)})
-        tasmota.resp_cmnd_done()
-    end
-
-    # Time#Set: the panel's time taken, or the internet's
-    def time_set()
-        var by = self.clock_expect
-        self.clock_expect = nil
-        if by == nil
-            self.clock_src = "internet"
-            self.clock_at = tasmota.rtc()["utc"]
-        end
+        NodeHost.time_boot(self)
     end
 
     # An event to the panels at once, whatever waits in the queue: what the alarm, the drivers and the time say (the first two keep a queue and a gap
@@ -773,100 +706,45 @@ class ZbBridgeRelay
 
     # --- the button's window -----------------------------------------------
 
-    # open, and not past its 2 minutes
-    # the window is open, from the button or a boot with no network, until the
-    # driver says it closed: a session begun before its time still completes
+    # The window in which a panel may add this bridge to its house, the button that opens it and the LED that says it is open are every node's
+    # (node_host.be). What the window's announcement says of a bridge is the Zigbee channel its network is on, 0 with the coordinator not up
     def window_open()
-        return self.window_until != nil
+        return NodeHost.window_open(self)
     end
 
-    # The button held 5 s: 2 minutes in which another panel may pair this
-    # bridge, and take its old panel's place only when it completes the pairing.
-    # The LED blinks while it is open. Held
-    # again, the 2 minutes start over. The ESP-NOW driver announces the bridge
-    # meanwhile, with the Zigbee channel it is on (EspNowPairOpen): the pairing
-    # is the driver's, over the radio.
-    # The button held: at the hold, HOLD_AT_MS, the pairing's window opens; held on to LEAVE_HOLD_MS, the bridge leaves the house. The pin is
-    # read at the hold and every HOLD_STEP_MS after: the level it has at the hold is the pressed one, whatever the board's wiring and the template's inversion
     def button_held()
-        import gpio
-        self.open_window()
-        var pin = gpio.pin(gpio.KEY1, 0)
-        if pin < 0 return end
-        self.hold = [pin, gpio.digital_read(pin), tasmota.millis()]
-        tasmota.remove_timer("zbbridge_relay_hold")
-        tasmota.set_timer(ZbBridgeRelay.HOLD_STEP_MS, / -> self.hold_step(), "zbbridge_relay_hold")
+        NodeHost.button_held(self)
     end
 
-    def hold_step()
-        import gpio
-        var h = self.hold
-        if h == nil return end
-        if gpio.digital_read(h[0]) != h[1]
-            self.hold = nil
-            return
-        end
-        if tasmota.millis() - h[2] >= ZbBridgeRelay.LEAVE_HOLD_MS - ZbBridgeRelay.HOLD_AT_MS
-            self.hold = nil
-            log("ZBBRIDGE_RELAY: the button held " + str(ZbBridgeRelay.LEAVE_HOLD_MS / 1000) + " s: this bridge leaves the house", 1)
-            self.close_window()
-            self.leave_house()
-            self.flash_led(ZbBridgeRelay.LEFT_BLINKS)
-            return
-        end
-        tasmota.set_timer(ZbBridgeRelay.HOLD_STEP_MS, / -> self.hold_step(), "zbbridge_relay_hold")
+    def open_window(ms, by_button)
+        NodeHost.open_window(self, ms, by_button)
+    end
+
+    def close_window(driver_closed)
+        NodeHost.close_window(self, driver_closed)
+    end
+
+    def identify()
+        NodeHost.identify(self)
+    end
+
+    def announce()
+        return str(ZbBridgeRelay.zigbee_channel())
+    end
+
+    # the window closed: the room's Zigbee channel, when the panel that added this bridge chose one this network takes (plan_channel), a moment later
+    def window_closed()
+        if self.next_channel != nil  tasmota.set_timer(2000, / -> self.apply_channel(), "zbbridge_relay_channel") end
+    end
+
+    # the first word of the panel that adds this bridge (node_pairing.be): the room's Zigbee channel it chose, for a network with no device yet
+    def guest_said(m)
+        if m.contains("zigbee")  self.plan_channel(int(m["zigbee"])) end
     end
 
     # This bridge out of the house, the panels told first that it goes, and `then` once it has left (node_host.be)
     def leave_house(then)
         NodeHost.leave_house(self, then)
-    end
-
-    # the LED blinks `n` times fast, and is left as it was: what the bridge says when it has left the house
-    def flash_led(n)
-        import gpio
-        var pin = gpio.pin(gpio.LED1, 0)
-        if pin < 0 || n <= 0 return end
-        var rest = gpio.digital_read(pin)
-        for i: 0 .. 2 * n - 1
-            ZbBridgeRelay.led_at(pin, (i % 2 == 0) ? 1 - rest : rest, i * ZbBridgeRelay.LEFT_BLINK_MS)
-        end
-    end
-
-    static def led_at(pin, level, ms)
-        import gpio
-        tasmota.set_timer(ms, / -> gpio.digital_write(pin, level))
-    end
-
-    def open_window(ms, by_button)
-        import gpio
-        if ms == nil  ms = ZbBridgeRelay.WINDOW_MS end
-        if by_button == nil  by_button = true end
-        # a window opened again while an exchange is up starts over: the old one, which a panel may have left with its last word lost on the way, ends first
-        if self.pairing != nil && self.pairing.guesting
-            tasmota.cmd("EspNowPairStop")
-            self.pairing.guest_ended()
-        end
-        var r = tasmota.cmd("EspNowPairOpen " + str(ms / 1000) + "," + str(ZbBridgeRelay.zigbee_channel()))
-        if !isinstance(r, map) || r.find("EspNowPairOpen") != "Open"
-            log("ZBBRIDGE_RELAY: the pairing did not open: " + str(r), 2)
-            return
-        end
-        self.window_until = tasmota.millis(ms)
-        self.by_button = by_button
-        if self.blink_rest == nil
-            var pin = gpio.pin(gpio.LED1, 0)
-            self.blink_pin = pin
-            self.blink_rest = pin >= 0 ? gpio.digital_read(pin) : 0
-        end
-        tasmota.remove_timer("zbbridge_relay_blink")
-        self.blink()
-        tasmota.remove_timer("zbbridge_relay_window")
-        # the driver says when the window closed (EspNowPair#Window), after a
-        # session begun before its end: this is only the net under it, 60 s later
-        tasmota.set_timer(ms + 70000, / -> self.close_window(), "zbbridge_relay_window")
-        log("ZBBRIDGE_RELAY: " + (by_button ? "the button" : "a boot with no network") + " opened the pairing for " +
-            str(ms / 1000) + " s", 2)
     end
 
     # how many devices the Zigbee network has, or 0 with the coordinator not up
@@ -892,43 +770,6 @@ class ZbBridgeRelay
         var r = tasmota.cmd("_ZbConfig", true)
         var c = isinstance(r, map) ? r.find("ZbConfig") : nil
         return isinstance(c, map) ? c : nil
-    end
-
-    # A panel asked this bridge to identify itself (EspNowPair#Blink): the LED
-    # blinks faster, for the user to see which bridge answers
-    def identify()
-        if !self.window_open() return end
-        self.identify_until = tasmota.millis(ZbBridgeRelay.IDENTIFY_FOR_MS)
-        log("ZBBRIDGE_RELAY: a panel asks this bridge to identify itself", 2)
-    end
-
-    # the LED's other level, and again in BLINK_MS while the window is open, or
-    # in IDENTIFY_MS while a panel's request to identify goes
-    def blink()
-        import gpio
-        if !self.window_open() return end
-        if self.blink_pin >= 0 gpio.digital_write(self.blink_pin, 1 - gpio.digital_read(self.blink_pin)) end
-        var fast = self.identify_until != nil && !tasmota.time_reached(self.identify_until)
-        tasmota.set_timer(fast ? ZbBridgeRelay.IDENTIFY_MS : ZbBridgeRelay.BLINK_MS, / -> self.blink(), "zbbridge_relay_blink")
-    end
-
-    # Closed: paired, or its 2 minutes over. The LED back as it was, and the old
-    # panel still this bridge's when nobody paired it. The driver's window closes
-    # too, unless it said it had closed (`driver_closed`)
-    def close_window(driver_closed)
-        import gpio
-        var was = self.window_until != nil
-        if was && driver_closed != true  tasmota.cmd("EspNowPairStop") end
-        self.window_until = nil
-        self.by_button = false
-        self.identify_until = nil
-        # the room's Zigbee channel, when the panel that added this bridge chose one this network takes (plan_channel), a moment later
-        if self.next_channel != nil  tasmota.set_timer(2000, / -> self.apply_channel(), "zbbridge_relay_channel") end
-        tasmota.remove_timer("zbbridge_relay_blink")
-        tasmota.remove_timer("zbbridge_relay_window")
-        if self.blink_rest != nil && self.blink_pin >= 0  gpio.digital_write(self.blink_pin, self.blink_rest) end
-        self.blink_rest = nil
-        if was log("ZBBRIDGE_RELAY: the pairing's window closed", 2) end
     end
 
     # The Zigbee channel the panel chose for the room, kept for when
@@ -1197,37 +1038,17 @@ class ZbBridgeRelay
         tasmota.set_timer(2000, / -> tasmota.cmd("Restart 1"), "zbbridge_relay_coord_restart")
     end
 
-    # no network saved, SSId1 or SSId2
-    static def no_network()
-        var names = tasmota.cmd("SSId")
-        return !isinstance(names, map) || (str(names.find("SSId1", "")) == "" && str(names.find("SSId2", "")) == "")
-    end
-
     # --- the boot -------------------------------------------------------------------------
 
-    # A bridge with no network saved opens no access point:
-    # Tasmota's is open, on channel 1, and it broke the ESP-NOW with a panel on
-    # another channel. The radio stays in station mode with no network, for
-    # ESP-NOW, when the firmware's station driver can hold it (StaHold); the way
-    # to a phone is the rescue, three short boots (USE_BOOT_RESCUE).
+    # a bridge with no network saved holds its radio with no network and no access point, and opens its window (node_host.be)
     def radio_at_boot()
-        if !ZbBridgeRelay.no_network() return end
-        var st = tasmota.cmd("StaState")
-        if !isinstance(st, map) || !st.contains("StaState")
-            log("ZBBRIDGE_RELAY: no network saved, and no station driver to hold the radio: Tasmota opens its AP", 2)
-            return
-        end
-        tasmota.cmd("Wifi 0")
-        tasmota.cmd("StaHold 1")
-        log("ZBBRIDGE_RELAY: no network saved, the radio held with no network and no AP, for ESP-NOW", 2)
-        # and the pairing open for a panel, as being plugged in is the gesture here
-        self.open_window(ZbBridgeRelay.BOOT_WINDOW_MS, false)
+        NodeHost.radio_at_boot(self)
     end
 
     # The key of the Zigbee network looked at, a while after the boot (secure_network), and everything said again once the house is in step (again_after_boot).
     # The mesh comes up by itself (mesh_cmd.be, house_mesh.be)
     def boot()
         tasmota.set_timer(ZbBridgeRelay.KEY_AFTER_MS, / -> self.secure_network(0), "zbbridge_relay_key")
-        tasmota.set_timer(ZbBridgeRelay.AGAIN_MS, / -> self.again_after_boot(ZbBridgeRelay.AGAIN_TRIES), "zbbridge_relay_again")
+        tasmota.set_timer(NodeHost.AGAIN_MS, / -> self.again_after_boot(NodeHost.AGAIN_TRIES), "zbbridge_relay_again")
     end
 end

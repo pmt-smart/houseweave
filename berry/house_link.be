@@ -15,7 +15,7 @@
 # The giver holds the pieces in RAM and the taker the ones it has had, for as long as the pairing lasts. What gets to the list is the panel's own: the node is written when its identity
 # has come, and stays in the list when the welcome does not get through (the same key is the same number the next time; a struck off one is not taken again).
 #
-# One HouseMesh has one (host.link). The class that owns the link (zigbee_pairing.be on a panel, zbbridge_relay_pairing.be on a bridge) binds it to the way it says an event, and to what is
+# One HouseMesh has one (host.link). The class that owns the link (zigbee_pairing.be on a panel, node_pairing.be on a node with no screen) binds it to the way it says an event, and to what is
 # to be done when it ends. It is called with `tick()` from the host's every 100 ms while it has something to do.
 
 #@ solidify:HouseLink

@@ -45,7 +45,8 @@
 #     itself knows two verbs: "read" and "settings" ask for the whole of a state and the
 #     whole of the values, and the NSPanel hears them all again, changed or not.
 # Every message fits the frame of the link that is up (a line in tcp, 233 bytes in
-# direct): what does not is split by field, and a list in numbered frames. And they go one at a
+# direct): what does not is split by field, and a list in numbered frames, as every node cuts what
+# it says (NodeHost, node_host.be, which this file names and so comes after). And they go one at a
 # time, FRAME_GAP_MS apart, the first at once: the ESP-NOW driver of the NSPanel keeps four frames
 # for its main loop, busy with the one before, and drops the oldest of a longer burst.
 #
@@ -563,27 +564,9 @@ class ZbBridgeDrivers
     end
 
     # `fields` {name: value}, in as few maps as fit `budget` once `wrap` has put each in its
-    # message: a field is never cut. One that alone does not fit is dropped, and the log says which
+    # message: a field is never cut. One that alone does not fit is dropped, and the log says which (node_host.be)
     static def pack(fields, wrap, budget)
-        import json
-        var out = []
-        var cur = {}
-        for k: fields.keys()
-            cur[k] = fields[k]
-            if size(json.dump(wrap(cur))) <= budget continue end
-            if size(cur) > 1
-                cur.remove(k)
-                out.push(cur)
-                cur = {}
-                cur[k] = fields[k]
-                if size(json.dump(wrap(cur))) <= budget continue end
-            end
-            log("ZBBRIDGE_DRIVERS: " + str(k) + " is " + str(size(json.dump(wrap(cur)))) + " bytes with its message, and does not fit in " +
-                str(budget) + ", dropped", 2)
-            cur = {}
-        end
-        if size(cur) > 0  out.push(cur) end
-        return out
+        return NodeHost.pack(fields, wrap, budget, "ZBBRIDGE_DRIVERS")
     end
 
     # A message to the NSPanel: at once when none is on its way, and else after the ones before it, FRAME_GAP_MS apart
@@ -611,40 +594,13 @@ class ZbBridgeDrivers
         end
     end
 
-    # one frame of a list: where it starts, how many there are, and these
-    static def list_frame(ieee, section, at, total, entries)
-        return {"ZbDriver": {ieee: {section: {"at": at, "of": total, "l": entries}}}}
-    end
-
     # A list the NSPanel needs whole (the settings' schema), in the frames the link carries, numbered by
-    # where each starts. An entry that fits no frame stops it and nothing goes: a list with a hole is
+    # where each starts (node_host.be). An entry that fits no frame stops it and nothing goes: a list with a hole is
     # worse than none, and the NSPanel asks again
     def send_list(ieee, section, entries)
-        import json
         if !self.claimed.contains(ieee) || !isinstance(entries, list) return false end
-        var budget = self.relay.frame_budget()
-        var total = size(entries)
-        var frames = []
-        var at = 0
-        var cur = []
-        var i = 0
-        while i < total
-            cur.push(entries[i])
-            if size(json.dump(ZbBridgeDrivers.list_frame(ieee, section, at, total, cur))) > budget
-                if size(cur) == 1
-                    log("ZBBRIDGE_DRIVERS: entry " + str(i) + " of " + section + " does not fit a frame of " + str(budget) +
-                        " bytes, the list is not sent", 2)
-                    return false
-                end
-                cur.remove(size(cur) - 1)
-                frames.push(ZbBridgeDrivers.list_frame(ieee, section, at, total, cur))
-                at = i
-                cur = []
-            else
-                i += 1
-            end
-        end
-        if size(cur) > 0 || total == 0  frames.push(ZbBridgeDrivers.list_frame(ieee, section, at, total, cur)) end
+        var frames = NodeHost.list_frames(entries, / f -> {"ZbDriver": {ieee: {section: f}}}, self.relay.frame_budget(), "ZBBRIDGE_DRIVERS")
+        if frames == nil return false end
         for f: frames  self.emit(f) end
         return true
     end

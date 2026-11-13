@@ -29,9 +29,27 @@ class Appliance
     static ID = "appliance"
     static ROLE = "device"
     static MAIN_ROWS = 1
+    static LED = 1
     var house, meshcmd, wifi, ota, link, backup, heard_from, budget
-    var ran, listened, wiped, mqtt_seen, asked
-    def init() self.heard_from = {} self.budget = 233 self.ran = [] self.listened = [] self.wiped = 0 self.mqtt_seen = [] self.asked = [] end
+    var pairing, window_until, by_button, identify_until, blink_pin, blink_rest, hold, clock_src, clock_at, clock_expect
+    var ran, listened, wiped, mqtt_seen, asked, closed, said_all
+    def init()
+        self.heard_from = {}
+        self.budget = 233
+        self.by_button = false
+        self.blink_pin = -1
+        self.ran = []
+        self.listened = []
+        self.wiped = 0
+        self.mqtt_seen = []
+        self.asked = []
+        self.closed = 0
+        self.said_all = 0
+    end
+    def announce() return "0,2" end
+    def window_closed() self.closed += 1 end
+    def guest_said(m) end
+    def say_all() self.said_all += 1 end
     def run(line, via, from)
         if NodeHost.run(self, line, via, from) return end
         self.ran.push(line)
@@ -54,6 +72,9 @@ class HostList
     var me
     def init() self.me = 2 end
     def is_panel(n) return n == 4 || n == 5 || n == 6 || (n >= 20 && n < 40) end
+    def is_owner(n) return n == 2 || n == 9 || n == 12 end
+    def revoked(n) return n == 12 && self.struck == true end
+    var struck
     def ids(all) return [2, 4, 5, 6, 9] end
 end
 class HostState
@@ -94,11 +115,15 @@ end
 
 # stand-ins of the classes an image carries, which NodeHost.start builds the house on the node with
 class HostCmd
-    var host
-    def init(host) self.host = host end
+    var host, sent
+    def init(host) self.host = host self.sent = [] end
+    def send(dest, line, answer)
+        self.sent.push([dest, line])
+        return 1
+    end
 end
 class HostMesh
-    var role, mqtt, view_fn, forgets
+    var role, mqtt, view_fn, forgets, events
     def init(role) self.role = role self.forgets = [] end
     def server() return "192.168.2.10" end
     static def build_rows() return [["Build", "dev", 0, 0]] end
@@ -425,6 +450,213 @@ def leave_checks()
     check("in a house that is not up, the house layer's leave, with nothing to follow", [h.went, h.left, h.leaving, after[0]], [2, 1, true, 2])
 end
 leave_checks()
+
+# what a node says, cut to the frames of the mesh
+def cut_checks()
+    var wrap = / m -> {"E": {"0x1": {"s": m}}}
+    var fields = {"cur": 580, "set": 600, "mode": "heat", "dem": 100, "up": true, "note": "No clock"}
+    var chunks = NodeHost.pack(fields, wrap, 60, "TAG")
+    var fits = true
+    var all = {}
+    for c: chunks
+        if size(json.dump(wrap(c))) > 60  fits = false end
+        for k: c.keys()  all[k] = c[k] end
+    end
+    check("fields in as few maps as fit a frame with their message around them: none cut, none lost",
+          [size(chunks) > 1, fits, size(all), all["cur"], all["note"]], [true, true, 6, 580, "No clock"])
+    check("what fits one frame is one map", size(NodeHost.pack(fields, wrap, 233, "TAG")), 1)
+    logged.clear()
+    chunks = NodeHost.pack({"a": 1, "big": "0123456789012345678901234567890123456789", "z": 2}, wrap, 50, "TAG")
+    var kept = {}
+    for c: chunks  for k: c.keys()  kept[k] = c[k] end end
+    check("a field that alone fits no frame is dropped, said in the log under the tag, and the others go",
+          [kept.contains("big"), kept.find("a"), kept.find("z"), size(logged), string.find(logged[0][0], "TAG: big is ") == 0, logged[0][1]], [false, 1, 2, 1, true, 2])
+    # a list in numbered frames
+    var lwrap = / f -> {"E": {"0x1": {"x": f}}}
+    var entries = []
+    for i: 0 .. 6  entries.push({"k": "key" + str(i), "l": "A label"}) end
+    var frames = NodeHost.list_frames(entries, lwrap, 100, "TAG")
+    var got = []
+    var ok = true
+    for f: frames
+        var x = f["E"]["0x1"]["x"]
+        if size(json.dump(f)) > 100 || x["at"] != size(got) || x["of"] != 7  ok = false end
+        for e: x["l"]  got.push(e["k"]) end
+    end
+    check("a list in frames numbered by where each starts, each within the room, the entries all there in order",
+          [size(frames) > 1, ok, got], [true, true, ["key0", "key1", "key2", "key3", "key4", "key5", "key6"]])
+    check("an empty list is one frame that says so", NodeHost.list_frames([], lwrap, 100, "TAG"), [{"E": {"0x1": {"x": {"at": 0, "of": 0, "l": []}}}}])
+    logged.clear()
+    entries.push({"k": "huge", "l": "0123456789012345678901234567890123456789012345678901234567890123456789"})
+    check("an entry that fits no frame stops the list: nothing goes, and the log says which, under the tag",
+          [NodeHost.list_frames(entries, lwrap, 100, "TAG"), logged[0]], [nil, ["TAG: entry 7 of a list does not fit a frame of 100 bytes, the list is not sent", 2]])
+end
+cut_checks()
+
+# the window of entering the house, over a node that is no bridge: what it announces, the LED that is its own, and what it does when the window closes
+def window_checks()
+    import gpio
+    var a = Appliance()
+    var h = HostHouse()
+    a.house = h
+    tasmota.cmds.clear()
+    tasmota.timers.clear()
+    logged.clear()
+    gpio.levels[13] = 1
+    NodeHost.open_window(a)
+    check("a pairing the driver does not open leaves no window", [tasmota.cmds, NodeHost.window_open(a), logged[0][0]],
+          [["EspNowPairOpen 120,0,2"], false, "APPLIANCE: the pairing did not open: nil"])
+    tasmota.replies["EspNowPairOpen 120,0,2"] = {"EspNowPairOpen": "Open"}
+    tasmota.replies["EspNowPairOpen 300,0,2"] = {"EspNowPairOpen": "Open"}
+    tasmota.cmds.clear()
+    logged.clear()
+    NodeHost.open_window(a)
+    check("the window opens for 2 minutes, with what the node says of itself after the seconds, as the button's",
+          [tasmota.cmds, NodeHost.window_open(a), a.by_button, logged[-1][0]], [["EspNowPairOpen 120,0,2"], true, true, "APPLIANCE: the button opened the pairing for 120 s"])
+    check("the node's own LED blinks, under the node's timers, with a net under the driver's word",
+          [a.blink_pin, a.blink_rest, gpio.levels[13], tasmota.timers.delay_of("appliance_blink"), tasmota.timers.delay_of("appliance_window")],
+          [13, 1, 0, NodeHost.BLINK_MS, NodeHost.WINDOW_MS + 70000])
+    NodeHost.identify(a)
+    tasmota.timers.fire("appliance_blink")
+    check("asked to identify itself, it blinks faster", [tasmota.timers.delay_of("appliance_blink"), logged[-1][0]],
+          [NodeHost.IDENTIFY_MS, "APPLIANCE: a panel asks this node to identify itself"])
+    tasmota.cmds.clear()
+    NodeHost.close_window(a)
+    check("closed: the driver's window too, the LED as it was, the timers gone, and the node does what is its own to do",
+          [tasmota.cmds, NodeHost.window_open(a), gpio.levels[13], tasmota.timers.contains("appliance_blink"), tasmota.timers.contains("appliance_window"), a.closed, a.blink_rest],
+          [["EspNowPairStop"], false, 1, false, false, 1, nil])
+    tasmota.cmds.clear()
+    NodeHost.close_window(a, true)
+    check("a window that is not open, or that the driver closed, is not closed at the driver again", [tasmota.cmds, a.closed], [[], 2])
+    NodeHost.identify(a)
+    check("and nothing is identified with no window", a.identify_until, nil)
+    # the button
+    gpio.levels[4] = 0
+    tasmota.at_ms = 50000
+    NodeHost.button_held(a)
+    check("the button held 5 s opens the window, and is watched from there", [NodeHost.window_open(a), a.hold, tasmota.timers.delay_of("appliance_hold")],
+          [true, [4, 0, 50000], NodeHost.HOLD_STEP_MS])
+    tasmota.at_ms = 50000 + NodeHost.LEAVE_HOLD_MS - NodeHost.HOLD_AT_MS - 1
+    tasmota.timers.fire("appliance_hold")
+    check("still held, a moment short of 20 s: nothing yet", [h.went, a.hold != nil], [0, true])
+    tasmota.at_ms += 1
+    logged.clear()
+    tasmota.timers.fire("appliance_hold")
+    check("held 20 s: the window closes and the node leaves the house", [NodeHost.window_open(a), h.went, a.hold, logged[0]],
+          [false, 1, nil, ["APPLIANCE: the button held 20 s: this node leaves the house", 1]])
+    NodeHost.button_held(a)
+    gpio.levels[4] = 1
+    tasmota.timers.fire("appliance_hold")
+    check("let go before that, the hold is over and nothing more is watched", [a.hold, tasmota.timers.contains("appliance_hold")], [nil, false])
+    NodeHost.close_window(a)
+    tasmota.at_ms = nil
+    # a boot with no network saved
+    tasmota.replies["SSId"] = {"SSId1": "Cottage-2G", "SSId2": ""}
+    tasmota.cmds.clear()
+    NodeHost.radio_at_boot(a)
+    check("a node with a network saved boots as it is", [NodeHost.no_network(), tasmota.cmds, NodeHost.window_open(a)], [false, ["SSId", "SSId"], false])
+    tasmota.replies["SSId"] = {"SSId1": "", "SSId2": ""}
+    tasmota.replies["StaState"] = {"StaState": {"State": "Idle"}}
+    tasmota.cmds.clear()
+    NodeHost.radio_at_boot(a)
+    check("with none: the radio held with no network and no access point, and the window open for 5 minutes, not the button's",
+          [tasmota.cmds, NodeHost.window_open(a), a.by_button], [["SSId", "StaState", "Wifi 0", "StaHold 1", "EspNowPairOpen 300,0,2"], true, false])
+    NodeHost.close_window(a)
+    tasmota.replies.remove("StaState")
+    tasmota.cmds.clear()
+    logged.clear()
+    NodeHost.radio_at_boot(a)
+    check("with no station driver to hold the radio, nothing is touched, and the log says so",
+          [tasmota.cmds, logged[0][0]], [["SSId", "StaState"], "APPLIANCE: no network saved, and no station driver to hold the radio: Tasmota opens its AP"])
+    tasmota.replies.remove("SSId")
+    tasmota.replies.remove("EspNowPairOpen 120,0,2")
+    tasmota.replies.remove("EspNowPairOpen 300,0,2")
+end
+window_checks()
+
+# the clock: a node with none asks the house, and one that is asked answers the one that asked
+def clock_checks()
+    def times() var t = [] for c: tasmota.cmds if c[0 .. 4] == "Time " t.push(c) end end return t end
+    var a = Appliance()
+    var h = HostHouse()
+    a.house = h
+    a.meshcmd = HostCmd(a)
+    tasmota.utc_now = 0
+    tasmota.replies.remove("RtcRetain")
+    tasmota.rule_lists = {}
+    tasmota.rules = {}
+    tasmota.timers.clear()
+    NodeHost.clock(a)
+    check("at a boot with no clock: none to say, the console's word, the rule of its own clock, and the house asked in a while",
+          [a.clock_src, a.clock_at, tasmota.handlers.contains("ZbRelayTime"), tasmota.rule_lists["Time#Set"][0][0], tasmota.timers.delay_of("appliance_time_ask")],
+          [nil, 0, true, "appliance_time", NodeHost.TIME_ASK_FIRST_MS])
+    tasmota.timers.fire("appliance_time_ask")
+    check("it asks an owner of the house for the time, with its own word, which says it has none, and will ask again",
+          [size(a.meshcmd.sent), a.meshcmd.sent[0][0], string.find(a.meshcmd.sent[0][1], "ZbRelayTime ") == 0, json.load(a.meshcmd.sent[0][1][12 ..])["utc"],
+           tasmota.timers.count("appliance_time_ask"), tasmota.timers.delay_of("appliance_time_ask")], [1, 9, true, 0, 1, NodeHost.TIME_ASK_MS])
+    # two owners: each in its turn
+    class TwoOwners : HostList
+        def ids(all) return [2, 4, 9, 12] end
+    end
+    h.list = TwoOwners()
+    tasmota.timers.fire("appliance_time_ask")
+    tasmota.timers.fire("appliance_time_ask")
+    check("with more than one owner, each in its turn, and never itself or a panel", [a.meshcmd.sent[1][0], a.meshcmd.sent[2][0]], [12, 9])
+    h.up = false
+    tasmota.timers.fire("appliance_time_ask")
+    check("in a house that is not up it asks nobody, and tries again later", [size(a.meshcmd.sent), tasmota.timers.count("appliance_time_ask")], [3, 1])
+    h.up = true
+    # the answer
+    tasmota.cmds.clear()
+    NodeHost.heard(a, 4, {"ZbTime": {"utc": 1791376200, "src": "you", "at": 1791376100}})
+    h.list.struck = true
+    NodeHost.heard(a, 12, {"ZbTime": {"utc": 1791376200, "src": "internet", "at": 1791376100}})
+    h.list.struck = false
+    NodeHost.heard(a, 9, {"ZbDriver": {}})
+    check("a time said by a panel, by a node struck off, or what is no time, is not taken", [times(), a.clock_src], [[], nil])
+    NodeHost.heard(a, 9, {"ZbTime": {"utc": 1791376200, "src": "internet", "at": 1791376100}})
+    check("the word of the owner it asked is taken: the clock set, given back to the NTP, and the house's from then on",
+          [times(), a.clock_src, a.clock_at, a.clock_expect], [["Time 1791376200", "Time 0"], "house", 1791376100, "house"])
+    tasmota.rules["Time#Set"](nil, nil, nil)
+    check("its Time#Set is the house's", [a.clock_src, a.clock_at, a.clock_expect], ["house", 1791376100, nil])
+    var asked = size(a.meshcmd.sent)
+    tasmota.timers.fire("appliance_time_ask")
+    check("with a clock it asks no more", [size(a.meshcmd.sent), tasmota.timers.contains("appliance_time_ask")], [asked, false])
+    tasmota.utc_now = 1791376300
+    tasmota.rules["Time#Set"](nil, nil, nil)
+    check("the next Time#Set is the internet's, the freshest", [a.clock_src, a.clock_at], ["internet", 1791376300])
+    # this node asked: by a node with no screen, by a panel, at the console
+    h.state.marks[5] = 1
+    h.sent.clear()
+    tasmota.cmds.clear()
+    a.run("ZbRelayTime {\"utc\":0,\"src\":null,\"at\":0}", "mesh", 9)
+    check("a node with no screen that asks is answered alone, with this node's word, and its own word, which says nothing, is not taken",
+          [size(h.sent), h.sent[0][0], json.load(h.sent[0][1])["ZbTime"], times(), size(a.ran)], [1, 9, {"utc": 1791376300, "src": "internet", "at": 1791376300}, [], 0])
+    h.sent.clear()
+    a.run("ZbRelayTime {\"utc\":1791376400,\"src\":\"you\",\"at\":1791376390}", "mesh", 4)
+    var said = {}
+    for x: h.sent  said[x[0]] = json.load(x[1])["ZbTime"] end
+    check("a panel's word, set later and further apart, is taken, and the panels that hear this node are told its own",
+          [times(), a.clock_src, size(h.sent), said.contains(4), said[5]["src"], said[5]["at"]], [["Time 1791376400", "Time 0"], "panel", 2, true, "panel", 1791376390])
+    tasmota.rules["Time#Set"](nil, nil, nil)
+    h.sent.clear()
+    tasmota.answers.clear()
+    tasmota.handlers["ZbRelayTime"]("ZbRelayTime", 1, "not json")
+    check("the console's word is answered to the panels too, and the command is done", [size(h.sent) > 0, tasmota.answers], [true, ["done"]])
+    h.sent.clear()
+    a.run("ZbRelayTime {\"utc\":1791376500,\"src\":\"internet\",\"at\":1791376495}", "mesh", 12)
+    check("an owner's own time, set later, is taken as the house's", [a.clock_src, h.sent[0][0]], ["house", 12])
+    # a boot whose time was kept across the restart
+    tasmota.replies["RtcRetain"] = {"RtcRetain": {"Restored": 1, "Gap": 4}}
+    NodeHost.time_boot(a)
+    check("a time kept across a restart is said so, and not known fresh", [a.clock_src, a.clock_at], ["restart", 0])
+    tasmota.replies.remove("RtcRetain")
+    NodeHost.time_boot(a)
+    check("and one set at this boot is the internet's", a.clock_src, "internet")
+    tasmota.utc_now = nil
+    tasmota.timers.clear()
+end
+clock_checks()
 
 if failures == 0
     print("ok - " + str(checks) + " checks")

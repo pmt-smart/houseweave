@@ -45,7 +45,8 @@ into a zone (§4); no image is an appliance's yet.
 
 ## 2. Coming in and going out
 
-**A node comes in through "Add to this house"** (`berry/zigbee_pairing.be`, `berry/house_link.be`). A panel of the house that writes opens the search
+**A node comes in through "Add to this house"** (`berry/zigbee_pairing.be`, `berry/house_link.be`; on a node with no screen, `berry/node_host.be`
+and `berry/node_pairing.be`). A panel of the house that writes opens the search
 from the + of its mesh page; the nodes whose **window** is open show up (a bridge opens its window with its button, a new panel with its own screen).
 The one picked identifies itself (a bridge blinks, a panel says so on its screen), the person says Yes, and the two pair over ESP-NOW as a **guest's
 exchange**: neither side writes a record, and the exchange's link lives in RAM while it lasts. Over that link the node says who it is, and the panel
@@ -117,8 +118,19 @@ what is Zigbee's (`HouseList.owns`):
   word, `ZbDriver`) is taken as a bridge's that is not the house's is (`PanelBoot.takes`); a word of the house's (the alarm, the time) is not: an
   appliance is never the bridge of the house, nor a panel's favourite.
 - **The sync gate** looks at it by the same heartbeat and the same bit, and the reason on its device's page calls it the device: "Device not heard".
+- **What it says** (`berry/appliance_node.be`): when a panel marks the device, and after the appliance's boot, each panel that shows the device is
+  told what it is and its whole state, alone. A panel keeps no description across a restart, and one that does not show the device would register
+  it by a description it heard. From then on the fields that change go to the panels that hear the appliance, and a command's answer goes whole.
+  Its item of the page carries only what classifies the device (the kind, the caps, the endpoint and the range), so that it fits one frame with
+  the device's name.
 
-The device an appliance is has an address of an IEEE's shape, 64 bits, so everything that keys a device by its IEEE takes it as it is.
+The device an appliance is has an address of an IEEE's shape, 64 bits, so everything that keys a device by its IEEE takes it as it is: the EUI-64
+of the node's radio address, its first three bytes, `FFFE`, and its last three.
+
+**The time of a node with no screen.** A panel and the bridge of the house tell each other their time, and the one set last by a person or the
+internet wins (`berry/clock_link.be`). A bridge or an appliance that has no clock at all, with no network after a power cut, asks the house: its
+own word, which says it has none, to the bridges and the appliances of the house, one a minute, each in its turn, until one answers with a time
+(`berry/node_host.be`). The node asked answers the one that asked, alone.
 
 **Presence.** A node's heartbeat is not repeated, so by heartbeats a node sees only its neighbours. Every node of a house of more than one also
 floods its **presence** (`MSG_HERE`) every 10 s on a bridge or an appliance and 30 s on a panel, with how it is tied to the mesh and the nodes it hears in their

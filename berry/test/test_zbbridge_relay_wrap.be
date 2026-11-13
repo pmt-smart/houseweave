@@ -62,7 +62,7 @@ def run_wrap()
     check("asked to identify itself 500 ms before the wrap: its deadline is on the other side", r.identify_until < 0, true)
     tasmota.at_ms = edge + 1000
     check("1.5 s later, across the wrap: it still blinks fast", tasmota.time_reached(r.identify_until), false)
-    tasmota.at_ms = edge - 500 + ZbBridgeRelay.IDENTIFY_FOR_MS
+    tasmota.at_ms = edge - 500 + NodeHost.IDENTIFY_FOR_MS
     check("IDENTIFY_FOR_MS after: it is over", tasmota.time_reached(r.identify_until), true)
     r.close_window()
     tasmota.at_ms = nil

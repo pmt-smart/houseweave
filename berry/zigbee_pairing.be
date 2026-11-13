@@ -755,7 +755,7 @@ class ZigbeePairing : Driver
         self.changed()
     end
 
-    # What the panel that adds this one says over the link of the exchange, as a bridge's window answers it (zbbridge_relay_pairing.be): its word, which
+    # What the panel that adds this one says over the link of the exchange, as a bridge's window answers it (node_pairing.be): its word, which
     # this panel answers with who it is, the welcome of the house, and the end
     def window_link(m)
         var kind = m.find("ZbPair")

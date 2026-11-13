@@ -1,7 +1,7 @@
 # Stages the filesystem image of the ZBBridge Pro for this build.
 #
 # The relay is compiled into the firmware (`custom_berry_solidify`):
-# ZbBridgeRelay, ZbBridgeRelayPairing, ZbBridgeDiscovery,
+# ZbBridgeRelay, NodeHost, NodePairing, ZbBridgeDiscovery,
 # ZbBridgeDrivers, ZbDriverThermostat and PairSign. What the
 # bridge keeps as files is what starts it and what is its own. An env that says
 # `custom_bridge_image = yes` gets, in the LittleFS image Tasmota's

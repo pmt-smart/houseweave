@@ -7,7 +7,7 @@
 # in the global table that only counts its start.
 
 import path
-path.present.push("zbbridge_relay_pairing.be")
+path.present.push("node_pairing.be")
 path.present.push("zbdriver_cover.be")
 
 var loaded = []

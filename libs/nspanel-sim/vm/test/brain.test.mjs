@@ -1,5 +1,5 @@
 // The brain as the firmware build takes it, and the bridge's
-// relay too, which its own image compiles in the same way.
+// relay and an appliance's node too, which their own images compile in the same way.
 //
 // The build compiles each file of the brain into the flash with Tasmota's
 // custom_berry_solidify: it runs every file's top level in a Berry VM of its
@@ -20,7 +20,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Berry, BRAIN_FILES, BRIDGE_FILES } from "../dist/index.js";
+import { Berry, BRAIN_FILES, BRIDGE_FILES, APPLIANCE_FILES } from "../dist/index.js";
 import { REPO } from "../dist/files-node.js";
 
 /** the globals of the firmware's Berry that the brain names: Tasmota's */
@@ -29,11 +29,12 @@ const FIRMWARE = ["tasmota", "log", "serial", "tcpclient", "webclient", "gpio", 
   "tcpclientasync"];
 
 const read = (f) => readFileSync(join(REPO, "berry", f), "utf8");
-const sources = Object.fromEntries([...new Set([...BRAIN_FILES, ...BRIDGE_FILES])].map((f) => [f, read(f)]));
+const sources = Object.fromEntries([...new Set([...BRAIN_FILES, ...BRIDGE_FILES, ...APPLIANCE_FILES])].map((f) => [f, read(f)]));
 const named = (src) => [...src.matchAll(/^#@\s*solidify:([A-Za-z0-9_]+)(,[a-z]+)*[ \t]*\r?$/gm)].map((m) => m[1]);
 const declared = (src) => [...src.matchAll(/^class\s+([A-Za-z0-9_]+)/gm)].map((m) => m[1]);
 const CLASSES = BRAIN_FILES.map((f) => named(sources[f])[0]);
 const BRIDGE_CLASSES = BRIDGE_FILES.map((f) => named(sources[f])[0]);
+const APPLIANCE_CLASSES = APPLIANCE_FILES.map((f) => named(sources[f])[0]);
 
 /**
  * A VM as the build's is, strict with globals by name, with only these
@@ -58,7 +59,8 @@ async function vmWith(globals) {
   return { vm, printed };
 }
 
-for (const [who, files, classes] of [["the brain", BRAIN_FILES, CLASSES], ["the bridge's relay", BRIDGE_FILES, BRIDGE_CLASSES]]) {
+for (const [who, files, classes] of [["the brain", BRAIN_FILES, CLASSES], ["the bridge's relay", BRIDGE_FILES, BRIDGE_CLASSES],
+  ["an appliance's node", APPLIANCE_FILES, APPLIANCE_CLASSES]]) {
   test(`every file of ${who} names the one class it declares`, () => {
     for (const f of files) {
       assert.equal(named(sources[f]).length, 1, `${f}: one #@ solidify: line`);
@@ -145,5 +147,5 @@ test("the class the firmware build registers for each file is the file's class",
   const prelude = readFileSync(join(REPO, "firmware/overrides/_brain_prelude.be"), "utf8");
   const registered = (src) => /(?<=#@ solidify:)[^\n]*/.exec(src)?.[0].split(",")[0];
   assert.equal(registered(prelude), "BrainPrelude", "the prelude's own");
-  for (const f of [...BRAIN_FILES, ...BRIDGE_FILES]) assert.equal(registered(sources[f]), named(sources[f])[0], f);
+  for (const f of [...BRAIN_FILES, ...BRIDGE_FILES, ...APPLIANCE_FILES]) assert.equal(registered(sources[f]), named(sources[f])[0], f);
 });

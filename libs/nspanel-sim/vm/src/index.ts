@@ -2,6 +2,7 @@ export * from "./berry.js";
 export * from "./device.js";
 export * from "./panel.js";
 export * from "./bridge.js";
+export * from "./appliance.js";
 export * from "./house.js";
 export * from "./zigbee.js";
 export * from "./sha256.js";

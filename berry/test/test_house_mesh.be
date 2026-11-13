@@ -2356,6 +2356,33 @@ def section_device_owner()
     hm.devices.ask(5, 0)
     hm.on_frame(item_frame(5, 0, 1, body))
     check("and an item a panel sends is no page, though it was asked", hm.devices.current()[2], nil)
+    # the appliance's own side: the page is the one device it is, as it says it now, with no map to wait for
+    var ap = fresh(HouseList.ROLE_DEVICE, 8)
+    ap.adopt(hm.list.to_map())
+    var name = ["Boiler"]
+    ap.devices.own = / -> [boiler, "THR320D", name[0], {"kind": "thermostat", "caps": 48, "min": 300, "max": 700, "ep": 1}]
+    empty(sent)
+    ap.on_frame(list_frame(4, 8, 0))
+    check("an appliance asked for the page of its devices answers at once: one item, the one of one",
+          [size(sent), sent[0][0], sent[0][3][0], sent[0][3][2], sent[0][3][3]], [1, 4, HouseDevices.MSG_ITEM, 0, 1])
+    var it = json.load(sent[0][3][4 ..].asstring())
+    check("the item says what the device is in the place of a Config, with the name the house gave it",
+          [it["i"], it["m"], it["n"], it.contains("c"), it["d"]["kind"], it["d"]["caps"], it["d"]["min"], it["d"]["max"], it["d"]["ep"]],
+          [boiler, "THR320D", "Boiler", false, "thermostat", 48, 300, 700, 1])
+    hm.devices.ask(8, 0)
+    hm.on_frame({"From": 8, "Dest": 4, "Type": 6, "Flags": 0, "Data": sent[0][3].tohex()})
+    var took = hm.devices.current()[0][0]
+    check("and a panel takes it as it came", [took[0], took[1], took[2], took[3], took[4]["kind"], took[4]["max"]], [boiler, "THR320D", [], "Boiler", "thermostat", 700])
+    name[0] = "Hot water"
+    empty(sent)
+    ap.on_frame(list_frame(5, 8, 0))
+    check("asked again, it says the device as it is then", json.load(sent[0][3][4 ..].asstring())["n"], "Hot water")
+    empty(sent)
+    ap.on_frame(list_frame(4, 8, 1))
+    check("one past the device is the end", [size(sent), sent[0][3][2], sent[0][3][3]], [1, HouseDevices.END, 1])
+    empty(sent)
+    ap.on_frame(list_frame(9, 8, 0))
+    check("and what is no panel of the house is not answered", size(sent), 0)
 end
 
 def run_all()

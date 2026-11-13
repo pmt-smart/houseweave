@@ -22,4 +22,17 @@ m.remove = def (p)
     m.removed.push(p)
     return true
 end
+# rename() wants the leading / on both names, which the test's own directory has not: what the first holds is written under the second
+m.renamed = []
+m.rename = def (a, b)
+    if size(a) == 0 || size(b) == 0 || a[0] != "/" || b[0] != "/" return false end
+    var f = open(a[1 ..], "rb")
+    var data = f.readbytes()
+    f.close()
+    f = open(b[1 ..], "wb")
+    f.write(data)
+    f.close()
+    m.renamed.push([a, b])
+    return true
+end
 return m

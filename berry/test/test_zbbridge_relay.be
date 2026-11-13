@@ -1,4 +1,4 @@
-# berry/zbbridge_relay.be, the ZBBridge Pro's side of the house, as the classes the bridge's firmware compiles (ZbBridgeRelay, ZbBridgeRelayPairing): how a
+# berry/zbbridge_relay.be, the ZBBridge Pro's side of the house, as the classes the bridge's firmware compiles (ZbBridgeRelay, with NodeHost and NodePairing): how a
 # burst of reports is merged and split to fit a frame, the panels its events go to over the mesh and what a panel runs here,
 # the window of entering the house, the button, the radio at boot, the Zigbee channel and key, the time, the queue and the house's words. The radio is the
 # bench's.
@@ -243,10 +243,10 @@ def listen_checks()
     # the look the relay's own boot left pending, out of the way
     tasmota.timers.remove("zbbridge_relay_again")
     drivers.said = 0
-    r.again_after_boot(ZbBridgeRelay.AGAIN_TRIES)
+    r.again_after_boot(NodeHost.AGAIN_TRIES)
     check("a bridge in no house at its boot has nobody to tell: nothing said, and nothing looked at again", [drivers.said, alarm.said, tasmota.timers.contains("zbbridge_relay_again")], [0, 1, false])
     tasmota.replies["_EspNowMeshId"] = {"EspNowMeshId": 2}
-    r.again_after_boot(ZbBridgeRelay.AGAIN_TRIES)
+    r.again_after_boot(NodeHost.AGAIN_TRIES)
     check("in a house, and not in step yet: nothing said, and it looks again", [drivers.said, tasmota.timers.contains("zbbridge_relay_again")], [0, true])
     in_step[0] = true
     tasmota.timers.fire("zbbridge_relay_again")
@@ -305,7 +305,7 @@ def pair_checks()
     r.close_window()
     # a window a boot opened gives no network
     tasmota.replies["EspNowPairOpen 300,0"] = {"EspNowPairOpen": "Open"}
-    r.open_window(r.BOOT_WINDOW_MS, false)
+    r.open_window(NodeHost.BOOT_WINDOW_MS, false)
     rule("EspNowPair#Paired", "CC:CC:CC:00:00:09", {"EspNowPair": {"Paired": "CC:CC:CC:00:00:09", "Epoch": 1, "Guest": 1}})
     tasmota.cmds.clear()
     tells.clear()
@@ -347,17 +347,17 @@ gpio.levels[4] = 0
 r.button_held()
 check("the hold opens the window and watches the button", [r.window_open(), r.hold != nil], [true, true])
 gpio.levels[4] = 1
-tasmota.timers.advance(ZbBridgeRelay.HOLD_STEP_MS + 10)
+tasmota.timers.advance(NodeHost.HOLD_STEP_MS + 10)
 check("let go before 20 s: nothing more", [r.hold, tasmota.cmds.find("EspNowMeshLeave 1")], [nil, nil])
 gpio.levels[4] = 0
 r.button_held()
-for i: 1 .. (ZbBridgeRelay.LEAVE_HOLD_MS - ZbBridgeRelay.HOLD_AT_MS) / ZbBridgeRelay.HOLD_STEP_MS - 1  tasmota.timers.advance(ZbBridgeRelay.HOLD_STEP_MS) end
+for i: 1 .. (NodeHost.LEAVE_HOLD_MS - NodeHost.HOLD_AT_MS) / NodeHost.HOLD_STEP_MS - 1  tasmota.timers.advance(NodeHost.HOLD_STEP_MS) end
 check("held on, short of 20 s: still in the house", tasmota.cmds.find("EspNowMeshLeave 1"), nil)
-tasmota.timers.advance(ZbBridgeRelay.HOLD_STEP_MS + 10)
+tasmota.timers.advance(NodeHost.HOLD_STEP_MS + 10)
 check("held on to 20 s: the window closes, and the bridge leaves the house", [r.window_open(), tasmota.cmds.find("EspNowMeshLeave 1") != nil, r.hold], [false, true, nil])
 gpio.levels[4] = 1
 # the LED says it left, a few blinks, and is left as it was
-tasmota.timers.advance(2 * ZbBridgeRelay.LEFT_BLINKS * ZbBridgeRelay.LEFT_BLINK_MS + 100)
+tasmota.timers.advance(2 * NodeHost.LEFT_BLINKS * NodeHost.LEFT_BLINK_MS + 100)
 check("the LED blinked and is as it was", gpio.levels[17], led_was)
 r.house = house_was
 r.open_window()
@@ -577,8 +577,8 @@ def time_checks()
         return said != nil ? said.find("ZbTime") : nil
     end
     def times() var t = [] for c: tasmota.cmds if c[0 .. 4] == "Time " t.push(c) end end return t end
-    check("the panel's word is a command the relay knows, and lets through the mesh",
-          [tasmota.handlers.contains("ZbRelayTime"), ZbBridgeRelay.ALLOWED.find("ZBRELAYTIME") != nil], [true, true])
+    check("the panel's word is a command the console knows; over the mesh it is every node's, and not one of the relay's own",
+          [tasmota.handlers.contains("ZbRelayTime"), ZbBridgeRelay.ALLOWED.find("ZBRELAYTIME")], [true, nil])
     check("and the bridge hears its own clock set", tasmota.rule_lists["Time#Set"][0][0], "zbbridge_relay_time")
 
     # a boot with no clock: the panel's time is taken, and the NTP gets the clock back

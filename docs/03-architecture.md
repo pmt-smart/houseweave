@@ -67,19 +67,38 @@ is (`berry/panel_build.be`), and one Tasmota rule for all its parts (`berry/pane
   firmware when the chip reports another version.
 - **The house on a node with no screen** (`berry/node_host.be`): what a bridge is to the house as any such node is, and nothing of Zigbee. The house's
   layer and the mesh's commands started at boot, the panels that hear the node (those that commanded it lately and those that show its devices) and
-  the events sent to them, a panel's words every node takes (the factory reset and the web password), the node's Wi-Fi, OTA, server and backup, the
-  house's MQTT, the screens a panel shows of it (its Main settings, with the node's own rows, and its Wireless settings), and its way out of the
-  house. It is a class of static functions over the node's own object, the relay, which keeps the state and is asked for what is a bridge's: an
-  appliance that joins the house as a node uses the same functions. They are not a class the relay extends: the build runs the files in the order
-  of their names, and a class could only extend one whose file came first ([12 §1](12-berry-notes.md)).
+  the events sent to them, cut to the frames of the mesh, a panel's words every node takes (the factory reset, the web password and the time), the
+  node's Wi-Fi, OTA, server and backup, the house's MQTT, the screens a panel shows of it (its Main settings, with the node's own rows, and its
+  Wireless settings), the window of entering the house with its button and its LED, its clock, and its way out of the house. It is a class of
+  static functions over the node's own object, the relay, which keeps the state and is asked for what is a bridge's: an appliance's node uses the
+  same functions. They are not a class the relay extends: the build runs the files in the order of their names, and a class could only extend one
+  whose file came first ([12 §1](12-berry-notes.md)).
 - **The drivers' host** (`berry/zbbridge_drivers.be`): every report of a device goes to its driver, which returns a normalised state the panels show
   (one event, `ZbDriver`); a panel's command to a device goes to its driver. Drivers are classes of their own: thermostats
   (`berry/zbdriver_thermostat.be`: a ZCL thermostat and the Moes ZHT-SR, with its settings), blinds (`berry/zbdriver_cover.be`) and switches of two
   channels that open and close (`berry/zbdriver_twokey.be`).
 - **Home Assistant's discovery** of the bridge's devices (`berry/zbbridge_discovery.be`, [07 §4](07-home-assistant.md)).
 - **The alarm** (`berry/zbbridge_alarm.be`, with its replica, [05 §5](05-the-house.md)).
-- **Entering the house**: the bridge's pairing window, opened by its button, and its LED (`berry/zbbridge_relay_pairing.be`).
-- **The bridge's backup** (`berry/bridge_backup.be`), its clock link (`berry/clock_link.be`).
+- **Entering the house** (`berry/node_pairing.be`): what the panel that adds the node says over the pairing's link, on any node with no screen.
+  The window, its button and its LED are `berry/node_host.be`'s.
+- **The bridge's backup** (`berry/bridge_backup.be`). Its clock is every such node's (`berry/node_host.be`, by the rule of `berry/clock_link.be`).
+
+**An appliance's node** (`berry/appliance_node.be`) is the same node with no screen around one device, in the place of a Zigbee network:
+`ApplianceNode.start()` is the whole of its `autoexec.be`. It runs what a panel says of a device (a driver's command, a ping, the name the house
+gave it), answers the page of its devices with the one it is, and says the device's state as a bridge's drivers do (`ZbDriver`), its description
+only to the panels that show it ([05 §4](05-the-house.md)). The device is a class of its own, handed the node:
+
+- **The water heater's thermostat** (`berry/boiler_thermostat.be`): a probe in the water, a relay on the heater, and its logic every second, on
+  the appliance, with every panel off and the mesh down. The heater comes on at the target less the hysteresis and goes off at the target; each of
+  two windows of the day has its hours and its target, and outside both the heater is off. It is off in the mode off, with no reading of the
+  probe, at the ceiling, and before a restart, since its relay is bistable and stays as it is. A relay switched by another hand (the Web UI, the
+  MQTT) is the mode that was asked for, and the logic decides the relay from it. With no clock at all it holds the first window's target, an
+  exceptional mode said on the panel's page, in its settings, by the node's LED and in the node's telemetry, and left when the clock comes.
+- **Its history** (`berry/boiler_history.be`): the water and the heater's minutes every five minutes, for a week, and each day's lowest and
+  highest water and its minutes, for a year, in RAM and written to the file system every hour and before a restart. The time it ran with no clock
+  is kept in order and placed when the clock comes.
+
+No image carries an appliance's files yet; the Berry suite and the build's rules hold them ([13](13-testing.md)).
 
 ## 4. Both images
 

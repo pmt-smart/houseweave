@@ -1,23 +1,29 @@
 # node_host.be -- what a node of the house with no screen is to the house, whatever it is besides: a bridge, with its Zigbee network, or an appliance.
 # The house's layer on it (house_mesh.be) and what goes with it: the commands that come over the mesh, the panels that hear it, its Wi-Fi, its OTA, the
-# house's server and its backup, the house's MQTT, the screens a panel of the house shows of it, and its way out of the house.
+# house's server and its backup, the house's MQTT, the screens a panel of the house shows of it, its way into the house (the window its button opens, and
+# its LED) and out of it, its clock, and how what it says is cut to the frames of the mesh.
 #
-# A class of static functions over the NODE, the object of the node's own class (ZbBridgeRelay, zbbridge_relay.be), which keeps the state and is asked for
-# what is its own. They are not the methods of a class the node's extends: the firmware's build runs the files in the order of their names, with every
-# class of ours declared empty until its own file has run (firmware/overrides/_brain_prelude.be), so a class could only extend one of ours whose file's
-# name happened to come before its own.
+# A class of static functions over the NODE, the object of the node's own class (ZbBridgeRelay, zbbridge_relay.be; ApplianceNode, appliance_node.be),
+# which keeps the state and is asked for what is its own. They are not the methods of a class the node's extends: the firmware's build runs the files in
+# the order of their names, with every class of ours declared empty until its own file has run (firmware/overrides/_brain_prelude.be), so a class could
+# only extend one of ours whose file's name happened to come before its own.
 #
 # THE NODE has
 #   fields     house (HouseMesh), meshcmd (MeshCmd), wifi (PanelWifi), ota (NodeOta), link (ServerLink) and backup (NodeBackup), each nil where the image has
-#              none; heard_from, a map, a panel's number -> millis when it last commanded the node; budget, the most bytes one event carries
+#              none; heard_from, a map, a panel's number -> millis when it last commanded the node; budget, the most bytes one event carries;
+#              pairing (NodePairing, node_pairing.be), what a panel says to it while it enters the house;
+#              window_until, by_button, identify_until, blink_pin, blink_rest and hold, the window's own (open_window, button_held);
+#              clock_src, clock_at and clock_expect, the clock's own (clock)
 #   constants  TAG, what its log lines begin with; ID, what the names of its timers and rules begin with; ROLE, what it tells the house's server it is;
-#              MAIN_ROWS, how many rows of its Main settings are its own
+#              MAIN_ROWS, how many rows of its Main settings are its own; LED, which of the board's LEDs its window blinks, from 0
 #   methods    run(line, via, from), a command line of a panel (MeshCmd's host), which hands NodeHost.run the line first; listen(payload, from), a panel
 #              keeps it as the node it says the house's words to; wipe(), back to its image; settings_rows(), the rows of its Main settings that are its
-#              own, a new list; apply_mqtt(m), the house's MQTT, with what is its own of it; render_for(view, k, x), its screens
+#              own, a new list; apply_mqtt(m), the house's MQTT, with what is its own of it; render_for(view, k, x), its screens; announce(), what its
+#              window's announcement says after its seconds (EspNowPairOpen); window_closed(), what is its own to do once its window closed;
+#              guest_said(m), what is its own in the first word of the panel that adds it; say_all(), everything it says of its devices, again
 #
-# Compiled into the firmware: one class, nothing at the top, every module imported where it is used. It comes before the node's class, which names it, and
-# reaches every other class through `global`.
+# Compiled into the firmware: one class, nothing at the top, every module imported where it is used. It comes before the node's class and NodePairing,
+# which name it, after ClockLink, which it names, and reaches every other class through `global`.
 
 #@ solidify:NodeHost
 class NodeHost
@@ -30,6 +36,28 @@ class NodeHost
     static RESTART_MS = 1500
     # what a search of its Wi-Fi found goes this long after it was last asked for (the heap)
     static SEARCH_KEPT_MS = 120000
+    # The button's window: held 5 s (SetOption32 50 in the node's template), the button opens 2 minutes in which a panel may add this node to its
+    # house, the LED blinking all the while
+    static WINDOW_MS = 120000
+    static BLINK_MS = 250
+    # a node with no network saved opens it alone for 5 minutes at every boot: being plugged in is the gesture there
+    static BOOT_WINDOW_MS = 300000
+    # asked to identify itself, it blinks this fast for a while
+    static IDENTIFY_MS = 80
+    static IDENTIFY_FOR_MS = 10000
+    # the button held: the hold comes at HOLD_AT_MS, and held on to LEAVE_HOLD_MS the node leaves the house; the pin is read every HOLD_STEP_MS, and the
+    # LED says it left with LEFT_BLINKS blinks of LEFT_BLINK_MS
+    static HOLD_AT_MS = 5000
+    static LEAVE_HOLD_MS = 20000
+    static HOLD_STEP_MS = 500
+    static LEFT_BLINKS = 6
+    static LEFT_BLINK_MS = 150
+    # after a boot, the house looked at every AGAIN_MS, AGAIN_TRIES times at most, for this node to say everything again once it is in step
+    static AGAIN_MS = 1000
+    static AGAIN_TRIES = 180
+    # a node with no clock asks the house for the time this long after its boot, and again this often until it has one
+    static TIME_ASK_FIRST_MS = 20000
+    static TIME_ASK_MS = 60000
 
     # The house on the node, at its boot: the commands of the mesh, the house's list with its console commands and its MQTT, the node's Wi-Fi, its OTA, the
     # house's server with the node's backup, its screens, and the panels it forgets. `role` is the node's in the house (HouseList.ROLE_...), and `part` the
@@ -79,6 +107,8 @@ class NodeHost
         house.view_fn = / v, k, x -> node.render_for(v, k, x)
         # and the nodes the house forgets (house_mesh.be, sweep()): the panels that commanded this node
         house.forgets.push(/ m, forgot -> NodeHost.forget(node, m))
+        # and what a node of the house says to this one: the time, of the one it asked (time_ask)
+        house.events = / src, text, m -> NodeHost.heard(node, src, m)
     end
 
     # the panels the house forgot, out of those that commanded this node: `m` has the numbers the house still has
@@ -97,21 +127,24 @@ class NodeHost
         return string.toupper(i < 0 ? line : line[0 .. i - 1])
     end
 
-    # A command line from a panel of the house, over the mesh (`from`, its number, MeshCmd): the panel is noted as one that hears this node, and the words
-    # every node takes are run, ZbRelayListen (the node's listen) and ZbRelayAdmin (admin). True for one of them; false for a line that is the node's own to
-    # run or refuse
+    # A command line from a node of the house, over the mesh (`from`, its number, MeshCmd): a panel is noted as one that hears this node, and the words
+    # every node takes are run, ZbRelayListen (the node's listen), ZbRelayTime (time_cmd) and ZbRelayAdmin (admin). True for one of them; false for a line
+    # that is the node's own to run or refuse
     static def run(node, line, via, from)
         import string
         var h = node.house
         # a panel of the house that commands this node over the mesh hears its events for a while
         if from != nil && from > 0 && h != nil && h.up && h.list.is_panel(from)  node.heard_from[from] = tasmota.millis() end
         var w = NodeHost.word(line)
-        if w != "ZBRELAYLISTEN" && w != "ZBRELAYADMIN" return false end
+        if w != "ZBRELAYLISTEN" && w != "ZBRELAYADMIN" && w != "ZBRELAYTIME" return false end
         var i = string.find(line, " ")
         var payload = i < 0 ? "" : line[i + 1 ..]
         if w == "ZBRELAYLISTEN"
             # a panel that keeps this node as the one of the house's words: it hears its events, and, with a 1, what it says again
             node.listen(payload, from)
+        elif w == "ZBRELAYTIME"
+            # the time of the one that says it, answered with this node's own: to it too, when it is a node with no screen that asks
+            NodeHost.time_cmd(node, payload, from)
         else
             # the node's factory reset and its web password, from any panel of the house, over the mesh only
             NodeHost.admin(node, payload, via, from)
@@ -330,5 +363,306 @@ class NodeHost
             tasmota.cmd("EspNowMeshLeave 1", true)
         end
         if then != nil  then() end
+    end
+
+    # After a boot, once this node is in its house and in step on the mesh, everything said again to the panels that show its devices (their marks, which
+    # the flash kept): a restart quicker than the mesh's heartbeats is no session a panel saw go down, and what the node says of its devices begins again here
+    static def again_after_boot(node, tries)
+        import global
+        var h = node.house
+        if h == nil || tries <= 0 return end
+        # a node in no house at its boot has nobody to tell: the panel that adds it asks for everything itself
+        if tries == NodeHost.AGAIN_TRIES
+            var r = tasmota.cmd("_EspNowMeshId", true)
+            if !isinstance(r, map) || int(r.find("EspNowMeshId", 0)) < 1 return end
+        end
+        if h.up && global.contains("espnow_mesh_stamp") && global.espnow_mesh_stamp() != false
+            log(node.TAG + ": in the house and in step after the boot: everything said again to the panels that hear this node", 2)
+            node.say_all()
+            return
+        end
+        tasmota.set_timer(NodeHost.AGAIN_MS, / -> NodeHost.again_after_boot(node, tries - 1), node.ID + "_again")
+    end
+
+    # --- what the node says, cut to the frames of the mesh --------------------------------------
+
+    # `fields` {name: value}, in as few maps as fit `budget` once `wrap` has put each in its message: a field is never cut. One that alone does not fit
+    # is dropped, and the log says which, under `tag`
+    static def pack(fields, wrap, budget, tag)
+        import json
+        var out = []
+        var cur = {}
+        for k: fields.keys()
+            cur[k] = fields[k]
+            if size(json.dump(wrap(cur))) <= budget continue end
+            if size(cur) > 1
+                cur.remove(k)
+                out.push(cur)
+                cur = {}
+                cur[k] = fields[k]
+                if size(json.dump(wrap(cur))) <= budget continue end
+            end
+            log(tag + ": " + str(k) + " is " + str(size(json.dump(wrap(cur)))) + " bytes with its message, and does not fit in " +
+                str(budget) + ", dropped", 2)
+            cur = {}
+        end
+        if size(cur) > 0  out.push(cur) end
+        return out
+    end
+
+    # A list the other side needs whole, as the messages `wrap` makes of its numbered frames, each {"at": where it starts, "of": how many entries there
+    # are, "l": these}, none past `budget`. Nil when an entry fits no frame, which the log says under `tag`: a list with a hole is worse than none
+    static def list_frames(entries, wrap, budget, tag)
+        import json
+        var total = size(entries)
+        var frames = []
+        var at = 0
+        var cur = []
+        var i = 0
+        while i < total
+            cur.push(entries[i])
+            if size(json.dump(wrap({"at": at, "of": total, "l": cur}))) > budget
+                if size(cur) == 1
+                    log(tag + ": entry " + str(i) + " of a list does not fit a frame of " + str(budget) + " bytes, the list is not sent", 2)
+                    return nil
+                end
+                cur.remove(size(cur) - 1)
+                frames.push(wrap({"at": at, "of": total, "l": cur}))
+                at = i
+                cur = []
+            else
+                i += 1
+            end
+        end
+        if size(cur) > 0 || total == 0  frames.push(wrap({"at": at, "of": total, "l": cur})) end
+        return frames
+    end
+
+    # --- the window of entering the house -------------------------------------------------------
+
+    # open, from the button or a boot with no network, until the driver says it closed: a session begun before its time still completes
+    static def window_open(node)
+        return node.window_until != nil
+    end
+
+    # The button held: at the hold, HOLD_AT_MS, the pairing's window opens; held on to LEAVE_HOLD_MS, the node leaves the house. The pin is read at the
+    # hold and every HOLD_STEP_MS after: the level it has at the hold is the pressed one, whatever the board's wiring and the template's inversion
+    static def button_held(node)
+        import gpio
+        NodeHost.open_window(node)
+        var pin = gpio.pin(gpio.KEY1, 0)
+        if pin < 0 return end
+        node.hold = [pin, gpio.digital_read(pin), tasmota.millis()]
+        tasmota.remove_timer(node.ID + "_hold")
+        tasmota.set_timer(NodeHost.HOLD_STEP_MS, / -> NodeHost.hold_step(node), node.ID + "_hold")
+    end
+
+    static def hold_step(node)
+        import gpio
+        var h = node.hold
+        if h == nil return end
+        if gpio.digital_read(h[0]) != h[1]
+            node.hold = nil
+            return
+        end
+        if tasmota.millis() - h[2] >= NodeHost.LEAVE_HOLD_MS - NodeHost.HOLD_AT_MS
+            node.hold = nil
+            log(node.TAG + ": the button held " + str(NodeHost.LEAVE_HOLD_MS / 1000) + " s: this node leaves the house", 1)
+            NodeHost.close_window(node)
+            NodeHost.leave_house(node)
+            NodeHost.flash_led(node, NodeHost.LEFT_BLINKS)
+            return
+        end
+        tasmota.set_timer(NodeHost.HOLD_STEP_MS, / -> NodeHost.hold_step(node), node.ID + "_hold")
+    end
+
+    # the LED blinks `n` times fast, and is left as it was: what the node says when it has left the house
+    static def flash_led(node, n)
+        import gpio
+        var pin = gpio.pin(gpio.LED1, node.LED)
+        if pin < 0 || n <= 0 return end
+        var rest = gpio.digital_read(pin)
+        for i: 0 .. 2 * n - 1
+            NodeHost.led_at(pin, (i % 2 == 0) ? 1 - rest : rest, i * NodeHost.LEFT_BLINK_MS)
+        end
+    end
+
+    static def led_at(pin, level, ms)
+        import gpio
+        tasmota.set_timer(ms, / -> gpio.digital_write(pin, level))
+    end
+
+    # The window opens: `ms` in which a panel may add this node to its house (WINDOW_MS when not said), from the button (`by_button`, true when not said)
+    # or by itself. The LED blinks while it is open; opened again, its time starts over. The ESP-NOW driver announces the node meanwhile, with what
+    # the node says of itself (announce): the pairing is the driver's, over the radio
+    static def open_window(node, ms, by_button)
+        import gpio
+        if ms == nil  ms = NodeHost.WINDOW_MS end
+        if by_button == nil  by_button = true end
+        # a window opened again while an exchange is up starts over: the old one, which a panel may have left with its last word lost on the way, ends first
+        if node.pairing != nil && node.pairing.guesting
+            tasmota.cmd("EspNowPairStop")
+            node.pairing.guest_ended()
+        end
+        var r = tasmota.cmd("EspNowPairOpen " + str(ms / 1000) + "," + node.announce())
+        if !isinstance(r, map) || r.find("EspNowPairOpen") != "Open"
+            log(node.TAG + ": the pairing did not open: " + str(r), 2)
+            return
+        end
+        node.window_until = tasmota.millis(ms)
+        node.by_button = by_button
+        if node.blink_rest == nil
+            var pin = gpio.pin(gpio.LED1, node.LED)
+            node.blink_pin = pin
+            node.blink_rest = pin >= 0 ? gpio.digital_read(pin) : 0
+        end
+        tasmota.remove_timer(node.ID + "_blink")
+        NodeHost.blink(node)
+        tasmota.remove_timer(node.ID + "_window")
+        # the driver says when the window closed (EspNowPair#Window), after a session begun before its end: this is only the net under it, 60 s later
+        tasmota.set_timer(ms + 70000, / -> NodeHost.close_window(node), node.ID + "_window")
+        log(node.TAG + ": " + (by_button ? "the button" : "a boot with no network") + " opened the pairing for " + str(ms / 1000) + " s", 2)
+    end
+
+    # A panel asked this node to identify itself (EspNowPair#Blink): the LED blinks faster, for the user to see which node answers
+    static def identify(node)
+        if !NodeHost.window_open(node) return end
+        node.identify_until = tasmota.millis(NodeHost.IDENTIFY_FOR_MS)
+        log(node.TAG + ": a panel asks this node to identify itself", 2)
+    end
+
+    # the LED's other level, and again in BLINK_MS while the window is open, or in IDENTIFY_MS while a panel's request to identify goes
+    static def blink(node)
+        import gpio
+        if !NodeHost.window_open(node) return end
+        if node.blink_pin >= 0 gpio.digital_write(node.blink_pin, 1 - gpio.digital_read(node.blink_pin)) end
+        var fast = node.identify_until != nil && !tasmota.time_reached(node.identify_until)
+        tasmota.set_timer(fast ? NodeHost.IDENTIFY_MS : NodeHost.BLINK_MS, / -> NodeHost.blink(node), node.ID + "_blink")
+    end
+
+    # Closed: the node was added, or the window's time is over. The LED back as it was. The driver's window closes too, unless it said it had closed
+    # (`driver_closed`), and the node does what is its own to do then (window_closed)
+    static def close_window(node, driver_closed)
+        import gpio
+        var was = node.window_until != nil
+        if was && driver_closed != true  tasmota.cmd("EspNowPairStop") end
+        node.window_until = nil
+        node.by_button = false
+        node.identify_until = nil
+        node.window_closed()
+        tasmota.remove_timer(node.ID + "_blink")
+        tasmota.remove_timer(node.ID + "_window")
+        if node.blink_rest != nil && node.blink_pin >= 0  gpio.digital_write(node.blink_pin, node.blink_rest) end
+        node.blink_rest = nil
+        if was log(node.TAG + ": the pairing's window closed", 2) end
+    end
+
+    # no network saved, SSId1 or SSId2
+    static def no_network()
+        var names = tasmota.cmd("SSId")
+        return !isinstance(names, map) || (str(names.find("SSId1", "")) == "" && str(names.find("SSId2", "")) == "")
+    end
+
+    # A node with no network saved opens no access point: Tasmota's is open, on channel 1, and it would break the ESP-NOW with a panel on another
+    # channel. The radio stays in station mode with no network, for ESP-NOW, when the firmware's station driver can hold it (StaHold); the way to a
+    # phone is the rescue, three short boots (USE_BOOT_RESCUE). And its window opens for a panel: being plugged in is the gesture here
+    static def radio_at_boot(node)
+        if !NodeHost.no_network() return end
+        var st = tasmota.cmd("StaState")
+        if !isinstance(st, map) || !st.contains("StaState")
+            log(node.TAG + ": no network saved, and no station driver to hold the radio: Tasmota opens its AP", 2)
+            return
+        end
+        tasmota.cmd("Wifi 0")
+        tasmota.cmd("StaHold 1")
+        log(node.TAG + ": no network saved, the radio held with no network and no AP, for ESP-NOW", 2)
+        NodeHost.open_window(node, NodeHost.BOOT_WINDOW_MS, false)
+    end
+
+    # --- the clock ------------------------------------------------------------------------------
+
+    # The node's clock at the boot: kept across a restart (the fork's RtcRetain), or none yet, which the internet, a panel or the house sets. Its time
+    # is not known fresh: the link's rule takes it as the oldest
+    static def time_boot(node)
+        node.clock_at = 0
+        node.clock_src = nil
+        if tasmota.rtc()["utc"] >= ClockLink.VALID
+            node.clock_src = ClockLink.kept_across() ? "restart" : "internet"
+        end
+    end
+
+    # The clock on the node, at its boot: what it starts with, the console's word, the rule that says who set it, and the house asked for the time
+    # while it has none
+    static def clock(node)
+        NodeHost.time_boot(node)
+        tasmota.add_cmd("ZbRelayTime", def (cmd, idx, payload)
+            NodeHost.time_cmd(node, payload, nil)
+            tasmota.resp_cmnd_done()
+        end)
+        tasmota.add_rule("Time#Set", / -> NodeHost.time_set(node), node.ID + "_time")
+        tasmota.set_timer(NodeHost.TIME_ASK_FIRST_MS, / -> NodeHost.time_ask(node, 0), node.ID + "_time_ask")
+    end
+
+    # A word on a clock taken (ClockLink), when the rule says so: the clock is set to it, as `src`'s, and given back to the NTP, for the node's
+    # internet, when it has one, to correct it. True when it was taken
+    static def time_take(node, peer, src)
+        if !ClockLink.takes(tasmota.rtc()["utc"] >= ClockLink.VALID, node.clock_at, peer) return false end
+        node.clock_src = src
+        node.clock_expect = src
+        node.clock_at = peer["at"]
+        tasmota.cmd("Time " + str(peer["utc"]))
+        tasmota.cmd("Time 0")
+        return true
+    end
+
+    # ZbRelayTime: the word of a panel on its time, or of a node with no screen that has none and asks (time_ask). This node takes it when the rule
+    # says so, and answers with its own: to the panels that hear it, or, when a node with no screen said it, to that node alone. `from` is the number
+    # of the one that said it over the mesh, nil at the console
+    static def time_cmd(node, payload, from)
+        import json
+        var h = node.house
+        var asker = from != nil && from > 0 && h != nil && h.up && h.list.is_owner(from) && !h.list.revoked(from)
+        NodeHost.time_take(node, json.load(str(payload)), asker ? "house" : "panel")
+        var word = {"ZbTime": ClockLink.word(node.clock_src, node.clock_at)}
+        if asker
+            h.event_node(from, json.dump(word))
+        else
+            NodeHost.send_event(node, word)
+        end
+    end
+
+    # Time#Set: a time this node took from another, or the internet's
+    static def time_set(node)
+        var by = node.clock_expect
+        node.clock_expect = nil
+        if by == nil
+            node.clock_src = "internet"
+            node.clock_at = tasmota.rtc()["utc"]
+        end
+    end
+
+    # A node with no clock asks the house for the time: its own word, which says it has none, to the nodes of the house that take commands, a bridge
+    # or an appliance, each in its turn, every TIME_ASK_MS until it has one. The one asked answers with its word (time_cmd), which `heard` takes.
+    # A node with a network has the internet's first; this is for the one with none
+    static def time_ask(node, turn)
+        import json
+        if tasmota.rtc()["utc"] >= ClockLink.VALID return end
+        tasmota.remove_timer(node.ID + "_time_ask")
+        tasmota.set_timer(NodeHost.TIME_ASK_MS, / -> NodeHost.time_ask(node, turn + 1), node.ID + "_time_ask")
+        var h = node.house
+        if h == nil || !h.up || node.meshcmd == nil return end
+        var owners = []
+        for id: h.list.ids(false)
+            if id != h.list.me && h.list.is_owner(id)  owners.push(id) end
+        end
+        if size(owners) == 0 return end
+        node.meshcmd.send(owners[turn % size(owners)], "ZbRelayTime " + json.dump(ClockLink.word(node.clock_src, node.clock_at)), nil)
+    end
+
+    # What a node of the house says to this one over the mesh, as an event: the time of an owner this node asked. Any other event is a panel's to hear
+    static def heard(node, src, m)
+        var h = node.house
+        if h == nil || !h.list.is_owner(src) || h.list.revoked(src) return end
+        if m.contains("ZbTime")  NodeHost.time_take(node, m["ZbTime"], "house") end
     end
 end

@@ -26,12 +26,13 @@ class HouseDevices
     static END = 255
 
     var host         # the HouseMesh
-    var cache        # the bridge's: IEEE -> [model, config, name]
+    var cache        # the owner's: IEEE -> [model, config, name], and for an appliance's device its description, the fourth
     var fresh_at     # the bridge's: millis the cache was last given a device, or 0
     var asked_at     # the bridge's: millis Z2T was last asked for the map, or 0
     var waiting      # the bridge's: panel -> the place it asked for, to be answered when the map has come
     var ask_info     # the bridge's: a closure () -> nothing, which asks Z2T for the map
     var name_of      # the bridge's: a closure (ieee) -> the name the panels gave the device, or nil
+    var own          # the appliance's: a closure () -> [ieee, model, name, description], the one device it is
     var page         # the panel's: the page asked for: {"owner", "from", "total", "items": {index: [ieee, model, config, name, description if said]}, "tries", "at"}, or nil
     var on_page      # the panel's: a closure () -> nothing, told when an item of the page has come
 
@@ -65,9 +66,17 @@ class HouseDevices
         self.fresh_at = tasmota.millis()
     end
 
-    # the devices a panel asks for, from a place: now when the map is fresh, and when it has come if it was asked for
+    # the devices a panel asks for, from a place: now when the map is fresh, and when it has come if it was asked for. An appliance has no map to
+    # wait for: the one device it is, as it says it now
     def take_list(src, d)
         if size(d) < 3 || d[1] != HouseDevices.WIRE || !self.host.list.is_panel(src) return end
+        if self.own != nil
+            var o = self.own()
+            self.cache = {}
+            self.cache[o[0]] = [o[1], [], o[2], o[3]]
+            self.answer(src, d[2])
+            return
+        end
         var now = tasmota.millis()
         if size(self.cache) > 0 && now - self.fresh_at < HouseDevices.FRESH_MS
             self.answer(src, d[2])
@@ -108,8 +117,15 @@ class HouseDevices
         var at = first
         while at < total && at < first + HouseDevices.PAGE
             var e = self.cache[sorted[at]]
-            var name = self.name_of != nil ? self.name_of(sorted[at]) : nil
-            self.item(src, at, total, {"i": sorted[at], "m": e[0], "c": e[1], "n": name != nil ? name : ""})
+            var name = self.name_of != nil ? self.name_of(sorted[at]) : e[2]
+            var body = {"i": sorted[at], "m": e[0], "n": name != nil ? name : ""}
+            # an appliance's device has no Config: what it is goes in its place
+            if size(e) > 3 && e[3] != nil
+                body["d"] = e[3]
+            else
+                body["c"] = e[1]
+            end
+            self.item(src, at, total, body)
             at += 1
         end
     end

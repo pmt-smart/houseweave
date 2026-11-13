@@ -73,7 +73,10 @@ and sent a moment after the last touch, so a few touches are one write. For a gr
   calibration, dead zone, temperature limits, sensor, backlight, screen time, ring light and eco temperature, each within the profile's range.
   A thermostat that measures something other than a room says so in its description, and the line names it: "Water 58.0°" for one on a water
   heater. A few words its state carries follow the temperature while they hold, "Water 58.0°  No clock" for one that keeps a target with no
-  clock to follow its hours by.
+  clock to follow its hours by. The water heater's thermostat is an appliance ([05 §4](05-the-house.md)): its target is the one of the window of
+  the day in force, or of the next to begin, and a touch changes that window's. Its settings are its two windows (from, to and target of each),
+  its hysteresis, its ceiling, its probe's calibration and its heater's power; with no clock, a first row that is only read says the target it
+  holds.
 - **A blind**: its position in large type and what it is doing; up, stop and down, as on the wall; a slider from 100% at the top to 0% at the
   bottom in steps of 5, whose release sends the blind there; and the ventilation, a position almost closed, in one touch.
 - **A switch of two channels** that opens and closes something (a gate, a window) has a **driver** on the bridge: its mode (Motor or Pulse) and
