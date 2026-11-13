@@ -93,8 +93,9 @@ class ApplianceNode : Driver
             a.house.devices.own = / -> [a.ieee, a.device.MODEL, a.name, a.brief()]
         end
         NodeHost.clock(a)
-        # the button held 5 s opens the window. A short press is taken here and does nothing: with no rule for it Tasmota would toggle the relay,
-        # which is the device's own to switch
+        # the button held 5 s opens the window. The image's template detaches the button from the relay (SetOption73 1), and a short press toggles
+        # nothing. On a configuration without that option the short press is taken here and does nothing: with no rule for it Tasmota would
+        # toggle the relay, which is the device's own to switch
         tasmota.add_rule("Button1#State=3", / -> NodeHost.button_held(a), "appliance_button")
         tasmota.add_rule("Button1#State=2", / -> nil, "appliance_button")
         NodeHost.radio_at_boot(a)

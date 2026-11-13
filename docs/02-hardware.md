@@ -1,8 +1,9 @@
 # 02 — Hardware
 
-Two boards, both an ESP32 with 4 MB of flash and no PSRAM, both running Tasmota from our fork ([03](03-architecture.md)): the **Sonoff
-NSPanel**, a panel on the wall of each room, and the **Sonoff ZBBridge Pro**, the Zigbee coordinator of a room's network. Their partitions and
-how they are flashed are in [11 §4](11-build-and-flash.md); the heap and the flash budgets in [03 §6](03-architecture.md).
+Two boards make a house, both an ESP32 with 4 MB of flash and no PSRAM, both running Tasmota from our fork ([03](03-architecture.md)): the
+**Sonoff NSPanel**, a panel on the wall of each room, and the **Sonoff ZBBridge Pro**, the Zigbee coordinator of a room's network. A third joins
+it as an appliance, a node that is one device: the **Sonoff TH Elite THR320D** (§5). Their partitions and how they are flashed are in
+[11 §4](11-build-and-flash.md); the heap and the flash budgets in [03 §6](03-architecture.md).
 
 ## 1. The panel: Sonoff NSPanel
 
@@ -84,3 +85,43 @@ point off the house's channel on its mesh page, with no help from the router.
 should, and the rest stay on a fixed channel. **A microwave oven deafens the node next to it** while it runs: it emits around 2.45 GHz, and a
 bridge beside one loses a large part of its frames for minutes at a time while the others nearby lose nothing. The mesh routes around a deaf node
 by itself, but a node should not sit beside the oven; a low house channel (1, at 2 412 MHz) suffers less than a middle one.
+
+## 5. An appliance: Sonoff TH Elite THR320D
+
+A mains switch of 20 A with a display, a button and a socket for a probe, on an ESP32. In the house it is an appliance, a node that is itself one
+device ([03 §3](03-architecture.md)): a water heater's thermostat, with the Sonoff WTS01 probe in the heater's thermowell.
+
+| GPIO | what it is | in Tasmota |
+|---|---|---|
+| 0 | the button, and the way into the bootloader | `Button1` |
+| 19 and 22 | the 20 A relay, a latching one: a coil opens it and the other closes it | `Relay_b1` and `Relay_b2`, a pair that is one Power |
+| 4 | the dry contact (5 to 30 V, 1 A) | nothing: with no function it is no second Power |
+| 5, 17, 18, 23 | the display, a TM1621 (data, chip select, write, read) | Tasmota's driver of it, `USE_DISPLAY_TM1621_SONOFF` |
+| 13, 15, 16 | the green LED, the blue (the link's) and the red | `Led_i2`, `LedLink_i`, `Led_i1` |
+| 25 | the probe's data, pin 2 of the RJ9 socket | `SerBr Rx`, the serial bridge's receive pin |
+| 27 | the probe's 3.3 V, pin 1 of the socket | `Output Hi` |
+
+- **The WTS01 is not a 1-wire probe.** It sends its temperature over a serial line, a datagram a second at 9600 bps 8N1, which Tasmota's serial
+  bridge decodes in `SSerialMode 3`. The reading is among Tasmota's sensors, `{"WTS01":{"Temperature":...}}`, only while the datagrams come (a fix
+  in the fork, [03 §5](03-architecture.md)): none before the first, and none 5 s after the last, so a probe unplugged reads as no probe and never
+  as its last value. The display shows the reading with no code of ours.
+- **The relay does not say its state.** Tasmota pulses a coil (`SetOption45`, 40 ms by default) and never reads the contact, and a power cut
+  leaves the relay where it was. So the image opens it at every power up (`PowerOnState 0`), and the thermostat opens it before a restart
+  ([03 §3](03-architecture.md)).
+- **The template is compiled in** (`HOUSEWEAVE_THR320D_IMAGE`), Tasmota's own for the board with GPIO25 as the serial bridge's pin and GPIO4 with
+  no function:
+
+  ```
+  {"NAME":"Sonoff THR320D","GPIO":[32,0,0,0,0,9280,0,0,0,321,0,576,320,9184,9216,9312,0,0,9313,9248,0,1824,0,3840,0,0,0,0,0,0,0,0,0,0,0,0],"FLAG":0,"BASE":1}
+  ```
+
+  with eight commands: the bridge's five (§2), for the button and the radio; `SetOption73 1`, which detaches the button from the relay, so that
+  a press never switches the heater, with Berry running or not, while the 5 s hold still goes to the rules; `SSerialMode 3`; and
+  `PowerOnState 0`.
+- **The heater's element goes straight on the relay**, so its current has to fit the relay's 20 A with room to spare: an element of 3 000 W at
+  220 V draws 13.6 A. The dry contact switches 1 A at 30 V at most, which is not a contactor's 220 V coil.
+- **Which coil closes the relay is checked on the bench** before a heater is wired, with a lamp in its place. Tasmota takes the lower `Relay_b`
+  as the one that opens, GPIO19 with this template. Were the board the other way round, the heater would run when it should stop, and the two
+  codes swap places in the template.
+- **The flash** is reported as 4 MB. A read of the whole factory flash, before the first flash, confirms it and is the way back
+  ([11 §5](11-build-and-flash.md)).

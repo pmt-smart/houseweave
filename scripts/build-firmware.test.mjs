@@ -46,10 +46,10 @@ const runBlock = (dir, name, lines) => {
   return ps(["-File", file]);
 };
 
-test("-DryRun with no env names the envs of the panels and the bridge, and builds nothing", { skip }, () => {
+test("-DryRun with no env names the envs of the panels, the bridge and the appliance, and builds nothing", { skip }, () => {
   const r = run("-DryRun");
   assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /dry run: would build tasmota32-houseweave-living-room-eu, tasmota32-houseweave-living-room-us, tasmota32-houseweave-bridge,/);
+  assert.match(r.stdout, /dry run: would build tasmota32-houseweave-living-room-eu, tasmota32-houseweave-living-room-us, tasmota32-houseweave-bridge, tasmota32-houseweave-thr320d,/);
 });
 
 test("the base env is refused by name unless -AllowBase says so", { skip }, () => {

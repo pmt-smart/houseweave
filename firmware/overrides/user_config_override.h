@@ -75,6 +75,30 @@
 #define MODULE               USER_MODULE           // [Module] the template above
 #endif  // HOUSEWEAVE_BRIDGE_IMAGE
 
+// --- A factory image that boots as an appliance ---
+// The Sonoff TH Elite THR320D's env (HOUSEWEAVE_THR320D_IMAGE): Tasmota's
+// template for the board (xdrv_87_esp32_sonoff_tm1621.ino lists it) with two
+// pins changed. GPIO25, the probe's data line, is the serial bridge's receive
+// pin, 1824, where the WTS01 probe is read; and GPIO4, the dry contact, has no
+// function: as Relay3 it would be a second Power, which the Web UI and MQTT
+// could switch and nothing here uses. The button's and the radio's commands are
+// the bridge's, above, and the way back to a phone is the same rescue. The
+// board has a relay under its button, which the bridge has not: SetOption73 1
+// detaches the two, so a press never toggles the heater, with Berry running or
+// not (support_button_v4.ino), and the hold still reaches the rules as
+// {"Button1":{"State":3}}. SSerialMode 3 decodes the probe's datagrams, at the
+// 9600 bps 8N1 a fresh configuration already has. PowerOnState 0 opens the
+// relay at a power up: it is a latching one, which a power cut leaves where it
+// was, and Tasmota pulses its off coil then; the thermostat closes it from there.
+#ifdef HOUSEWEAVE_THR320D_IMAGE
+#undef  FRIENDLY_NAME
+#define FRIENDLY_NAME        "THR320D"             // [FriendlyName]
+#undef  USER_TEMPLATE
+#define USER_TEMPLATE "{\"NAME\":\"Sonoff THR320D\",\"GPIO\":[32,0,0,0,0,9280,0,0,0,321,0,576,320,9184,9216,9312,0,0,9313,9248,0,1824,0,3840,0,0,0,0,0,0,0,0,0,0,0,0],\"FLAG\":0,\"BASE\":1,\"CMND\":\"SetOption1 1 | SetOption32 50 | SetOption73 1 | ButtonTopic 0 | SetOption127 1 | Sleep 0 | SSerialMode 3 | PowerOnState 0\"}"
+#undef  MODULE
+#define MODULE               USER_MODULE           // [Module] the template above
+#endif  // HOUSEWEAVE_THR320D_IMAGE
+
 // Brasília's time, UTC-3 with no summer time since 2019: Tasmota's default is +1
 #undef  APP_TIMEZONE
 #define APP_TIMEZONE         -3                    // [Timezone]
@@ -98,8 +122,8 @@
 // Zigbee2Tasmota only where a coordinator is: the bridge's image. A panel's
 // Zigbee is its bridge's, reached over ESP-NOW, and no panel has a chip of its
 // own: the panels' images leave Z2T and the zigbee
-// module of Berry out, a cut of its own.
-#ifndef HOUSEWEAVE_PANEL_IMAGE
+// module of Berry out, a cut of its own. An appliance has no Zigbee at all.
+#if !defined(HOUSEWEAVE_PANEL_IMAGE) && !defined(HOUSEWEAVE_THR320D_IMAGE)
 #define USE_ZIGBEE
 #endif
 #undef USE_DOMOTICZ
@@ -164,9 +188,15 @@
 #undef USE_DS18x20
 #undef USE_DHT
 #undef USE_COUNTER
-// Other devices' serial protocols, and deep sleep
+// Other devices' serial protocols, and deep sleep. The THR320D keeps the serial
+// bridge, which reads its WTS01 probe, and takes the driver of its display, a
+// TM1621, which shows the probe's temperature by itself
 #undef USE_TUYA_MCU
+#ifdef HOUSEWEAVE_THR320D_IMAGE
+#define USE_DISPLAY_TM1621_SONOFF
+#else
 #undef USE_SERIAL_BRIDGE
+#endif
 #undef USE_DEEPSLEEP
 // Device Groups (the brain's old `wifi` transport, retired) and Alexa emulation
 #undef USE_DEVICE_GROUPS
@@ -249,6 +279,12 @@
 // default of 4, and its heap is the tightest there is.
 #define ESPNOW_DIRECT_RX_QUEUE_DEPTH 16
 #endif
+// An appliance runs none either, and no rule of its node takes one: what a
+// panel asks of it comes over the mesh (berry/appliance_node.be), a line at a
+// time, so the queue keeps its default.
+#ifdef HOUSEWEAVE_THR320D_IMAGE
+#define USE_ESPNOW_DIRECT_COMMANDS_TO_RULES
+#endif
 
 // The pairing over ESP-NOW itself: the bridge opens
 // a window with its button and announces itself, the panel scans and pairs with
@@ -268,8 +304,11 @@
 // Like the ESP-NOW driver it starts disabled: it takes the buttons only after
 // `ButtonDecoupleEnable 1` (the brain sends it at boot with a generated
 // project), and stays enabled across restarts, because the hold has to work
-// with Berry down.
+// with Berry down. Not in the THR320D's image: its button has a relay of the
+// same number, the heater's, and a hold that toggles it has no place there.
+#ifndef HOUSEWEAVE_THR320D_IMAGE
 #define USE_BUTTON_DECOUPLE
+#endif
 
 // WiFi station driver: the glass scans, joins and forgets a network
 // without a restart, while Tasmota's own WiFi is off, and holds the radio in
@@ -285,18 +324,19 @@
 // tasmota_xdrv_driver/xdrv_95_boot_rescue.ino. The bridge's image has it too:
 // its button is the pairing's (SetOption1 1, above), and a
 // bridge with no network saved opens no access point, so three
-// short boots are its way to a phone as well.
-#if defined(HOUSEWEAVE_PANEL_IMAGE) || defined(HOUSEWEAVE_BRIDGE_IMAGE)
+// short boots are its way to a phone as well. The THR320D's is the bridge's case.
+#if defined(HOUSEWEAVE_PANEL_IMAGE) || defined(HOUSEWEAVE_BRIDGE_IMAGE) || defined(HOUSEWEAVE_THR320D_IMAGE)
 #define USE_BOOT_RESCUE
 #endif
 
 // The clock's time kept across a restart that is not a power cycle:
 // an OTA, Restart 1, a crash or a watchdog does not lose a
 // time set by hand on a device with no network. The RTC slow memory and the RTC
-// counter survive those resets; a power cycle still loses the time. On both
-// images, as the bridge gives its time to the panel over the link.
+// counter survive those resets; a power cycle still loses the time. On every
+// image: a node with no screen gives its time to the others and asks it of them,
+// and an appliance's hours of the day follow it.
 // Self-contained in tasmota_xdrv_driver/xdrv_99_rtc_retain.ino.
-#if defined(HOUSEWEAVE_PANEL_IMAGE) || defined(HOUSEWEAVE_BRIDGE_IMAGE)
+#if defined(HOUSEWEAVE_PANEL_IMAGE) || defined(HOUSEWEAVE_BRIDGE_IMAGE) || defined(HOUSEWEAVE_THR320D_IMAGE)
 #define USE_RTC_RETAIN
 #endif
 

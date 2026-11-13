@@ -38,6 +38,7 @@ A patch to the fork is written as if it were to go upstream: standard terms, no 
 | `tasmota32-houseweave` | the base the others extend. **Not a product image**: no device template, and an ESP-NOW driver that runs the commands it hears. The script refuses it by name unless told `-AllowBase` |
 | `tasmota32-houseweave-living-room-eu`, `-living-room-us` | a panel image (EU landscape, US portrait), with the panel's template (`HOUSEWEAVE_PANEL_IMAGE`) and the brain compiled in |
 | `tasmota32-houseweave-bridge` | the ZBBridge Pro's image (`HOUSEWEAVE_BRIDGE_IMAGE`), with the bridge's brain compiled in and Zigbee2Tasmota |
+| `tasmota32-houseweave-thr320d` | the Sonoff TH Elite THR320D's image (`HOUSEWEAVE_THR320D_IMAGE`), an appliance ([02 §5](02-hardware.md)): its node compiled in, no Zigbee2Tasmota, and Tasmota's serial bridge and TM1621 display driver, which the others leave out |
 | `tasmota32-houseweave-safeboot` | the house's safeboot (§6) |
 | `tasmota32-probe-living-room-us`, `-bridge` | bench images with the mesh's probe (`USE_ESPNOW_MESH_PROBE`) |
 
@@ -54,8 +55,8 @@ and its numbers, and only then the commit here).
 ## 3. What goes into an image
 
 - **The brain is in the app.** The env's `custom_berry_solidify` lists the build's prelude (`firmware/overrides/_brain_prelude.be`) and the
-  brain's files; Tasmota's `solidify-from-url.py` compiles them into the firmware ([12 §1](12-berry-notes.md)). The panel's list and the
-  bridge's are different: each image has only its own role's classes.
+  brain's files; Tasmota's `solidify-from-url.py` compiles them into the firmware ([12 §1](12-berry-notes.md)). The panel's list, the
+  bridge's and an appliance's are different: each image has only its own role's classes.
 - **The brain knows its build.** `berry/panel_build.be` says "dev" in the repository; before the solidifying, `firmware/overrides/panel_build.py`
   writes a copy with the stamp `<repository>/<fork>` (both `HEAD`s, e.g. `6224248a/d4e9afd6`) and the build's time. A `+` after the
   repository's commit says a tracked file differed from it; a `+` after the fork's says the fork is not at the commit this repository records,
@@ -71,6 +72,8 @@ and its numbers, and only then the commit here).
   Tasmota runs) and the CC2652's flasher with the coordinator's `.hex`. The bridge flashes that `.hex` by itself when the coordinator reports
   another firmware version: after the pairing, up to 3 tries counted in `persist`, with the bridge silent for 5 to 8 minutes and a restart at
   the end.
+- **An appliance's file system** is made by `firmware/overrides/appliance_files.py`: its `autoexec.be` (`berry/appliance_autoexec.be` under the
+  name Tasmota runs) and nothing else.
 - **The images** come out in `firmware/tasmota/build_output/firmware/`: `<env>.factory.bin` for a serial flash and `<env>.bin` for OTA. After
   each env the script keeps both in `releases/` (git-ignored) with the stamp in the name, never overwriting: a different content under the
   same name becomes `-2`, `-3`.
@@ -85,10 +88,10 @@ and its numbers, and only then the commit here).
 | 0x9000 | 20 KB | `nvs` | Tasmota's configuration and the drivers' records (the mesh's, the buttons', the boot rescue's count) |
 | 0xE000 | 8 KB | `otadata` | which app boots |
 | 0x10000 | 832 KB | `safeboot` | the house's safeboot (§6) |
-| 0xE0000 | 2 176 KB on a panel, 1 856 KB on a bridge | `app0` | our firmware, with the brain |
-| 0x300000 on a panel, 0x2B0000 on a bridge | 1 024 KB on a panel, 1 344 KB on a bridge | file system | the image's files, the brain's `_persist.json`, a copy of Tasmota's configuration (`/.settings`) and, on a bridge, the Zigbee devices |
+| 0xE0000 | 2 176 KB on a panel, 1 856 KB on a bridge or an appliance | `app0` | our firmware, with the brain |
+| 0x300000 on a panel, 0x2B0000 on a bridge or an appliance | 1 024 KB on a panel, 1 344 KB on a bridge or an appliance | file system | the image's files, the brain's `_persist.json`, a copy of Tasmota's configuration (`/.settings`) and, on a bridge, the Zigbee devices |
 
-The panels' table is `firmware/overrides/esp32_partition_app2176k_fs1024k.csv`; the bridge keeps the official
+The panels' table is `firmware/overrides/esp32_partition_app2176k_fs1024k.csv`; the bridge and an appliance keep the official
 `firmware/tasmota/partitions/esp32_partition_app1856k_fs1344k.csv`. **An OTA writes only the app**: the bootloader, the table and the safeboot
 are written by a serial flash alone, and a device still on an older table does not take by OTA an app larger than that table's `app0`.
 
@@ -186,7 +189,8 @@ serial line.
 A bridge's `autoexec.be` loads, over the compiled classes, any of the relay's files it finds on the file system (the list is in
 `berry/zbbridge_autoexec.be`): a `.be` left there by an earlier fix would run instead of the class the OTA brought. Before an OTA, list the file
 system (`UfsList`) and rename each such file (`UfsRename /<file>.be,/<file>.be.old`). After the boot, the log has a line
-`ZBBRIDGE_RELAY: <file> runs from the file system, over the firmware's` for every file that still loaded.
+`ZBBRIDGE_RELAY: <file> runs from the file system, over the firmware's` for every file that still loaded. An appliance's `autoexec.be` does the
+same over its node's files (`berry/appliance_autoexec.be`), and its line begins `APPLIANCE:`.
 
 ## 10. Going back
 

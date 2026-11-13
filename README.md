@@ -16,7 +16,7 @@ Everything lives in [`docs/`](docs/):
 |---|---|
 | [00 — Journal](docs/00-journal.md) | what was done, what went wrong and how it was solved, in date order |
 | [01 — Overview](docs/01-overview.md) | what HouseWeave is, its constraints, its layers, the repository |
-| [02 — Hardware](docs/02-hardware.md) | the NSPanel and the ZBBridge Pro, their templates, the devices, the network the house needs |
+| [02 — Hardware](docs/02-hardware.md) | the NSPanel and the ZBBridge Pro, their templates, the devices, the network the house needs, the THR320D as an appliance |
 | [03 — Architecture](docs/03-architecture.md) | the panel's brain, the bridge's, what both images carry, the fork's C, memory |
 | [04 — The mesh](docs/04-the-mesh.md) | ESP-NOW between the nodes: the channel, the frame, the keys, flooding and routing, supervision, the clock |
 | [05 — The house](docs/05-the-house.md) | the list, coming in and going out, the shared settings, devices of another room, the alarm, the server |

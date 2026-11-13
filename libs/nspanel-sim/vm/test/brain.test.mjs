@@ -137,6 +137,35 @@ test("the bridge's image compiles in its relay's files and no part of the panel'
   assert.deepEqual([...loads[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]), BRIDGE_FILES);
 });
 
+test("an appliance's image compiles in its node's files and nothing of the bridge's Zigbee side, the prelude first", () => {
+  const files = solidifyOf("tasmota32-houseweave-thr320d");
+  assert.equal(files[0], "../overrides/_brain_prelude.be");
+  const path = (f) => (f === "panel_build.be" ? "../overrides/generated/panel_build.be" : `../../berry/${f}`);
+  assert.deepEqual(files.slice(1), APPLIANCE_FILES.map(path));
+  assert.deepEqual(APPLIANCE_FILES.filter((f) => f.startsWith("zb")), [], "no file of the Zigbee side");
+  // the autoexec.be of the appliance loads a fix of any of them, in this order
+  const autoexec = read("appliance_autoexec.be");
+  const loads = /for f: \[([^\]]*)\]/.exec(autoexec);
+  assert.ok(loads, "appliance_autoexec.be names the node's files");
+  assert.deepEqual([...loads[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]), APPLIANCE_FILES);
+});
+
+// The switch of each image's env is the one user_config_override.h reads: a name that differs leaves the image with the base env's features
+// and no template, and the build says nothing.
+test("each image's env sets the switch the override reads", () => {
+  const ini = readFileSync(join(REPO, "firmware/overrides/platformio_override.ini"), "utf8");
+  const header = readFileSync(join(REPO, "firmware/overrides/user_config_override.h"), "utf8");
+  for (const [env, flag] of [["tasmota32-houseweave-living-room-eu", "HOUSEWEAVE_PANEL_IMAGE"], ["tasmota32-houseweave-living-room-us", "HOUSEWEAVE_PANEL_IMAGE"],
+    ["tasmota32-houseweave-bridge", "HOUSEWEAVE_BRIDGE_IMAGE"], ["tasmota32-houseweave-thr320d", "HOUSEWEAVE_THR320D_IMAGE"]]) {
+    const at = ini.indexOf(`[env:${env}]`);
+    assert.ok(at >= 0, `platformio_override.ini has the env ${env}`);
+    const next = ini.indexOf("\n[env:", at + 1);
+    const section = ini.slice(at, next < 0 ? ini.length : next);
+    assert.ok(section.includes(`-D${flag}`), `${env} sets ${flag}`);
+    assert.ok(new RegExp(`#ifdef ${flag}\\b(?:(?!#endif)[\\s\\S])*?#define USER_TEMPLATE`).test(header), `user_config_override.h has a template under ${flag}`);
+  }
+});
+
 // The build's script registers the class it finds after the FIRST "#@ solidify:"
 // of a file, anywhere in it and with anything after it (solidify-from-url.py,
 // addEntryToModtab): a comment that quotes the directive above the real one

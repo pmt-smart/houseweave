@@ -160,6 +160,8 @@ const tests = [
   { driver: "../zbbridge_relay.be", before: ["../pair_sign.be", "../clock_link.be", "../node_host.be", "../node_pairing.be"], test: "test_zbbridge_relay_wrap.be", stub: "stub_relay.be", modules: { crypto: "stub_crypto.be", gpio: "stub_gpio.be", mqtt: "stub_mqtt.be" } },
   // the bridge's autoexec.be: the files left on its file system run over the firmware's classes, and are said by name
   { driver: "../zbbridge_autoexec.be", test: "test_zbbridge_autoexec.be", stub: "stub_bridge_autoexec.be", modules: { path: "stub_path.be" } },
+  // an appliance's autoexec.be, the same loader over the node's files
+  { driver: "../appliance_autoexec.be", test: "test_appliance_autoexec.be", stub: "stub_appliance_autoexec.be", modules: { path: "stub_path.be" } },
   // the host of the bridge's drivers: who has a device, what reaches a driver and what it says back,
   // the frames, the panel's commands, a link that comes up, a device that leaves -- with the relay that hands it all
   { driver: "../zbbridge_drivers.be", before: ["../pair_sign.be", "../clock_link.be", "../node_host.be", "../node_pairing.be", "../zbbridge_relay.be"], test: "test_zbbridge_drivers.be", stub: "stub_relay.be", modules: { crypto: "stub_crypto.be", gpio: "stub_gpio.be", mqtt: "stub_mqtt.be" } },

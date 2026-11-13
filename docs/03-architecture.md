@@ -98,14 +98,16 @@ only to the panels that show it ([05 §4](05-the-house.md)). The device is a cla
   highest water and its minutes, for a year, in RAM and written to the file system every hour and before a restart. The time it ran with no clock
   is kept in order and placed when the clock comes.
 
-No image carries an appliance's files yet; the Berry suite and the build's rules hold them ([13](13-testing.md)).
+**The THR320D's image** carries them (`tasmota32-houseweave-thr320d`, [11 §2](11-build-and-flash.md)), with Tasmota's serial bridge, which reads
+the probe, and its driver of the board's display, and with no Zigbee2Tasmota. `berry/appliance_autoexec.be` (named `autoexec.be` on the
+appliance) calls `ApplianceNode.start()`. The board, its template and its relay are in [02 §5](02-hardware.md).
 
 ## 4. Both images
 
 Both images carry the house's layer: the list, the key, the channel, the MQTT, the alarm's configuration, the state of devices across rooms, the
 devices' pages, the commands (`berry/house_*.be`, `berry/mesh_cmd.be`, `berry/mesh_events.be`, `berry/mesh_beat.be`, `berry/mesh_http.be`), the
 backup and the OTA (`berry/node_backup.be`, `berry/node_settings.be`, `berry/node_ota.be`, `berry/server_link.be`), and the house's console commands
-for the bench (`berry/house_commands.be`). `berry/pair_sign.be` loads first in both: a password drawn to be typed, and the `persist` save that never
+for the bench (`berry/house_commands.be`). An appliance's image carries the same layer less the alarm's (`berry/house_alarm.be`). `berry/pair_sign.be` loads first in both: a password drawn to be typed, and the `persist` save that never
 raises.
 
 **The panel's Zigbee** is the house's bridges (`berry/zigbee_bridge.be`): the rest of the brain posts a command with `bridge.post(cmd)`, and the mode
@@ -139,5 +141,5 @@ panels, and the rest of the generic feature set).
 data: about 43 KB of the brain's after boot, about 48 KB with the largest zone on the screen, against a limit of about 99 KB that leaves the Wi-Fi,
 lwIP, the web and the OTA their share. Every new screen, table or view counts its bytes against that.
 
-**The app's flash** is the other budget: the panel's app partition is 2 176 KB and the bridge's 1 856 KB, and the Berry brain is the largest part of
+**The app's flash** is the other budget: the panel's app partition is 2 176 KB, and the bridge's and an appliance's 1 856 KB, and the Berry brain is the largest part of
 the panel's app that grows. The file system is not tight. Each build's free bytes are measured and recorded.

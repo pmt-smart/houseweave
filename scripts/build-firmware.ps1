@@ -1,12 +1,12 @@
-# Builds the panel firmware images: the overrides copied
+# Builds the firmware images, a panel's, a bridge's, an appliance's: the overrides copied
 # into the submodule, then PlatformIO once per env, one after the other.
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-firmware.ps1
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-firmware.ps1 tasmota32-houseweave-living-room-eu
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-firmware.ps1 tasmota32-houseweave-living-room-eu tasmota32-houseweave-bridge
 #
-# With no env named, every panel env of firmware/overrides/platformio_override.ini
-# is built; with several, each of them, in that order. Run it from PowerShell, not
+# With no env named, every env of firmware/overrides/platformio_override.ini named
+# tasmota32-houseweave-<image> is built; with several, each of them, in that order. Run it from PowerShell, not
 # Git Bash.
 #
 # The base env, tasmota32-houseweave, is refused by name. It is the env the
@@ -194,7 +194,7 @@ if (-not $Envs) {
 }
 foreach ($name in $Envs) {
   if ($name -eq $baseEnv -and -not $AllowBase) {
-    throw "$name is the base env the others extend: its image has no panel template and runs the commands it hears on ESP-NOW. Name a panel or bridge env, or say -AllowBase if the base is what you want."
+    throw "$name is the base env the others extend: its image has no panel template and runs the commands it hears on ESP-NOW. Name an image's env, or say -AllowBase if the base is what you want."
   }
   if ($known -notcontains $name) {
     throw "$name is not an env of firmware/overrides/platformio_override.ini; they are: $($known -join ', ')"
