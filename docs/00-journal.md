@@ -14,6 +14,7 @@ was wrong and what holds.
 - [2026-11-12 — The house's list and mesh know an appliance](#2026-11-12--the-houses-list-and-mesh-know-an-appliance)
 - [2026-11-12 — A panel takes an appliance: its device, its page, its pairing](#2026-11-12--a-panel-takes-an-appliance-its-device-its-page-its-pairing)
 - [2026-11-13 — An appliance's own side: its node, the water heater's thermostat and its history](#2026-11-13--an-appliances-own-side-its-node-the-water-heaters-thermostat-and-its-history)
+- [2026-11-13 — The THR320D's image: an appliance in a firmware of its own](#2026-11-13--the-thr320ds-image-an-appliance-in-a-firmware-of-its-own)
 
 ---
 
@@ -453,3 +454,49 @@ the window and the pairing that ask the node what is its own.
 |---|---|---|---|
 | panel (US) | 2 176 KB | 2 071 312 bytes | 153.2 KB |
 | bridge | 1 856 KB | 1 752 896 bytes | 144.2 KB |
+
+## 2026-11-13 — The THR320D's image: an appliance in a firmware of its own
+
+The sixth step towards an appliance as a node: the image of the first one, the Sonoff TH Elite THR320D with its WTS01 probe on a water heater
+([02 §5](02-hardware.md), [11 §2](11-build-and-flash.md)). No device was flashed.
+
+**The env** is `tasmota32-houseweave-thr320d`, named by the board, with a switch of its own in the override, `HOUSEWEAVE_THR320D_IMAGE`, as the
+bridge has. The image leaves Zigbee2Tasmota out and takes two parts of Tasmota the others leave out: the serial bridge, which decodes the
+probe, and the driver of the board's display, which shows the probe's temperature by itself. It keeps the bridge's partition table. Its Berry is
+the list the simulator's VM already had for an appliance, compiled in the same way as the relay's, and its file system is one file,
+`autoexec.be` (`berry/appliance_autoexec.be`, staged by `firmware/overrides/appliance_files.py`), which loads a file of the node left on the
+file system over the firmware's class, says so by name, and starts the node.
+
+**The template** is Tasmota's for the board, which the display's driver lists, with two pins changed, each code read against the fork's own
+table of GPIO functions. GPIO25, the probe's data line, is the serial bridge's receive pin, 1824. GPIO4, the dry contact, has no function: as
+the third relay it was a second Power, which the Web UI and the MQTT could switch and nothing uses.
+
+**Its commands** are the bridge's five and three more. `SSerialMode 3` decodes the probe. `PowerOnState 0` opens the relay at a power up: the
+relay is a latching one, which a power cut leaves where it was. **`SetOption73 1` detaches the button from the relay.** The node took the short
+press with a rule that does nothing, which keeps Tasmota from toggling the relay only while Berry runs; with the option, Tasmota's own button
+code never reaches the relay, with Berry running or not, and the 5 s hold still comes to the rules as it did. The rule stays, for a
+configuration without the option.
+
+**What the image leaves out besides Zigbee.** The panel's button driver (`USE_BUTTON_DECOUPLE`), whose hold toggles the relay under the button:
+on this board that is the heater's; a build with it and one without are 1 632 bytes apart. And an appliance runs no command heard on the
+pairing's link, as a bridge runs none: its driver hands each to the rules, where no rule of the node takes one, since what a panel asks of it
+comes over the mesh.
+
+**The tests.** `brain.test.mjs` holds the env's list, the simulator's and the `autoexec.be`'s to each other, as it holds the bridge's, and
+checks that each image's env sets the switch under which the override has a template: a name that differs would leave an image with the base
+env's features and no template, with nothing said by the build. The `autoexec.be` has its suite (6 checks), and the build script's dry run
+names the new env among the ones it builds by itself.
+
+**For the bench.** The flash is reported as 4 MB, which the backup of the factory flash confirms. Which coil closes the relay, with a lamp in
+the heater's place. Whether Tasmota leaves the second LED alone. **The display keeps the last temperature for up to five minutes after the
+probe goes**: it shows Tasmota's global temperature, which lives 300 s, while the sensor, the node and the panels have no reading 5 s after the
+last datagram.
+
+**The images, measured** on the build of this change (`863582a/592f7062`), against `12f844a/592f7062`: the panel's is the same size, and the
+bridge's the same size. The THR320D's is the first of its kind, 277 824 bytes under the bridge's:
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 071 312 bytes | 153.2 KB |
+| bridge | 1 856 KB | 1 752 896 bytes | 144.2 KB |
+| THR320D | 1 856 KB | 1 475 072 bytes | 415.5 KB |
