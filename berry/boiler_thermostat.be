@@ -20,7 +20,9 @@
 # left by itself when the clock comes.
 #
 # THE RELAY IS THE LOGIC'S. One switched by another hand (the Web UI, the MQTT, the console) is the mode that was asked for, on for "heat" and off
-# for "off", and the logic decides the relay from it at the next second.
+# for "off", and the logic decides the relay from it at the next second. At a boot it is opened, whatever Tasmota believes it is: it is a latching
+# relay, which stays where a crash or a power cut left it and says nothing of where that is. The image's own configuration opens it too, at every
+# boot and with no Berry running (firmware/overrides/user_config_override.h).
 #
 # THE SETTINGS are kept in the flash (persist), with the mode. The calibration is Tasmota's own temperature offset, so the display and the MQTT say the
 # water the logic reads. Two of them are the lowest and the highest a target is set to: they are the range a panel is told the thermostat has, a
@@ -96,8 +98,11 @@ class BoilerThermostat
             end
         end
         self.fit()
-        var p = tasmota.get_power()
-        self.relay = size(p) > 0 && p[0] == true
+        # The relay is a latching one, which does not say where it is, and what Tasmota believes of it after a restart is not where a crash or a
+        # power cut left it: it is opened here, whatever Tasmota believes, and the logic closes it from a state it knows. Without this, a relay
+        # left closed that Tasmota takes for open would never be opened by a logic that has nothing to turn off
+        tasmota.set_power(0, false)
+        self.relay = false
         self.stopped = false
         self.exception = false
         self.secs = 0

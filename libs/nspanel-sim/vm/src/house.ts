@@ -274,12 +274,16 @@ export class SimHouse {
    * they joined, the bridge's too.
    */
   relay(n: number): boolean {
-    return this.devices.find((d) => d.relays.length > 0)?.relays[n - 1] ?? false;
+    return this.devices.find((d) => d.feedsRoom)?.relays[n - 1] ?? false;
   }
 
-  /** a relay of the panel moved: the lamps it feeds on another device's network lose their power, or get it back */
+  /**
+   * A relay of the panel moved: the lamps it feeds on another device's network lose their power, or get it back. An appliance's relay
+   * switches its own load, and is none of the room's
+   */
   relayChanged(from: SimDevice, n: number, on: boolean) {
-    for (const d of this.devices) if (d !== from && d.relays.length === 0) d.zigbee.relayChanged(n, on);
+    if (!from.feedsRoom) return;
+    for (const d of this.devices) if (d !== from && !d.feedsRoom) d.zigbee.relayChanged(n, on);
   }
 
   // --- UDP ------------------------------------------------------------------------------------

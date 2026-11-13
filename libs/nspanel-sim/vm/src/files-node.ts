@@ -2,14 +2,16 @@
 // Berry library from the firmware submodule, this package's layer, the classes
 // each firmware carries (berry/), and each file system as its image has it: the
 // panel's autoexec.be and the generated tables of a project
-// (firmware/overrides/panel_files.py), and the bridge's autoexec.be, which is
-// berry/zbbridge_autoexec.be (firmware/overrides/bridge_files.py).
+// (firmware/overrides/panel_files.py), the bridge's autoexec.be, which is
+// berry/zbbridge_autoexec.be (firmware/overrides/bridge_files.py), and an appliance's,
+// which is berry/appliance_autoexec.be (firmware/overrides/appliance_files.py).
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { MODULE_FILES, TASMOTA_LIBRARY, type DeviceFiles, type SimDevice } from "./device.js";
 import { BRAIN_FILES, SimPanel, type PanelFiles } from "./panel.js";
 import { BRIDGE_FILES, SimBridge } from "./bridge.js";
+import { APPLIANCE_FILES } from "./appliance.js";
 import { SimHouse } from "./house.js";
 import { IDEAL_LOOP, IDEAL_TIMING } from "./radio.js";
 import { networkOf } from "./zigbee.js";
@@ -42,6 +44,16 @@ export function bridgeFiles(): DeviceFiles {
     sim: read(LAYER, ["sim_tasmota.be", ...MODULE_FILES.filter((n) => n !== "persist.be")]),
     brain: read(join(REPO, "berry"), BRIDGE_FILES),
     flash: { "autoexec.be": readFileSync(join(REPO, "berry/zbbridge_autoexec.be"), "utf8") },
+  };
+}
+
+/** every file an appliance needs: its node, and its autoexec.be */
+export function applianceFiles(): DeviceFiles {
+  return {
+    tasmota: read(EMBEDDED, [...TASMOTA_LIBRARY, "persist.be"]),
+    sim: read(LAYER, ["sim_tasmota.be", ...MODULE_FILES.filter((n) => n !== "persist.be")]),
+    brain: read(join(REPO, "berry"), APPLIANCE_FILES),
+    flash: { "autoexec.be": readFileSync(join(REPO, "berry/appliance_autoexec.be"), "utf8") },
   };
 }
 

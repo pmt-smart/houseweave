@@ -5,7 +5,7 @@ import type { HousingColor } from "./Enclosure";
 import { Badge, Picker, SegmentedControl, SelectorBar, ToggleButton, type TabItem } from "./chrome";
 import { chrome } from "./chromeTokens";
 import { GlassView } from "./GlassView";
-import { BridgeControls, ConsoleControls, LogControls, NetworkControls } from "./PanelControls";
+import { ApplianceControls, BridgeControls, ConsoleControls, LogControls, NetworkControls } from "./PanelControls";
 import { ReactPanelView } from "./ReactPanelView";
 import { hasProject, projectName } from "./panelFiles";
 import { Rig } from "./rig";
@@ -156,7 +156,7 @@ export function PanelTab({ project, projects, onSelectProject, deviceId, onSetDe
           </div>
 
           {/* What an engineer in the room would have: the log and the UART,
-              each device's console, the bridge, and its network with the lamps. */}
+              each device's console, the bridge, the appliance, and the bridge's network with the lamps. */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: chrome.space.md, alignItems: "flex-start" }}>
             <div style={{ flex: "3 1 420px", minWidth: 0 }}>
               <LogControls rig={rig} />
@@ -164,6 +164,7 @@ export function PanelTab({ project, projects, onSelectProject, deviceId, onSetDe
             <div style={{ flex: "2 1 300px", minWidth: 0, display: "grid", gap: chrome.space.md }}>
               <ConsoleControls rig={rig} />
               <BridgeControls rig={rig} />
+              <ApplianceControls rig={rig} />
               <NetworkControls rig={rig} />
             </div>
           </div>

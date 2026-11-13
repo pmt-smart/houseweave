@@ -5,13 +5,13 @@
 //              simulator's natives for it (vm/tasmota), the brain the firmware
 //              carries (berry/*.be), and the panel's file system: autoexec.be
 //              and the project's generated tables; the bridge's, its relay
-//              and its autoexec.be
+//              and its autoexec.be; an appliance's, its node and its autoexec.be
 //   the glass  the scenario the .tft is compiled from, its fonts and pictures
 //   the React  the manifest of what the runtime writes where (mirror.ts)
 //
 // Nothing here is rewritten for the simulator; an edit to any of these files
 // is on the simulated panel at the next load (vite.config.ts watches them).
-import { BRAIN_FILES, BRIDGE_FILES, MODULE_FILES, TASMOTA_LIBRARY, type DeviceFiles, type PanelFiles } from "@nspanel-sim/vm";
+import { APPLIANCE_FILES, BRAIN_FILES, BRIDGE_FILES, MODULE_FILES, TASMOTA_LIBRARY, type DeviceFiles, type PanelFiles } from "@nspanel-sim/vm";
 import { fontOf, pictureOf, readScenario, type HmiDef, type Picture } from "@nspanel-sim/glass";
 import type { ZiFont } from "@nspanel-sim/export";
 import type { RuntimeManifest } from "./mirror";
@@ -66,6 +66,19 @@ export function bridgeFiles(): DeviceFiles {
     sim: Object.fromEntries(["sim_tasmota.be", ...MODULE_FILES.filter((n) => n !== "persist.be")].map((n) => [n, sim[n]])),
     brain: Object.fromEntries(BRIDGE_FILES.map((n) => [n, sources[n]])),
     flash: { "autoexec.be": Object.values(bridgeAutoexec)[0] },
+  };
+}
+
+/** an appliance's files: the node its image compiles, and its autoexec.be, which is berry/appliance_autoexec.be (files-node.ts) */
+export function applianceFiles(): DeviceFiles {
+  const lib = byName(embedded);
+  const sim = byName(layer);
+  const sources = byName(berry);
+  return {
+    tasmota: Object.fromEntries([...TASMOTA_LIBRARY, "persist.be"].map((n) => [n, lib[n]])),
+    sim: Object.fromEntries(["sim_tasmota.be", ...MODULE_FILES.filter((n) => n !== "persist.be")].map((n) => [n, sim[n]])),
+    brain: Object.fromEntries(APPLIANCE_FILES.map((n) => [n, sources[n]])),
+    flash: { "autoexec.be": sources["appliance_autoexec.be"] },
   };
 }
 

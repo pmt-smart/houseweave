@@ -1,4 +1,4 @@
-// The room, in the browser: the panel on its wall and its bridge, in one house
+// The room, in the browser: the panel on its wall, its bridge and an appliance, in one house
 // (@nspanel-sim/vm), as the house tests of the VM run them.
 //
 //   the panel   the ESP32 (the panel's Berry on Tasmota's VM) and the Nextion
@@ -10,13 +10,17 @@
 //               device on its Zigbee network, and opens its pairing window as it
 //               powers up, so the first boot is the first use: Add to this house
 //               on the glass, then the zones and the devices
+//   the appliance  the Sonoff TH Elite THR320D on a water heater, with the node's
+//               Berry: its latching relay, its probe in the water, its button and
+//               its LEDs. From its box too, its window open as it powers up: Add
+//               to this house, then a zone's +, Mesh device
 //   the house   the air between their radios, the networks in range, the
 //               house's network and its MQTT broker. Its server, which keeps
 //               the backups, is the release server on this PC, paired on a
 //               real panel: the page has none, and a panel here says None
 //
-// The two devices run the images the real ones run, with the ESP-NOW mesh driver
-// in both: here the one the vm's tests run (the core the firmware compiles,
+// The three devices run the images the real ones run, with the ESP-NOW mesh driver
+// in each: here the one the vm's tests run (the core the firmware compiles,
 // vm/src/mesh-driver.ts), and with it the house's screens.
 //
 // A restart Tasmota is asked for boots that device again from what it kept, as
@@ -29,9 +33,9 @@
 // device keeps in its flash (_persist.json, the NVS, the Wi-Fi saved) is kept in
 // the browser too, so an edit made on the glass, or a pairing, is there after a
 // reload, as it is after a reboot.
-import { IDEAL_LOOP, IDEAL_TIMING, SimBridge, SimHouse, SimPanel, coversOf, networkOf, switchesOf, thermostatsOf, type DeviceOptions, type PanelOptions, type SimDevice } from "@nspanel-sim/vm";
+import { IDEAL_LOOP, IDEAL_TIMING, SimAppliance, SimBridge, SimHouse, SimPanel, coversOf, networkOf, switchesOf, thermostatsOf, type DeviceOptions, type PanelOptions, type SimDevice } from "@nspanel-sim/vm";
 import { Glass } from "@nspanel-sim/glass";
-import { bridgeFiles, glassAssets, panelFiles, runtimeManifest } from "./panelFiles";
+import { applianceFiles, bridgeFiles, glassAssets, panelFiles, runtimeManifest } from "./panelFiles";
 import type { RuntimeManifest } from "./mirror";
 
 export interface LogLine {
@@ -39,7 +43,7 @@ export interface LogLine {
   level: number;
   text: string;
   /** the device whose log it is: the panel's when not said */
-  from?: "bridge";
+  from?: "bridge" | "appliance";
 }
 
 export interface WireLine {
@@ -71,11 +75,18 @@ interface Kept {
   wifi?: DeviceOptions["wifi"];
 }
 
+/** an appliance's, with what its board keeps beside the flash: where its latching relay is, and Tasmota's temperature offset */
+interface KeptAppliance extends Kept {
+  contact?: boolean;
+  tempOffset?: number;
+}
+
 interface Saved {
   seed?: string;
   house?: number;
   panel?: Kept;
   bridge?: Kept;
+  appliance?: KeptAppliance;
 }
 
 /** bytes as the console shows them: text, with FF FF FF and the 55 BB frames spelled out */
@@ -133,14 +144,17 @@ export class Rig {
   panel: SimPanel;
   /** the bridge of the room: a new one after every restart */
   bridge: SimBridge;
+  /** the appliance of the house: a new one after every restart */
+  appliance: SimAppliance;
   readonly glass: Glass;
   /** where the runtime writes each value: what the React screens read back */
   readonly manifest: RuntimeManifest;
-  private constructor(name: string, house: SimHouse, panel: SimPanel, bridge: SimBridge, glass: Glass, manifest: RuntimeManifest) {
+  private constructor(name: string, house: SimHouse, panel: SimPanel, bridge: SimBridge, appliance: SimAppliance, glass: Glass, manifest: RuntimeManifest) {
     this.name = name;
     this.house = house;
     this.panel = panel;
     this.bridge = bridge;
+    this.appliance = appliance;
     this.glass = glass;
     this.manifest = manifest;
   }
@@ -217,6 +231,20 @@ export class Rig {
       ...mesh,
     };
     const panel = await SimPanel.create(boot);
+    const appliance = await SimAppliance.create({
+      house,
+      files: applianceFiles(),
+      mqtt,
+      persist: saved.appliance?.persist,
+      nvm: saved.appliance?.nvm,
+      // from its box: no network saved, and its window opens as it powers up
+      wifi: saved.appliance?.wifi ?? { ssid1: "" },
+      contact: saved.appliance?.contact,
+      tempOffset: saved.appliance?.tempOffset,
+      onLog: (level, text) => rig?.push(rig.log, { at: house.now, level, text, from: "appliance" }),
+      onNvm: () => rig?.save(),
+      ...mesh,
+    });
     // the lamps and the thermostats of the configuration the panel kept, back on the bridge's network as they were: the simulated network is
     // not in the bridge's flash. A panel as it is flashed has none
     const doc = saved.panel?.persist?.panel_config;
@@ -226,7 +254,7 @@ export class Rig {
       for (const c of coversOf(doc as never)) bridge.zigbee.addCover(c);
       for (const w of switchesOf(doc as never)) bridge.zigbee.addSwitch(w);
     }
-    rig = new Rig(name, house, panel, bridge, glass, manifest);
+    rig = new Rig(name, house, panel, bridge, appliance, glass, manifest);
     for (const b of early) panel.uartReceive(b);
     glass.start();
     return rig;
@@ -260,7 +288,7 @@ export class Rig {
 
   advance(ms: number) {
     if (this.rebooting) return;
-    const flash = flashTime(this.panel) + flashTime(this.bridge);
+    const flash = this.flashTimes();
     this.owed += ms;
     while (this.owed >= 5) {
       this.owed -= 5;
@@ -272,9 +300,14 @@ export class Rig {
         return;
       }
     }
-    if (flashTime(this.panel) + flashTime(this.bridge) !== flash) this.save();
+    if (this.flashTimes() !== flash) this.save();
     this.version++;
     for (const f of this.listeners) f();
+  }
+
+  /** when the three devices' flashes were last written, as one number that moves when any did */
+  private flashTimes(): number {
+    return flashTime(this.panel) + flashTime(this.bridge) + flashTime(this.appliance);
   }
 
   /** Tasmota restarted on a device: it boots again from what it kept, and the glass with the panel. */
@@ -290,6 +323,9 @@ export class Rig {
         } else if (d instanceof SimBridge) {
           this.bridge = d;
           this.push(this.log, { at: this.house.now, level: 2, text: "APP: Restarted", from: "bridge" });
+        } else if (d instanceof SimAppliance) {
+          this.appliance = d;
+          this.push(this.log, { at: this.house.now, level: 2, text: "APP: Restarted", from: "appliance" });
         }
       }
     } catch (e) {
@@ -305,14 +341,16 @@ export class Rig {
   /** what each device's flash holds, kept in the browser */
   save() {
     try {
-      const saved: Saved = { seed: SEED, house: HOUSE, panel: keep(this.panel), bridge: keep(this.bridge) };
+      const a = this.appliance;
+      const saved: Saved = { seed: SEED, house: HOUSE, panel: keep(this.panel), bridge: keep(this.bridge),
+        appliance: { ...keep(a), contact: a.contact, tempOffset: a.tempOffset } };
       localStorage.setItem(STORE(this.name), JSON.stringify(saved));
     } catch {
       // a private window, or a full storage: the house runs on, and forgets at reload
     }
   }
 
-  /** the flash of both wiped: the panel boots as it is flashed at the next load, and the bridge from its box */
+  /** the flash of all three wiped: the panel boots as it is flashed at the next load, and the bridge and the appliance from their boxes */
   static forget(name: string) {
     try {
       localStorage.removeItem(STORE(name));

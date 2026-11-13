@@ -87,14 +87,25 @@
 // detaches the two, so a press never toggles the heater, with Berry running or
 // not (support_button_v4.ino), and the hold still reaches the rules as
 // {"Button1":{"State":3}}. SSerialMode 3 decodes the probe's datagrams, at the
-// 9600 bps 8N1 a fresh configuration already has. PowerOnState 0 opens the
-// relay at a power up: it is a latching one, which a power cut leaves where it
-// was, and Tasmota pulses its off coil then; the thermostat closes it from there.
+// 9600 bps 8N1 a fresh configuration already has.
+//
+// The relay is a latching one: it stays where a power cut, a restart or a crash
+// left it, and Tasmota never reads its contact. Three commands leave it open at
+// every boot, with Berry running or not, and the thermostat closes it from
+// there. PowerOnState 0 pulses its off coil at a power up. SetOption0 0 keeps
+// no relay state for a restart: with it on, Tasmota closes the relay again at
+// the boot after a restart asked while the heater was on, since it copies the
+// state it will restore before its drivers are told of the restart
+// (settings.ino, SettingsSaveAll), and that is before the thermostat runs, or
+// with no thermostat at all on a boot that comes up without Berry. And a rule
+// of Tasmota's own, which needs no Berry, pulses the off coil at every boot,
+// whatever its cause: after a crash Tasmota believes the relay open, pulses
+// nothing, and the contact may be closed.
 #ifdef HOUSEWEAVE_THR320D_IMAGE
 #undef  FRIENDLY_NAME
 #define FRIENDLY_NAME        "THR320D"             // [FriendlyName]
 #undef  USER_TEMPLATE
-#define USER_TEMPLATE "{\"NAME\":\"Sonoff THR320D\",\"GPIO\":[32,0,0,0,0,9280,0,0,0,321,0,576,320,9184,9216,9312,0,0,9313,9248,0,1824,0,3840,0,0,0,0,0,0,0,0,0,0,0,0],\"FLAG\":0,\"BASE\":1,\"CMND\":\"SetOption1 1 | SetOption32 50 | SetOption73 1 | ButtonTopic 0 | SetOption127 1 | Sleep 0 | SSerialMode 3 | PowerOnState 0\"}"
+#define USER_TEMPLATE "{\"NAME\":\"Sonoff THR320D\",\"GPIO\":[32,0,0,0,0,9280,0,0,0,321,0,576,320,9184,9216,9312,0,0,9313,9248,0,1824,0,3840,0,0,0,0,0,0,0,0,0,0,0,0],\"FLAG\":0,\"BASE\":1,\"CMND\":\"SetOption1 1 | SetOption32 50 | SetOption73 1 | ButtonTopic 0 | SetOption127 1 | Sleep 0 | SSerialMode 3 | PowerOnState 0 | SetOption0 0 | Rule1 ON System#Init DO Power1 0 ENDON | Rule1 1\"}"
 #undef  MODULE
 #define MODULE               USER_MODULE           // [Module] the template above
 #endif  // HOUSEWEAVE_THR320D_IMAGE

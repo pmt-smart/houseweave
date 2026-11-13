@@ -174,6 +174,8 @@ export class SimWifi {
 
 /** a restart's delay, as Tasmota's restart flag counts it down */
 const RESTART_MS = 1500;
+/** how long before the restart Tasmota saves its settings and tells its drivers of it */
+const SAVE_BEFORE_RESTART_MS = 300;
 
 /**
  * A command line split as Tasmota's command handler splits it (support_command.ino).
@@ -562,6 +564,11 @@ export abstract class SimDevice {
     return this.house?.relay(n) ?? false;
   }
 
+  /** whether the device's relays are circuits of the room, which feed the lamps of the house's networks: a panel's are; an appliance's switch its own load */
+  get feedsRoom(): boolean {
+    return this.relays.length > 0;
+  }
+
   /** the buzzer, on a device that has one */
   protected beep(_count: number) {}
 
@@ -774,7 +781,10 @@ export abstract class SimDevice {
     this.opts.onRestart?.(why);
     // Tasmota restarts once its restart flag has counted down, a second or two
     // after the command (support_tasmota.ino): whoever runs the device boots it again then
-    this.restartAt ??= this.now + RESTART_MS;
+    if (this.restartAt !== undefined) return;
+    this.restartAt = this.now + RESTART_MS;
+    // and tells its drivers a moment before it does, as it saves its settings (settings.ino, SettingsSaveAll): Berry's save_before_restart
+    this.later("", RESTART_MS - SAVE_BEFORE_RESTART_MS, () => this.vm.call("sim_event", "save_before_restart"));
   }
 
   /** a restart asked for is due: whoever runs the device boots it again (reboot) */
@@ -1011,6 +1021,8 @@ export abstract class SimDevice {
       case "gpio_pin": return "-1";
       case "gpio_read": return "0";
       case "gpio_write": return null;
+      // a device with no sensor of its own: Tasmota's sensors say nothing
+      case "sensors": return "{}";
       case "zb_image": return this.z2t() ? "1" : "0";
       case "zb_started": return "1";
       case "zb_devices": return JSON.stringify(this.zigbee.moduleDevices());

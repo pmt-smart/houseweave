@@ -76,6 +76,8 @@ def fresh(water)
     var n = FakeNode()
     var t = BoilerThermostat(n)
     t.history = BoilerHistory(TEST_TMP + "/history.bin")
+    # what its boot commanded of the relay is box_checks' to look at
+    tasmota.powered = []
     return t
 end
 # one second with the water at `deg`: what the relay is after it
@@ -95,13 +97,23 @@ def box_checks()
     var d = t.describe()
     check("what a panel registers it with: a target and a mode, the range the two limits, 30 to 70 degrees by one, off and heat, no floor probe, and what it measures",
           [d["caps"], d["min"], d["max"], d["step"], d["modes"], d["floor"], d["ep"], d["measure"]], [48, 300, 700, 10, ["off", "heat"], false, 1, "Water"])
-    check("before its first second: the relay as Tasmota has it, no reading, no exception", [t.relay, t.water, t.exception], [false, nil, false])
+    check("before its first second: the relay open, no reading, no exception", [t.relay, t.water, t.exception], [false, nil, false])
     check("the calibration is Tasmota's temperature offset, set at the boot", tasmota.cmds, ["TempOffset", "TempOffset 0"])
     tasmota.replies["TempOffset"] = {"TempOffset": 0.0}
     tasmota.cmds.clear()
     BoilerThermostat(FakeNode())
     check("and left alone when it is the one kept", tasmota.cmds, ["TempOffset"])
     tasmota.replies.remove("TempOffset")
+    tasmota.power = true
+    tasmota.powered = []
+    var found_on = BoilerThermostat(FakeNode())
+    check("a boot opens the relay, one Tasmota has as closed", [tasmota.powered, tasmota.power, found_on.relay], [[[0, false]], false, false])
+    tasmota.powered = []
+    var found_off = BoilerThermostat(FakeNode())
+    check("and one it has as open, which a crash may have left closed: the latching relay says nothing of where it is",
+          [tasmota.powered, found_off.relay], [[[0, false]], false])
+    tasmota.powered = []
+    tasmota.cmds.clear()
 end
 box_checks()
 

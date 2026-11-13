@@ -14,7 +14,7 @@ official Node.js for Windows, not MSYS2's) is in `libs/nspanel-sim/README.md`; i
 | `export/` | the hardware's truth: reading and writing the screen's formats, the `.zi` fonts, the picture codec, the preflight, and the generator (`export/scripts/`) | `src` imports nothing; the scripts import `core` |
 | `ui/` | the React rendering of the components | `layout`, `export` |
 | `glass/` | the emulated Nextion: the compiled pages, the event code, the drawing | `layout`, `export` |
-| `vm/` | Tasmota's Berry VM in WebAssembly and the Tasmota around it: the panel, the bridge and the house between them | nothing (its tests use `glass`) |
+| `vm/` | Tasmota's Berry VM in WebAssembly and the Tasmota around it: the panel, the bridge, an appliance and the house between them | nothing (its tests use `glass`) |
 | `sim/` | the app: the simulator, the themes, the House and the Settings ([07 §2](07-home-assistant.md)) | all of them |
 
 Dependencies go one way. `layout/` imports nothing, so that both renderers, the React one and the compiled one, read the same description of a
@@ -118,13 +118,16 @@ npm run dev
 
 in `libs/nspanel-sim/` serves the app at `http://localhost:5173`. Its **Studio** has the simulator and the themes:
 
-- **The simulator** is the whole panel, in a house with its bridge: the panel's Berry on Tasmota's VM and the project's compiled pages on the
+- **The simulator** is the whole panel, in a house with its bridge and an appliance: the panel's Berry on Tasmota's VM and the project's compiled pages on the
   emulated glass, joined by the UART. The panel shows twice, side by side: **Real**, the emulated glass in true RGB565, text drawn glyph by glyph
   from the `.zi` with the screen's measured positions; and **React**, the project's screens as designed, every value read back from the glass.
   They are one panel: a touch on either is a touch on the glass, and the two physical buttons are the frame's. On top: the project and EU or US,
-  the touch areas drawn over the glass, **Restart** (the room's power off and on: both devices keep their flash) and **Reset flash** (the panel
-  boots as it is flashed, with an empty Home, and the bridge as it leaves its box). Below: the bridge, its Zigbee network, each device's console and the log. The bridge opens its pairing window as it
-  powers up, so the first use is **Add to this house** on the glass, then the zones and the devices.
+  the touch areas drawn over the glass, **Restart** (the room's power off and on: the devices keep their flash) and **Reset flash** (the panel
+  boots as it is flashed, with an empty Home, and the bridge and the appliance as they leave their boxes). Below: the bridge, the appliance, the
+  bridge's Zigbee network, each device's console and the log. The bridge opens its pairing window as it powers up, so the first use is **Add to
+  this house** on the glass, then the zones and the devices. The appliance, a THR320D on a water heater, opens its window too: once it is added
+  to the house, a zone's + takes its device as a Mesh device. Its box has its button, held or pressed, its LED, whether its heater has power,
+  the water at its probe, warmer or cooler by hand, and the probe unplugged.
 - **The themes** are a catalogue: every component, colour, font role and icon of a theme, each once.
 - **The physical size.** The screen is drawn at its real size, calibrated once per monitor in Settings by holding an ID-1 card (85.60 × 53.98 mm)
   against the screen; the EU screen measures 69.2 × 49.2 mm and the US 49.2 × 73.8 mm.
@@ -136,7 +139,7 @@ in `libs/nspanel-sim/` serves the app at `http://localhost:5173`. Its **Studio**
 | the Berry VM | `libs/nspanel-sim/vm/wasm/berry.mjs` | the submodule's Berry, compiled with emscripten |
 | Tasmota's Berry library | rules, timers, drivers, `load()`, `persist` | the submodule's own `.be` files |
 | the native functions | `millis`, power, `cmd`, serial, TCP and UDP over the house's network, `path`, `crypto`, `webserver`, `gpio`, `mqtt` | emulated |
-| Tasmota's core | the loop, the periodic events, the relays, the buttons' scan, `Power`, `SetOption`, `Buzzer`, the Wi-Fi commands and the Wi-Fi manager, `Restart` | emulated (`libs/nspanel-sim/vm/src/device.ts`) |
+| Tasmota's core | the loop, the periodic events, the relays, the buttons' scan, the sensors, `Power`, `SetOption`, `Buzzer`, the Wi-Fi commands and the Wi-Fi manager, `Restart` and the word to the drivers before it | emulated (`libs/nspanel-sim/vm/src/device.ts`) |
 | the fork's drivers | the buttons' driver, the Wi-Fi station and the pairing's ESP-NOW exchange | the fork's own `.ino`, compiled (`libs/nspanel-sim/vm/native/`) |
 | the mesh | the core the firmware compiles (`espnow_mesh_core.h`) in `libs/nspanel-sim/vm/wasm/mesh.mjs`, and the driver **rewritten in TypeScript** (`libs/nspanel-sim/vm/src/mesh-driver.ts`), which mirrors the `.ino`: a change to the `.ino` asks for the same change there, by hand | |
 | Zigbee | Zigbee2Tasmota and the devices, in Zigbee2Tasmota's own messages | emulated (`libs/nspanel-sim/vm/src/zigbee.ts`) |
@@ -145,7 +148,8 @@ in `libs/nspanel-sim/` serves the app at `http://localhost:5173`. Its **Studio**
 
 **A device boots in Tasmota's order**: the compiler as Tasmota sets it (strict mode, globals by name), Tasmota's Berry library, the brain's
 classes in the order of the firmware's build (`BRAIN_FILES` in `libs/nspanel-sim/vm/src/panel.ts`, `BRIDGE_FILES` in
-`libs/nspanel-sim/vm/src/bridge.ts`, the same lists as `firmware/overrides/platformio_override.ini`), the drivers' init, and the first loop,
+`libs/nspanel-sim/vm/src/bridge.ts`, `APPLIANCE_FILES` in `libs/nspanel-sim/vm/src/appliance.ts`, the same lists as
+`firmware/overrides/platformio_override.ini`), the drivers' init, and the first loop,
 which loads `autoexec.be`. A turn of the loop is 5 ms of virtual time: every 50 ms the core's events, the buttons' scan and `every_50ms`, then
 `every_100ms`, `every_250ms` and `every_second`; the radio drivers after the Berry, as in the firmware; the mesh driver's loop every 50 ms, so an
 event of the mesh reaches the Berry up to 50 ms after the air. The clock is virtual: the app runs in real time, and a test jumps minutes in one
@@ -161,6 +165,13 @@ cut: both show in the glass's log, which is where the simulator shows what the p
 answered by `ZbResponse`, `ZbInfo` published inside the command, an unanswered ping as `Reachable:false` 2 s later, and a new `ZbConfig` channel
 saved with a restart. A lamp powered by a relay loses power with it and comes back by its `StartUpOnOff`. Thermostats come in two profiles: a ZCL
 one that does not report its mode, and the Moes ZHT-SR's datapoints by raw key, which can echo a write or not.
+
+**The emulated appliance** is the THR320D's board around the node's Berry (`libs/nspanel-sim/vm/src/appliance.ts`). Its one Power is a latching
+relay: the contact is kept apart from what Tasmota believes, and goes where the last pulse of a coil left it, through a restart and a power
+cut, so a boot can find it closed with Tasmota taking it for open; the image's own configuration then opens it, as on the board
+([02 §5](02-hardware.md)). The probe's temperature is among Tasmota's sensors while the probe is plugged, with `TempOffset` added; the button
+is detached from the relay, and a press reaches the rules and toggles nothing; and the green LED is the node's. A restart tells the Berry
+drivers a moment before it happens, as Tasmota does when it saves its settings, on every simulated device.
 
 **What is not the firmware**: the mesh's task runs on the same thread (a burst of more than four sends at one instant finds the queue full,
 where the device's task empties it on the other core); the mesh's radio has no channel and no shared table of peers; two nodes with different

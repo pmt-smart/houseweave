@@ -8,9 +8,9 @@ import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { SimHouse, SimPanel, SimBridge, networkOf, thermostatsOf, coversOf, sensorsOf, SIM_AIR, BRIDGE_FILES, IDEAL_TIMING, IDEAL_LOOP, REAL_TIMING, REAL_LOOP } from "../dist/index.js";
+import { SimHouse, SimPanel, SimBridge, SimAppliance, networkOf, thermostatsOf, coversOf, sensorsOf, SIM_AIR, BRIDGE_FILES, IDEAL_TIMING, IDEAL_LOOP, REAL_TIMING, REAL_LOOP } from "../dist/index.js";
 import { classesOf, staticsScript } from "./statics.mjs";
-import { repoFiles, bridgeFiles, livingRoomConfig, REPO } from "../dist/files-node.js";
+import { repoFiles, bridgeFiles, applianceFiles, livingRoomConfig, REPO } from "../dist/files-node.js";
 import { Glass, readScenario, fontOf, pictureOf, textOf } from "@nspanel-sim/glass";
 import { houseServer } from "./house-server.mjs";
 
@@ -2324,5 +2324,116 @@ global.panel_ui.prefs["editing"] = true`, "edit"), 0, h.panel.vm.error());
   for (let t = 0; t < 30000 && !bridge.wifi.up; t += 250) h.run(250);
   assert.equal(bridge.wifi.up, true, `the bridge joined Cottage with the password typed on the panel: ${h.log.filter((l) => /bridge .*(STA|WIFI|HOUSE)/.test(l)).slice(-12).join("\n")}`);
   assert.ok(h.until("Connected", 10000), `and the join's screen says so: ${h.texts().filter(Boolean)}`);
+  assert.deepEqual(h.glassNotes, []);
+});
+
+// --- an appliance ---
+// A node of the house that is itself one device of it: the THR320D on a water heater (src/appliance.ts), with the node's Berry of the repo on it
+// and the fork's radio. Nothing of it is imitated but the board: its latching relay, its probe, its button and its LEDs.
+
+/** the address a panel keys an appliance's device by: the EUI-64 of its radio's address (berry/appliance_node.be) */
+const applianceIeee = (mac) => {
+  const x = mac.replace(/:/g, "").toUpperCase();
+  return `0x${x.slice(0, 6)}FFFE${x.slice(6)}`;
+};
+
+test("an appliance, the THR320D on a water heater: its button opens its window and toggles nothing, the panel adds it to the house, the Hall's + takes its device as a Mesh device, Heat and a target go to it over the mesh and its relay follows the water; the probe unplugged opens the relay, and so do a restart and a boot that finds it closed", async () => {
+  const h = await house();
+  probed(h);
+  const at = Date.UTC(2026, 8, 30, 20, 0, 0) / 1000;
+  const thr = await SimAppliance.create({ house: h.home, files: applianceFiles(), mesh: { id: 0 }, water: 40, epoch: at, timezone: 0,
+    onLog: (level, line) => h.log.push(`${h.home.now} thr [L${level}] ${line}`) });
+  const IEEE = applianceIeee(thr.mac);
+  const node = () => h.home.devices.find((d) => d instanceof SimAppliance);
+  const trace = () => h.log.filter((l) => /APPLIANCE|BOILER|PAIR|HOUSE|BRY|GATE|ZIGBEE|THERMOSTAT|MESH|PANEL/.test(l) && !/dropped/.test(l)).slice(-24).join("\n");
+  const words = () => JSON.stringify(h.texts().filter(Boolean));
+  h.run(1000);
+  // the board: the image opens the relay at the boot, and a press of the button toggles nothing
+  assert.deepEqual([thr.pulses.length > 0 && thr.pulses[0].on, thr.heating, thr.relays[0]], [false, false, false], "its boot pulsed the off coil: the relay is open");
+  thr.pressButton();
+  h.run(500);
+  assert.deepEqual([thr.heating, thr.relays[0]], [false, false], "a press of its button toggles nothing: the relay is the thermostat's");
+  assert.ok(!thr.blinking(1500), "with a network, it opens no window at boot");
+  // its button held: the window, and the panel adds it to its house from the glass
+  thr.holdButton();
+  h.run(1500);
+  assert.ok(thr.blinking(1000), `its button held 5 s: the window, and its green LED blinks: ${trace()}`);
+  toMesh(h);
+  tapPlus(h);
+  assert.ok(h.until("thr320d-boiler", 12000), `the appliance heard: ${words()}\n${trace()}`);
+  h.tapRow("thr320d-boiler");
+  assert.ok(h.until("Is thr320d-boiler blinking?", 10000), `the appliance asked to blink: ${words()}`);
+  h.tapDialog("Yes");
+  const inHouse = () => probe(h.panel, "(def () var out = [] for id: global.house.list.ids(false) if global.house.list.role(id) == HouseList.ROLE_DEVICE out.push(id) end end return out end)()");
+  for (let t = 0; t < 60000 && inHouse().length === 0; t += 500) h.run(500);
+  assert.equal(inHouse().length, 1, `the appliance is a node of the panel's house, a device of it: ${words()}\n${trace()}`);
+  for (let t = 0; t < 30000 && probe(thr, "global.appliance_node.house != nil && global.appliance_node.house.up") !== true; t += 500) h.run(500);
+  assert.equal(probe(thr, "global.appliance_node.house != nil && global.appliance_node.house.up"), true, `and the panel's house is the appliance's: ${trace()}`);
+  h.run(3000);
+  // the Hall's +: a Mesh device, the appliance's one device
+  toPlan(h);
+  h.tap(40, 160, 800);
+  assert.equal(h.glass.page.name, "zone", "the Hall");
+  h.tap(425, 39);
+  assert.ok(h.until("Mesh device", 3000), `the + has a row for an appliance of the house: ${words()}`);
+  h.tapRow("Mesh device");
+  assert.ok(h.until("THR320D", 15000), `the appliance's page of its devices, asked over the mesh: the one it is: ${words()}\n${trace()}`);
+  assert.ok(h.shows("Thermostat"), "and what it is, said by its item");
+  h.tapRow("THR320D");
+  h.run(3000);
+  const s0 = untilKnown(h, 20000, IEEE);
+  assert.ok(s0.device, `the device is the panel's: ${words()}\n${trace()}`);
+  assert.deepEqual([s0.device[2], s0.device[3], s0.device[4], s0.device[5], s0.device[6], s0.zone], ["thermostat", 48, 300, 700, "THR320D", "hall"],
+    `a thermostat in the Hall, its range the appliance's two limits: ${JSON.stringify(s0.device)}`);
+  assert.deepEqual([s0.state.cur, s0.state.set, s0.state.mode, s0.state.dem, s0.state.up, s0.state.note], [400, 600, "off", 0, true, ""],
+    `the water, the target of the window in force, off: ${JSON.stringify(s0.state)}\n${trace()}`);
+  // the device's buttons are there once the panel has heard its node in step twice in a row, as a bridge's are (panel_gate.be)
+  const held = () => probe(h.panel, `global.panel_ui.gate_reason("${IEEE}")`);
+  assert.match(String(held()), /^Device (syncing|starting)$/, "until then its page says why: the node, by its word");
+  for (let t = 0; t < 90000 && held() !== null; t += 500) h.run(500);
+  assert.equal(held(), null, `the appliance in step on the mesh, heard twice: its device is acted on: ${trace()}`);
+  // Heat, as a tap on its row: the water is under the target less the hysteresis, and the relay closes
+  h.panel.vm.call("_act", JSON.stringify(["toggleDevice", IEEE]));
+  h.run(4000);
+  assert.deepEqual([thr.heating, seen(h, IEEE).state.mode, seen(h, IEEE).state.dem, seen(h, IEEE).live], [true, "heat", 100, "on"], `Heat over the mesh: the heater on, and the panel hears it: ${trace()}`);
+  // a target, as the page's + and - send it: the window's from then on
+  h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "target", 450]]));
+  h.run(4000);
+  assert.deepEqual([seen(h, IEEE).state.set, probe(thr, "global.appliance_node.device.cfg['w1t']"), thr.heating], [450, 45, true], `the target is the window's, on the appliance: ${trace()}`);
+  thr.water = 46;
+  h.run(4000);
+  assert.deepEqual([thr.heating, seen(h, IEEE).state.cur, seen(h, IEEE).state.dem], [false, 460, 0], "the water at the target: the heater off, and the panel has the water and the rest");
+  thr.water = 41;
+  h.run(4000);
+  assert.equal(thr.heating, true, "the water down past the hysteresis: on again");
+  // the probe unplugged: off, and said
+  thr.water = null;
+  h.run(4000);
+  assert.deepEqual([thr.heating, seen(h, IEEE).state.up, seen(h, IEEE).state.note], [false, false, "No probe"], `with no reading the heater is off, and the panel says so: ${trace()}`);
+  thr.water = 41;
+  h.run(4000);
+  assert.equal(thr.heating, true, "the probe back: on");
+  // a limit of the target, set from the panel: the range the panel keeps follows
+  h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "setting", 65, "lmax"]]));
+  h.run(6000);
+  assert.deepEqual(seen(h, IEEE).device.slice(4, 6), [300, 650], `the highest lowered to 65 on the appliance: the panel's range of it: ${trace()}`);
+  // a restart asked with the heater on: off before it, open through the boot, and on again once the thermostat has the water
+  assert.equal(thr.heating, true);
+  thr.console("Restart 1");
+  for (let t = 0; t < 5000 && !thr.restartDue; t += 100) h.run(100);
+  assert.ok(thr.restartDue, "the restart due");
+  assert.equal(thr.heating, false, "the heater off before the restart");
+  const again = await thr.restartNow();
+  h.run(200);
+  assert.deepEqual([again.pulses[0].on, again.heating], [false, false], "the boot pulses the off coil, and the relay is open while the node comes up");
+  for (let t = 0; t < 30000 && !again.heating; t += 500) h.run(500);
+  assert.equal(again.heating, true, `the thermostat back, in Heat as the flash kept it: on again: ${trace()}`);
+  // a boot that finds the relay closed and Tasmota taking it for open, as after a crash or a power cut: the image opens it
+  const cold = await again.powerCycle();
+  assert.deepEqual([cold.contact, cold.relays[0]], [true, false], "the contact closed, and Tasmota believes it open");
+  h.run(200);
+  assert.deepEqual([cold.pulses[0].on, cold.heating], [false, false], "the image's rule opens it at the boot, whatever Tasmota believes");
+  assert.equal(node(), cold);
+  assert.deepEqual(h.log.filter((l) => /BRY: Exception|failed on/.test(l)), [], "nothing raised on any side");
   assert.deepEqual(h.glassNotes, []);
 });

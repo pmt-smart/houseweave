@@ -103,7 +103,11 @@ class SimTasmota : Tasmota
         var v = _host("option", str(n))
         return v != nil ? int(v) : 0
     end
-    def read_sensors() return "{}" end
+    # the sensors' JSON, as the device has them: a probe's temperature on an appliance, nothing on a device with none
+    def read_sensors()
+        var s = _host("sensors")
+        return s != nil ? s : "{}"
+    end
 
     # A rule's string operators (xdrv_52_3_berry_tasmota.ino, tasm_apply_str_op), in
     # any case: 1 equals, 2 does not, 3 starts with, 4 ends with, 5 contains, 6
@@ -446,6 +450,9 @@ end
 
 # a rules process from Tasmota's core: a relay's state, a button, Z2T
 def sim_rule(payload) tasmota._rule(payload) end
+
+# an event of Tasmota's core to every driver, by its name: save_before_restart, as the settings are saved for a restart
+def sim_event(ev) _sim_guard(/ -> tasmota.event(ev)) end
 
 # a line of the console: the command's answer, as JSON
 def sim_cmd(line)

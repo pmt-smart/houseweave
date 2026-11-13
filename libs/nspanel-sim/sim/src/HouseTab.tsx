@@ -8,7 +8,7 @@ import { sendJson, useHouse, when, type FleetNode, type KeptBackup } from "./hou
 // the server keeps with the hardware swap (an old node's backup given to a new one), and the releases it serves to the nodes.
 
 const VERBS = ["backup", "upgrade", "state"] as const;
-const ROLES: Record<number, string> = { 1: "Bridge", 2: "Panel", 3: "Server" };
+const ROLES: Record<number, string> = { 1: "Bridge", 2: "Panel", 3: "Server", 4: "Device" };
 
 /** what a node said to the last thing asked of it, in a few words: the round's answer is its backup's, and the node it came through when the server
  * did not reach it */

@@ -237,7 +237,7 @@ test("pairing on the bridge's channel: the scan hears it at once, and both save 
   const scan = panel.eventsOf("EspNowPair");
   assert.ok(!scan.some((e) => e.Scan === "Sweeping"), "heard on its own channel: no sweep");
   assert.deepEqual(scan.find((e) => typeof e.Heard === "object").Heard,
-    { Id: 1, Mac: text(BRIDGE), Rssi: -40, Channel: 6, Version: 2, Name: "ZBBridge", Zigbee: 15, Network: 1, Busy: 0, Guest: 1, Display: 0 });
+    { Id: 1, Mac: text(BRIDGE), Rssi: -40, Channel: 6, Version: 2, Name: "ZBBridge", Zigbee: 15, Network: 1, Busy: 0, Guest: 1, Display: 0, Appliance: 0 });
   assert.deepEqual(panel.cmd("EspNowPairHeard").EspNowPairHeard.map((h) => h.Mac), [text(BRIDGE)]);
   assert.equal(panel.state().paused, 0, "the WiFi never paused");
 
@@ -837,19 +837,33 @@ function pairAsGuest(air, window, scanner, withLine = "EspNowPairWith 1,guest") 
   return scanner.cmd(withLine).EspNowPairWith;
 }
 
-test("a window on a device with a display says so: the scan hears it as a panel's, and a display that is not 0 or 1 is refused", async () => {
+test("a window on a device with a display says so: the scan hears it as a panel's, and a kind that is not 0, 1 or 2 is refused", async () => {
   const air = new Air();
   const window = await air.device(PANEL, 311);
   const scanner = await air.device(BRIDGE, 312);
   for (const d of [window, scanner]) onNetwork(d, 6);
   air.run(1500);
-  assert.equal(window.cmd("EspNowPairOpen 120,0,2").EspNowPairOpen, "Error", "a display of 2 is an error");
+  assert.equal(window.cmd("EspNowPairOpen 120,0,3").EspNowPairOpen, "Error", "a kind of 3 is an error");
   assert.equal(window.cmd("EspNowPairOpen 120,0,1").EspNowPairOpen, "Open");
   assert.equal(scanner.cmd("EspNowPairScan").EspNowPairScan, "Started");
   assert.ok(air.until(() => scanner.eventsOf("EspNowPair").some((e) => e.Scan === "Done"), 5000));
   const heard = scanner.eventsOf("EspNowPair").find((e) => typeof e.Heard === "object").Heard;
-  assert.deepEqual([heard.Mac, heard.Zigbee, heard.Guest, heard.Display], [text(PANEL), 0, 1, 1], "the window of a panel: no Zigbee channel, a guest's, with a display");
+  assert.deepEqual([heard.Mac, heard.Zigbee, heard.Guest, heard.Display, heard.Appliance], [text(PANEL), 0, 1, 1, 0], "the window of a panel: no Zigbee channel, a guest's, with a display, no appliance");
   assert.deepEqual(scanner.cmd("EspNowPairHeard").EspNowPairHeard.map((h) => h.Display), [1], "and the list of the heard says it too");
+});
+
+test("a window on an appliance says so: the scan hears a device of the house with no Zigbee coordinator and no display", async () => {
+  const air = new Air();
+  const window = await air.device(BRIDGE2, 313);
+  const scanner = await air.device(PANEL, 314);
+  for (const d of [window, scanner]) onNetwork(d, 6);
+  air.run(1500);
+  assert.equal(window.cmd("EspNowPairOpen 120,0,2").EspNowPairOpen, "Open", "a kind of 2 is an appliance's");
+  assert.equal(scanner.cmd("EspNowPairScan").EspNowPairScan, "Started");
+  assert.ok(air.until(() => scanner.eventsOf("EspNowPair").some((e) => e.Scan === "Done"), 5000));
+  const heard = scanner.eventsOf("EspNowPair").find((e) => typeof e.Heard === "object").Heard;
+  assert.deepEqual([heard.Mac, heard.Zigbee, heard.Guest, heard.Display, heard.Appliance], [text(BRIDGE2), 0, 1, 0, 1], "the window of an appliance: no Zigbee channel, a guest's, no display");
+  assert.deepEqual(scanner.cmd("EspNowPairHeard").EspNowPairHeard.map((h) => [h.Display, h.Appliance]), [[0, 1]], "and the list of the heard says it too");
 });
 
 test("a guest: a panel that has a bridge pairs with another bridge's window and keeps its own, on the flash and in the link, and both are back when it ends", async () => {

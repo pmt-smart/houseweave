@@ -92,7 +92,9 @@ only to the panels that show it ([05 §4](05-the-house.md)). The device is a cla
   the appliance, with every panel off and the mesh down. The heater comes on at the target less the hysteresis and goes off at the target; each of
   two windows of the day has its hours and its target, and outside both the heater is off. The lowest and the highest a target is set to are
   two of its settings, as a Zigbee thermostat's are (`berry/zbdriver_thermostat.be`), and the range it is described with. It is off in the mode off, with no reading of the
-  probe, at the ceiling, and before a restart, since its relay is bistable and stays as it is. A relay switched by another hand (the Web UI, the
+  probe, at the ceiling, and before a restart, since its relay is a latching one and stays as it is. It opens the relay as it starts,
+  whatever Tasmota believes it is, and the image's own configuration does the same at every boot with no Berry running
+  ([02 §5](02-hardware.md)). A relay switched by another hand (the Web UI, the
   MQTT) is the mode that was asked for, and the logic decides the relay from it. With no clock at all it holds the first window's target, an
   exceptional mode said on the panel's page, in its settings, by the node's LED and in the node's telemetry, and left when the clock comes.
 - **Its history** (`berry/boiler_history.be`): the water and the heater's minutes every five minutes, for a week, and each day's lowest and

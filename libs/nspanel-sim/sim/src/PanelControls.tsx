@@ -1,13 +1,14 @@
 // What an engineer in the room would see: the bridge with its button and its
-// LED, the Zigbee network with its lamps, each device's Tasmota console and the
-// log of both, and the UART. The panel's two physical buttons are on the housing
+// LED, the appliance with its button, its LEDs, its relay and its probe, the Zigbee
+// network with its lamps, each device's Tasmota console and the log of all, and the UART. The panel's two physical buttons are on the housing
 // itself (Enclosure.tsx), as on the wall.
 //
 // Every control acts where the hardware would: the bridge's button held is the
 // rules' Button1 as Tasmota gives it, a lamp, a thermostat or a blind that joins
 // announces itself the way Z2T reports one, a thermostat's dial turned or a blind's
 // wall key pressed reports as the device would, a console line is a Tasmota
-// command. None of them reaches into either device's Berry.
+// command; the appliance's water is the temperature at its probe, and its probe
+// unplugged is no datagram from it. None of them reaches into a device's Berry.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Rig } from "./rig";
 import { Badge, SegmentedControl } from "./chrome";
@@ -72,6 +73,56 @@ export function BridgeControls({ rig }: { rig: Rig }) {
 
 /** a small key beside a device of the list, for what is done to it from outside */
 const key = { ...button, padding: `0 ${chrome.space.xs}px`, font: `${chrome.font.size.xs}px ${chrome.font.mono}` };
+
+/**
+ * The appliance, a THR320D on a water heater: its green LED, which blinks while its pairing window is open, its relay, which is the heater's
+ * power, the water at its probe, warmer or cooler by hand, the probe unplugged and plugged, and its button, held 5 s to open the window or
+ * pressed, which toggles nothing.
+ */
+export function ApplianceControls({ rig }: { rig: Rig }) {
+  useRigTick(rig, 4);
+  const a = rig.appliance;
+  const ssid = a.wifi.ssid[0];
+  const led = a.blinking() ? "blinking" : a.leds[1] === 0 ? "on" : "off";
+  const water = a.water;
+  return (
+    <Panel
+      label={`Appliance: ${a.hostname}`}
+      right={
+        <span style={{ display: "inline-flex", gap: chrome.space.xs }}>
+          <Badge tone={a.heating ? "warn" : "neutral"}>{a.heating ? "heater on" : "heater off"}</Badge>
+          <Badge tone={led === "blinking" ? "ok" : "neutral"}>{`LED ${led}`}</Badge>
+        </span>
+      }
+    >
+      <div style={{ display: "flex", gap: chrome.space.sm, alignItems: "center", flexWrap: "wrap" }}>
+        <button type="button" style={button} title="As its button held 5 s: the pairing window opens for 2 min" onClick={() => a.holdButton()}>
+          Hold the button 5 s
+        </button>
+        <button type="button" style={button} title="A short press: it toggles nothing, the relay is the thermostat's" onClick={() => a.pressButton()}>
+          Press it
+        </button>
+        <span style={{ font: `${chrome.font.size.xs}px ${chrome.font.mono}`, color: chrome.color.textMuted }}>
+          {ssid ? `Wi-Fi ${ssid}` : "no network saved"}
+        </span>
+      </div>
+      <div style={{ display: "flex", gap: chrome.space.sm, alignItems: "center", flexWrap: "wrap", marginTop: chrome.space.sm, font: `${chrome.font.size.xs}px ${chrome.font.mono}` }}>
+        <span>{water === null ? "probe unplugged" : `water ${water.toFixed(1)}°`}</span>
+        {water !== null && (
+          <span style={{ display: "inline-flex", gap: 2 }}>
+            <button type="button" style={key} title="The water 5 degrees cooler" onClick={() => { a.water = water - 5; }}>−5</button>
+            <button type="button" style={key} title="The water a degree cooler" onClick={() => { a.water = water - 1; }}>−1</button>
+            <button type="button" style={key} title="The water a degree warmer" onClick={() => { a.water = water + 1; }}>+1</button>
+            <button type="button" style={key} title="The water 5 degrees warmer" onClick={() => { a.water = water + 5; }}>+5</button>
+          </span>
+        )}
+        <button type="button" style={key} title="Its probe pulled out of its socket, or put back" onClick={() => { a.water = water === null ? 50 : null; }}>
+          {water === null ? "plug the probe" : "unplug the probe"}
+        </button>
+      </div>
+    </Panel>
+  );
+}
 
 /** tenths of a degree, as the device's own display shows them */
 const degrees = (tenths: number) => `${(tenths / 10).toFixed(1)}°`;
@@ -184,9 +235,9 @@ export function NetworkControls({ rig }: { rig: Rig }) {
   );
 }
 
-type ConsoleOf = "panel" | "bridge";
+type ConsoleOf = "panel" | "bridge" | "appliance";
 
-/** Tasmota's console, of the panel or of the bridge: a command line, and what came back. */
+/** Tasmota's console, of the panel, of the bridge or of the appliance: a command line, and what came back. */
 export function ConsoleControls({ rig }: { rig: Rig }) {
   const [line, setLine] = useState("");
   const [of, setOf] = useState<ConsoleOf>("panel");
@@ -194,14 +245,14 @@ export function ConsoleControls({ rig }: { rig: Rig }) {
   const run = () => {
     const cmd = line.trim();
     if (!cmd) return;
-    const answer = (of === "bridge" ? rig.bridge : rig.panel).console(cmd);
-    setHistory((h) => [...h.slice(-30), `${of === "bridge" ? "bridge" : ""}> ${cmd}`, answer ?? "(no answer)"]);
+    const answer = (of === "bridge" ? rig.bridge : of === "appliance" ? rig.appliance : rig.panel).console(cmd);
+    setHistory((h) => [...h.slice(-30), `${of === "panel" ? "" : of}> ${cmd}`, answer ?? "(no answer)"]);
     setLine("");
   };
   return (
     <Panel
       label="Console"
-      right={<SegmentedControl options={[{ id: "panel", label: "Panel" }, { id: "bridge", label: "Bridge" }]} value={of} onChange={setOf} />}
+      right={<SegmentedControl options={[{ id: "panel", label: "Panel" }, { id: "bridge", label: "Bridge" }, { id: "appliance", label: "Appliance" }]} value={of} onChange={setOf} />}
     >
       <div style={{ maxHeight: 120, overflowY: "auto", font: `${chrome.font.size.xs}px ${chrome.font.mono}`, color: chrome.color.textMuted, marginBottom: chrome.space.sm }}>
         {history.map((h, i) => <div key={i}>{h}</div>)}
@@ -219,7 +270,7 @@ export function ConsoleControls({ rig }: { rig: Rig }) {
 
 type LogView = "log" | "wire" | "glass";
 
-/** The log of Tasmota on the panel and on the bridge, the UART both ways, and what the glass refused. */
+/** The log of Tasmota on the panel, on the bridge and on the appliance, the UART both ways, and what the glass refused. */
 export function LogControls({ rig }: { rig: Rig }) {
   useRigTick(rig, 4);
   const [view, setView] = useState<LogView>("log");

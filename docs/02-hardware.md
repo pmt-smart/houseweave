@@ -105,9 +105,13 @@ device ([03 §3](03-architecture.md)): a water heater's thermostat, with the Son
   bridge decodes in `SSerialMode 3`. The reading is among Tasmota's sensors, `{"WTS01":{"Temperature":...}}`, only while the datagrams come (a fix
   in the fork, [03 §5](03-architecture.md)): none before the first, and none 5 s after the last, so a probe unplugged reads as no probe and never
   as its last value. The display shows the reading with no code of ours.
-- **The relay does not say its state.** Tasmota pulses a coil (`SetOption45`, 40 ms by default) and never reads the contact, and a power cut
-  leaves the relay where it was. So the image opens it at every power up (`PowerOnState 0`), and the thermostat opens it before a restart
-  ([03 §3](03-architecture.md)).
+- **The relay does not say its state.** Tasmota pulses a coil (`SetOption45`, 40 ms by default) and never reads the contact, and the relay
+  stays where a power cut, a restart or a crash left it. What Tasmota believes of it after a boot is not where it is: after a restart it
+  restores the state it had saved, which it saves before its drivers are told of the restart, so a heater that was on comes on again at the
+  boot, before any thermostat runs; and after a crash it may take a closed relay for an open one. **So the relay is opened at every boot**,
+  three times over: `PowerOnState 0` pulses the off coil at a power up; `SetOption0 0` keeps no state for a restart; and a rule of Tasmota's
+  own, `ON System#Init DO Power1 0 ENDON`, pulses the off coil at every boot whatever its cause, with no Berry running. The thermostat opens
+  it again as it starts, and before a restart ([03 §3](03-architecture.md)).
 - **The template is compiled in** (`HOUSEWEAVE_THR320D_IMAGE`), Tasmota's own for the board with GPIO25 as the serial bridge's pin and GPIO4 with
   no function:
 
@@ -115,9 +119,9 @@ device ([03 §3](03-architecture.md)): a water heater's thermostat, with the Son
   {"NAME":"Sonoff THR320D","GPIO":[32,0,0,0,0,9280,0,0,0,321,0,576,320,9184,9216,9312,0,0,9313,9248,0,1824,0,3840,0,0,0,0,0,0,0,0,0,0,0,0],"FLAG":0,"BASE":1}
   ```
 
-  with eight commands: the bridge's five (§2), for the button and the radio; `SetOption73 1`, which detaches the button from the relay, so that
-  a press never switches the heater, with Berry running or not, while the 5 s hold still goes to the rules; `SSerialMode 3`; and
-  `PowerOnState 0`.
+  with eleven commands: the bridge's five (§2), for the button and the radio; `SetOption73 1`, which detaches the button from the relay, so
+  that a press never switches the heater, with Berry running or not, while the 5 s hold still goes to the rules; `SSerialMode 3`; and the
+  relay's, `PowerOnState 0`, `SetOption0 0`, the rule and `Rule1 1`, which turns it on.
 - **The heater's element goes straight on the relay**, so its current has to fit the relay's 20 A with room to spare: an element of 3 000 W at
   220 V draws 13.6 A. The dry contact switches 1 A at 30 V at most, which is not a contactor's 220 V coil.
 - **Which coil closes the relay is checked on the bench** before a heater is wired, with a lamp in its place. Tasmota takes the lower `Relay_b`
