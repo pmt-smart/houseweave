@@ -45,7 +45,10 @@ class PanelAlarm
     static EVENT_WORDS = {"arm": "armed", "disarm": "disarmed", "trigger": "triggered", "panic": "panic", "bypass": "left out",
                           "siren_off": "siren off", "open": "opened", "motion": "motion", "water": "water", "smoke": "smoke",
                           "co": "CO", "above": "high", "below": "low", "tamper": "tampered", "battery": "battery low",
-                          "nonews": "no news", "alarm": "alarm", "config": "settings changed", "unreach": "unreachable"}
+                          "nonews": "no news", "alarm": "alarm", "config": "settings changed", "unreach": "unreachable",
+                          "stuck": "may be stuck on", "noheat": "is not heating"}
+    # the warnings a device says of itself to every panel of the house (device_word): a relay that may be stuck closed, a heater that does not heat
+    static DEVICE_WORDS = ["stuck", "noheat"]
     # what is said of the house, and not a warning about a sensor
     static INFO = ["arm", "disarm", "siren_off", "config"]
     # the events of the alarm itself, which the screensaver's alarm sign says while they are not seen; the rest are the house's
@@ -73,6 +76,7 @@ class PanelAlarm
     var beep_at    # when the next beep of the state on, ms
     var cmd_fn     # a closure that takes a Tasmota command, for a test; nil runs it
     var own_id     # the number of the last word of the house kept here (house_word), below zero
+    var words      # "kind address" -> the number of the word kept here of a warning a device says holds (device_word)
     var house      # the house's mesh (house_mesh.be) on a panel that has one, or nil
     var owner      # f(id) -> the number of the bridge that owns a device, the bridge of the house for one of no bridge numbered; the boot's
 
@@ -94,6 +98,7 @@ class PanelAlarm
         self.buzzing = false
         self.beep_at = nil
         self.own_id = 0
+        self.words = {}
     end
 
     # --- the words ------------------------------------------------------------------------------------
@@ -144,6 +149,11 @@ class PanelAlarm
         if e[2] == "config" return s + "Settings changed: " + str(e[5]) + (who != "" && who != "panel" ? " by " + who : "") end
         if e[2] == "above" || e[2] == "below" return s + subject + " " + w + " " + str(e[5]) end
         if e[2] == "left" return s + who + " left the house: " + PanelUi.plural(int(e[5]), "device", "devices") + " removed" end
+        # a device's own warning: by the name this panel gave it, or, on a panel that does not have it, the one the device said
+        if PanelAlarm.DEVICE_WORDS.find(e[2]) != nil
+            var known = self.zb != nil && self.zb.store.find_device(who) != nil
+            return s + (known || str(e[5]) == "" ? subject : str(e[5])) + " " + w
+        end
         return s + (subject != "" ? subject + " " : "") + w
     end
 
@@ -283,6 +293,25 @@ class PanelAlarm
         var out = []
         self.take_event([self.own_id, tasmota.rtc()["utc"], kind, who, "local", value, 0], out)
         return out
+    end
+
+    # A warning a device says of itself to every panel of the house, {"k": the kind, "on": whether it holds, "n": its name}: one of
+    # DEVICE_WORDS. While it holds it is one notification, a word of the house this panel keeps, however often the device says it: it says
+    # it again every so often, for a panel that restarted and lost its list. Once the device says it holds no more, the notification is
+    # seen, and the next time it holds is another. The effects
+    def device_word(ieee, w)
+        if !isinstance(w, map) || PanelAlarm.DEVICE_WORDS.find(w.find("k")) == nil return [] end
+        var key = w["k"] + " " + str(ieee)
+        if w.find("on") == true
+            if self.words.contains(key) return [] end
+            var out = self.house_word(w["k"], ieee, str(w.find("n", "")))
+            self.words[key] = self.own_id
+            return out
+        end
+        if !self.words.contains(key) return [] end
+        self.seen[self.words[key]] = true
+        self.words.remove(key)
+        return [["alarmShow"]]
     end
 
     # a local notice that went away by itself: seen

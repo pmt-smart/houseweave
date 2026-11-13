@@ -123,6 +123,11 @@ what is Zigbee's (`HouseList.owns`):
   it by a description it heard. From then on the fields that change go to the panels that hear the appliance, and a command's answer goes whole.
   Its item of the page carries only what classifies the device (the kind, the caps, the endpoint and the range), so that it fits one frame with
   the device's name.
+- **A warning of its device's** goes to every panel of the house, each alone, whether the panel shows the device or not: the kind, whether it
+  holds, and the device's name. Each panel keeps it as a notification of its own while it holds (`PanelAlarm.device_word`), by the name it
+  gave the device or, with none, the one the appliance said; when the appliance says it holds no more, the notification is seen. The
+  appliance says its warnings again, held or not, after its boot and every half hour: a panel that restarted has lost its list, and one that
+  was off when a warning ended still has it open.
 
 The device an appliance is has an address of an IEEE's shape, 64 bits, so everything that keys a device by its IEEE takes it as it is: the EUI-64
 of the node's radio address, its first three bytes, `FFFE`, and its last three.
@@ -164,6 +169,7 @@ A command to the alarm (the alarm's words) is **sensitive**: its window at the o
 
 **Notifications**: the alarm's events, each with its grade, go to the panels, which keep a list (Now and the history) on the house's Notifications
 screen; a notification is acknowledged, or deleted on one panel and so on all, and Acknowledge all and Delete all are at the foot of the list.
+A warning an appliance says of its device is among them on every panel, as a notification each panel keeps by itself (§4).
 
 ## 6. The house's server
 

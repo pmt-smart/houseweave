@@ -966,6 +966,35 @@ def house_word_checks()
 end
 house_word_checks()
 
+# --- a warning a device says of itself to every panel of the house -----------------------------------
+def device_word_checks()
+    var a = PanelAlarm(zb)
+    var H = "0xA0B765FFFE00000A"
+    var held = {"k": "stuck", "on": true, "n": "Boiler"}
+    var fx = a.device_word(H, held)
+    var e = a.events[-1]
+    check("a relay that may be stuck: a warning in the Notifications, a word this panel keeps, with no notice",
+          [e[0], e[2], e[3], e[4], e[5], a.notice, a.warnings(), fx], [-1, "stuck", H, "local", "Boiler", nil, 1, [["alarmShow"]]])
+    check("its line, on a panel that does not have the device, by the name the device said", a.line_of(e)[6 ..], "Boiler may be stuck on")
+    check("said again while it holds, it is the one notification", [a.device_word(H, held), size(a.events)], [[], 1])
+    a.on_message({"ack": "all"})
+    check("seen, and said again: still the one, and no new warning", [a.device_word(H, held), size(a.events), a.warnings()], [[], 1, 0])
+    check("the device says it holds no more: the word kept of it goes",
+          [a.device_word(H, {"k": "stuck", "on": false, "n": "Boiler"}), a.words.contains("stuck " + H)], [[["alarmShow"]], false])
+    check("and no more, said again, is nothing", a.device_word(H, {"k": "stuck", "on": false, "n": "Boiler"}), [])
+    a.device_word(H, held)
+    check("the next time it holds is another notification", [size(a.events), a.events[-1][0], a.warnings()], [2, -2, 1])
+    a.device_word(H, {"k": "stuck", "on": false})
+    check("which is seen when it ends, looked at or not", a.warnings(), 0)
+    a.device_word(DOOR, {"k": "noheat", "on": true, "n": "Boiler"})
+    check("a heater that does not heat has its own words, and a device this panel has is said by the name the panel gave it",
+          a.line_of(a.events[-1])[6 ..], "Front door is not heating")
+    check("its whole text says where", a.full_of(a.events[-1])[0 .. 30], "Front door is not heating. " + store.zone_of(DOOR)["name"])
+    check("what is no warning of a device's, or no map, is not taken",
+          [a.device_word(H, {"k": "open", "on": true}), a.device_word(H, "stuck"), a.device_word(H, {"on": true}), size(a.events)], [[], [], [], 3])
+end
+device_word_checks()
+
 # --- the house's settings: the screens read the house's list and write there ------------------------------------------
 class FakeHouseList
     var me

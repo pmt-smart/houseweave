@@ -80,7 +80,11 @@ and sent a moment after the last touch, so a few touches are one write. For a gr
   the day in force, or of the next to begin, and a touch changes that window's. Its settings are its two windows (from, to and target of each),
   its two limits, 30 and 70 degrees out of its box, its hysteresis, its ceiling, its probe's calibration and its heater's power; with no
   clock, a first row that is only read says the target it holds. A window's target is kept within the limits. The schedule turns it off and
-  on and sets its target, which is that window's too.
+  on and sets its target, which is that window's too. Four more settings are the checks of its relay: the hours a stuck contact is looked
+  for in and how far the water has to fall in them ("Stuck check from", "Stuck check to", "Stuck min drop": midnight to five and a degree out
+  of its box, and no check with the two hours the same), and the minutes a heater that is on may go with no rise ("No-heat alert", two hours,
+  and 0 for no warning). A warning shows on the page's line, "Water 58.0°  Relay stuck?" or "Not heating", and in the house's Notifications
+  on every panel, "Boiler may be stuck on" or "Boiler is not heating".
 - **A blind**: its position in large type and what it is doing; up, stop and down, as on the wall; a slider from 100% at the top to 0% at the
   bottom in steps of 5, whose release sends the blind there; and the ventilation, a position almost closed, in one touch.
 - **A switch of two channels** that opens and closes something (a gate, a window) has a **driver** on the bridge: its mode (Motor or Pulse) and

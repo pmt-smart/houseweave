@@ -43,8 +43,9 @@ tasmota = BoilerTasmota()
 
 # the node the thermostat says itself through
 class FakeNode
-    var said, lists, again
-    def init() self.said = [] self.lists = [] self.again = 0 end
+    var said, lists, again, warned
+    def init() self.said = [] self.lists = [] self.again = 0 self.warned = [] end
+    def warn(kind, on) self.warned.push([kind, on]) end
     def say(section, fields) self.said.push([section, fields]) end
     def described() self.again += 1 end
     def send_list(section, entries)
@@ -224,8 +225,8 @@ def exception_checks()
     check("the state says it in its note, and shows the first window's target", [s["note"], s["set"], s["mode"], s["dem"]], ["No clock", 600, "heat", 100])
     var x = t.schema()
     check("the settings have a first row that is only read and says the target held",
-          [size(x), x[0], t.values()["held"]], [13, {"k": "held", "l": "No clock: holding", "t": "n", "min": 30, "max": 70, "u": "°", "w": 0}, 60])
-    check("the telemetry says it", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":1,\"NoClock\":1}")
+          [size(x), x[0], t.values()["held"]], [17, {"k": "held", "l": "No clock: holding", "t": "n", "min": 30, "max": 70, "u": "°", "w": 0}, 60])
+    check("the telemetry says it", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":1,\"NoClock\":1,\"Alert\":\"\"}")
     check("the ceiling and the probe hold as ever", [second(t, 76.0), second(t, nil), second(t, 50.0)], [false, false, true])
     t.cfg["mode"] = "off"
     check("and the mode off", second(t, 50.0), false)
@@ -239,8 +240,8 @@ def exception_checks()
     check("the clock comes, outside the windows: the heater off, the mode left by itself", [second(t, 50.0), t.exception, t.signal(), t.state()["note"]], [false, false, false, ""])
     check("said in the log", logged.find(["BOILER: the clock is set: the windows hold again", 2]) != nil, true)
     check("the panel that has the settings on show hears them again, with no first row",
-          [size(t.host.lists), size(t.host.lists[-1][1]), t.host.lists[-1][1][0]["k"], t.values().contains("held")], [lists + 1, 12, "w1s", false])
-    check("and the telemetry", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":0,\"NoClock\":0}")
+          [size(t.host.lists), size(t.host.lists[-1][1]), t.host.lists[-1][1][0]["k"], t.values().contains("held")], [lists + 1, 16, "w1s", false])
+    check("and the telemetry", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":0,\"NoClock\":0,\"Alert\":\"\"}")
     # one that asked long ago hears nothing
     tasmota.at_ms = BoilerThermostat.ASKED_MS + 5
     no_clock()
@@ -290,7 +291,8 @@ def command_checks()
     t.host.lists.clear()
     t.host.said.clear()
     check("the settings: the schema as a list, and the values", [t.command({"do": "settings"}), t.host.lists[0][0], size(t.host.lists[0][1]), t.host.last("v")],
-          [true, "x", 12, {"w1s": 17, "w1e": 18, "w1t": 55, "w2s": 5, "w2e": 7, "w2t": 48, "lmin": 30, "lmax": 70, "hyst": 5, "ceil": 75, "calib": -2, "power": 3000}])
+          [true, "x", 16, {"w1s": 17, "w1e": 18, "w1t": 55, "w2s": 5, "w2e": 7, "w2t": 48, "lmin": 30, "lmax": 70, "hyst": 5, "ceil": 75, "calib": -2, "power": 3000,
+                           "chks": 0, "chke": 5, "chkd": 1, "nht": 120}])
     check("a setting as a panel lists it", [t.host.lists[0][1][0], t.host.lists[0][1][10], t.host.lists[0][1][11]],
           [{"k": "w1s", "l": "Window 1 from", "t": "r", "min": 0, "max": 23, "u": ":00"}, {"k": "calib", "l": "Calibration", "t": "r", "min": -5, "max": 5, "u": "°"},
            {"k": "power", "l": "Heater power", "t": "n", "min": 500, "max": 9000, "u": " W"}])
@@ -337,6 +339,163 @@ def limit_checks()
     persist.zero()
 end
 limit_checks()
+
+# The relay is a latching one and the board measures no current: what is known of it is what the water does. It is opened again every minute
+# while the logic has it open; a contact stuck closed is told from the water in the hours with no sun; and a heater that does not heat from the
+# water that never rises. Each is a warning: in the note, in the telemetry, and told to the house through the node
+def relay_checks()
+    at_hour(12)
+    var t = fresh(50.0)
+    var i = 0
+    while i < BoilerThermostat.REOPEN_S - 1
+        second(t, 50.0)
+        i += 1
+    end
+    check("the relay is left alone between two of its minutes", tasmota.powered, [])
+    second(t, 50.0)
+    check("and opened again every minute while the logic has it open, as it is", [tasmota.powered, tasmota.power], [[[0, false]], false])
+    t.cfg["mode"] = "heat"
+    at_hour(18)
+    tasmota.powered = []
+    i = 0
+    while i < BoilerThermostat.REOPEN_S + 5
+        second(t, 50.0)
+        i += 1
+    end
+    check("with the heater on, nothing opens it", [tasmota.powered, tasmota.power], [[[0, true]], true])
+    check("the settings of the checks, out of the box: the hours with no sun, a degree, two hours",
+          [t.cfg["chks"], t.cfg["chke"], t.cfg["chkd"], t.cfg["nht"]], [0, 5, 1, 120])
+
+    # a contact stuck closed, by the water that does not fall in the hours with no sun
+    t = fresh(60.0)
+    at_hour(23)
+    second(t, 60.0)
+    check("outside its hours nothing is being checked", [t.chk, t.alerts["stuck"]], [nil, false])
+    at_hour(0)
+    second(t, 60.0)
+    second(t, 59.8)
+    check("in them, with the heater off: the water at their start, the lowest and the last", t.chk, [600, 598, 598, false])
+    at_hour(4)
+    second(t, 58.5)
+    at_hour(5)
+    second(t, 58.5)
+    check("a night the water fell a degree and a half: nothing to say", [t.chk, t.alerts["stuck"], t.host.warned, t.state()["note"]], [nil, false, [], ""])
+    at_hour(0)
+    second(t, 58.5)
+    at_hour(4)
+    second(t, 58.0)
+    at_hour(5)
+    logged.clear()
+    second(t, 58.0)
+    check("a night it fell half a degree, less than the setting says: the relay may be stuck, told to the house and in the note",
+          [t.alerts["stuck"], t.host.warned, t.state()["note"], logged.find(["BOILER: the relay may be stuck closed", 2]) != nil], [true, [["stuck", true]], "Relay stuck?", true])
+    check("and in the telemetry, with the target of the window that begins at that hour", t.telemetry(),
+          ",\"Boiler\":{\"Mode\":\"off\",\"Target\":50,\"Heating\":0,\"NoClock\":0,\"Alert\":\"stuck\"}")
+    second(t, 58.0)
+    check("said once", t.host.warned, [["stuck", true]])
+    at_hour(0)
+    second(t, 58.0)
+    at_hour(4)
+    second(t, 55.0)
+    at_hour(5)
+    second(t, 55.0)
+    check("the next night it falls as it should: the warning is over, and the house is told", [t.alerts["stuck"], t.host.warned[-1], t.state()["note"]], [false, ["stuck", false], ""])
+    # the water that rises in those hours, with the heater off: only the heater does that
+    t = fresh(50.0)
+    at_hour(1)
+    second(t, 50.0)
+    second(t, 49.5)
+    second(t, 50.4)
+    check("a rise of less than a degree from the lowest is no sign", t.alerts["stuck"], false)
+    second(t, 50.5)
+    check("a degree above the lowest it was, in those hours: warned of at once", [t.alerts["stuck"], t.host.warned], [true, [["stuck", true]]])
+    at_hour(5)
+    second(t, 45.0)
+    check("and the hours' end does not take it back, however far the water fell after", [t.alerts["stuck"], t.chk], [true, nil])
+    # hours that are not judged
+    t = fresh(50.0)
+    t.cfg["mode"] = "heat"
+    t.cfg["w2s"] = 3
+    at_hour(2)
+    second(t, 40.0)
+    at_hour(3)
+    check("a window of the logic's in the check's hours: the heater on, and those hours are not judged", [second(t, 40.0), t.chk], [true, false])
+    at_hour(4)
+    second(t, 55.0)
+    at_hour(5)
+    second(t, 55.0)
+    check("whatever the water did in them", [t.alerts["stuck"], t.chk], [false, nil])
+    t = fresh(nil)
+    at_hour(1)
+    second(t, nil)
+    check("nor are hours with no reading of the probe", t.chk, false)
+    no_clock()
+    t = fresh(50.0)
+    second(t, 50.0)
+    check("nor is anything checked with no clock", t.chk, nil)
+    t = fresh(50.0)
+    at_hour(1)
+    second(t, 50.0)
+    second(t, 51.0)
+    check("a warning held", t.alerts["stuck"], true)
+    t.command({"do": "setting", "k": "chke", "v": 0})
+    second(t, 51.0)
+    check("goes with the check, when its two hours are made the same: no check", [t.alerts["stuck"], t.host.warned[-1]], [false, ["stuck", false]])
+
+    # a heater that does not heat
+    at_hour(18)
+    t = fresh(40.0)
+    t.cfg["mode"] = "heat"
+    t.cfg["nht"] = 2
+    check("the heater on, the water where it was", [second(t, 40.0), t.on_low, t.on_secs], [true, 400, 1])
+    i = 0
+    while i < 118
+        second(t, 39.5)
+        i += 1
+    end
+    check("the water falling with the heater on is hot water drawn, and no sign yet", [t.alerts["noheat"], t.on_low, t.on_secs], [false, 395, 119])
+    logged.clear()
+    second(t, 39.9)
+    check("two minutes on with no rise of a degree from the lowest: it is not heating, told to the house and in the note",
+          [t.alerts["noheat"], t.host.warned, t.state()["note"], logged.find(["BOILER: the heater is on and the water does not rise", 2]) != nil],
+          [true, [["noheat", true]], "Not heating", true])
+    second(t, 40.5)
+    check("a degree above the lowest: it heats, the warning is over, and the count starts again from there",
+          [t.alerts["noheat"], t.host.warned[-1], t.on_low, t.on_secs], [false, ["noheat", false], 405, 0])
+    t.cfg["mode"] = "off"
+    second(t, 40.5)
+    check("with the heater off nothing is counted", [t.on_low, t.on_secs], [nil, 0])
+    t = fresh(40.0)
+    t.cfg["mode"] = "heat"
+    t.cfg["nht"] = 1
+    i = 0
+    while i < 60
+        second(t, 40.0)
+        i += 1
+    end
+    check("a warning that holds when the heater goes off stays: it has not heated yet", t.alerts["noheat"], true)
+    t.cfg["mode"] = "off"
+    second(t, 40.0)
+    check("until it does", t.alerts["noheat"], true)
+    t.command({"do": "setting", "k": "nht", "v": 0})
+    second(t, 40.0)
+    check("or until the setting is 0, which is no warning", [t.alerts["noheat"], t.host.warned[-1]], [false, ["noheat", false]])
+    t = fresh(58.6)
+    t.cfg["mode"] = "heat"
+    t.cfg["hyst"] = 1
+    t.cfg["nht"] = 1
+    second(t, 58.6)
+    i = 0
+    while i < 60
+        second(t, 58.6)
+        i += 1
+    end
+    check("with a hysteresis of a degree the heater goes off a degree above where it came on", t.alerts["noheat"], true)
+    second(t, 59.1)
+    check("so half of it is a rise", t.alerts["noheat"], false)
+    check("the warnings and whether each holds, for the node to tell again", t.warnings(), {"stuck": false, "noheat": false})
+end
+relay_checks()
 
 def say_checks()
     at_hour(12)
@@ -394,7 +553,7 @@ def show_checks()
     check("a temperature as text", [BoilerThermostat.degrees(580), BoilerThermostat.degrees(5), BoilerThermostat.degrees(-13), BoilerThermostat.degrees(nil)],
           ["58.0°", "0.5°", "-1.3°", "?"])
     check("the telemetry, as Tasmota's sensors' JSON takes it", json.load("{\"Time\":1" + t.telemetry() + "}")["Boiler"],
-          {"Mode": "heat", "Target": 60, "Heating": 0, "NoClock": 0})
+          {"Mode": "heat", "Target": 60, "Heating": 0, "NoClock": 0, "Alert": ""})
 end
 show_checks()
 

@@ -127,5 +127,8 @@ device ([03 §3](03-architecture.md)): a water heater's thermostat, with the Son
 - **Which coil closes the relay is checked on the bench** before a heater is wired, with a lamp in its place. Tasmota takes the lower `Relay_b`
   as the one that opens, GPIO19 with this template. Were the board the other way round, the heater would run when it should stop, and the two
   codes swap places in the template.
+- **It measures no current.** The TH Elite has the probe's socket and no energy chip; its sibling, the POW Elite (POWR320D), has the chip
+  and no socket. So nothing reads back whether the relay is closed, and the heater's energy is an estimate, its power as it is typed in the
+  settings times the minutes it was on. What the relay does is checked by what the water does ([03 §3](03-architecture.md)).
 - **The flash** is reported as 4 MB. A read of the whole factory flash, before the first flash, confirms it and is the way back
   ([11 §5](11-build-and-flash.md)).

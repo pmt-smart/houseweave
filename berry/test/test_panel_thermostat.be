@@ -988,6 +988,29 @@ def bare_checks()
 end
 bare_checks()
 
+# --- a warning a device says of itself: the drivers' message brings it to the alarm's model, for any device ---
+class FakeAlarm
+    var got
+    def init() self.got = [] end
+    def device_word(id, w)
+        self.got.push([id, w])
+        return [["alarmShow"]]
+    end
+end
+def warning_checks()
+    var f = fixture()
+    var w = {"k": "stuck", "on": true, "n": "Boiler"}
+    driver_says(f, "0xa0b765fffe00000a", {"w": w})
+    check("a panel with no alarm lets a device's warning go", f["effects"], [])
+    f["zb"].alarm = FakeAlarm()
+    driver_says(f, "0xa0b765fffe00000a", {"w": w})
+    check("a device's warning goes to the alarm's model, by the device's address as the panel writes one, whether the panel has the device or not",
+          [f["zb"].alarm.got, f["store"].find_device("0xA0B765FFFE00000A"), has_effect(f["effects"], "alarmShow")], [[["0xA0B765FFFE00000A", w]], nil, true])
+    driver_says(f, TH, {"s": {"mode": "heat"}})
+    check("and what has no warning takes nothing there", size(f["zb"].alarm.got), 1)
+end
+warning_checks()
+
 if failures == 0
     print("ok - " + str(checks) + " checks")
 else

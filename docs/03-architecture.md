@@ -94,7 +94,12 @@ only to the panels that show it ([05 §4](05-the-house.md)). The device is a cla
   two of its settings, as a Zigbee thermostat's are (`berry/zbdriver_thermostat.be`), and the range it is described with. It is off in the mode off, with no reading of the
   probe, at the ceiling, and before a restart, since its relay is a latching one and stays as it is. It opens the relay as it starts,
   whatever Tasmota believes it is, and the image's own configuration does the same at every boot with no Berry running
-  ([02 §5](02-hardware.md)). A relay switched by another hand (the Web UI, the
+  ([02 §5](02-hardware.md)). **With no meter, the relay is checked by the water.** While the logic has it open it is opened again every minute,
+  for a pulse that did not take. A contact stuck closed shows in the hours with no sun, which a setting names: with the heater off the whole
+  time the water can only fall, so a warning is raised at once when it rises a degree in them, and at their end when it fell less than a
+  setting says. A heater that does not heat shows as no rise at all for the minutes a setting says, since hot water drawn takes more heat
+  than the heater gives and the water may fall with the heater on. A warning is in the page's line, in the telemetry, and told to every panel
+  of the house ([05 §4](05-the-house.md)). Nothing opens a contact that is stuck: the heater's own thermostat is what is left then. A relay switched by another hand (the Web UI, the
   MQTT) is the mode that was asked for, and the logic decides the relay from it. With no clock at all it holds the first window's target, an
   exceptional mode said on the panel's page, in its settings, by the node's LED and in the node's telemetry, and left when the clock comes.
 - **Its history** (`berry/boiler_history.be`): the water and the heater's minutes every five minutes, for a week, and each day's lowest and

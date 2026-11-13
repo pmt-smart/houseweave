@@ -2413,6 +2413,20 @@ test("an appliance, the THR320D on a water heater: its button opens its window a
   thr.water = 41;
   h.run(4000);
   assert.equal(thr.heating, true, "the probe back: on");
+  // a warning of the device's, to the Notifications of the panel: the heater on for the minute its setting says, and the water that never rises
+  const notes = () => probe(h.panel, "(def () var out = [] var a = global.panel_ui.alarm.alarm for e: a.events out.push([a.line_of(e)[6 ..], a.seen.contains(e[0])]) end return out end)()");
+  assert.deepEqual(notes(), [], "no notification yet");
+  h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "setting", 1, "nht"]]));
+  for (let t = 0; t < 120000 && notes().length === 0; t += 1000) h.run(1000);
+  assert.deepEqual(notes(), [["Thermostat 1 is not heating", false]], `the heater's warning is a notification on the panel, by the name the panel gave the device: ${trace()}`);
+  assert.equal(probe(h.panel, "global.panel_ui.alarm.alarm.warnings()"), 1, "which lights the house page's sign");
+  assert.equal(seen(h, IEEE).state.note, "Not heating", "and it is on the device's page too");
+  thr.water = 43;
+  h.run(5000);
+  assert.deepEqual([notes(), seen(h, IEEE).state.note], [[["Thermostat 1 is not heating", true]], ""], `the water rises: the warning is over, and its notification seen: ${trace()}`);
+  // hot water drawn: the water under the target less the hysteresis again, where a boot's first reading turns the heater on
+  thr.water = 41;
+  h.run(2000);
   // a limit of the target, set from the panel: the range the panel keeps follows
   h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "setting", 65, "lmax"]]));
   h.run(6000);

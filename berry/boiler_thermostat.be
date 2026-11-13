@@ -7,7 +7,7 @@
 #   mode   "off", the heater never works, or "heat", it follows the windows
 #   dem    100 with the heater on, 0 with it off
 #   up     false with no reading of the probe
-#   note   "No probe", "No clock", or "" for neither
+#   note   "No probe", a warning ("Relay stuck?", "Not heating"), "No clock", or "" for none
 # and its description names what it measures ("measure": "Water"). A target set on the page is that window's from then on.
 #
 # THE LOGIC, every second. The heater comes on with the water at or below the target less the hysteresis, and goes off at the target. Each of the two
@@ -23,6 +23,18 @@
 # for "off", and the logic decides the relay from it at the next second. At a boot it is opened, whatever Tasmota believes it is: it is a latching
 # relay, which stays where a crash or a power cut left it and says nothing of where that is. The image's own configuration opens it too, at every
 # boot and with no Berry running (firmware/overrides/user_config_override.h).
+#
+# THE RELAY IS CHECKED WITH NO METER, by what the water does, since the board measures no current and the relay says nothing of itself:
+#   - while the logic has it open, it is opened again every REOPEN_S: a pulse that did not take would leave the heater on with nothing here
+#     to say so, and this bounds that to a minute;
+#   - a contact stuck closed: in the hours a setting names, which have no sun, the water of a heater that is off can only fall. With the logic
+#     having kept the heater off the whole time, a warning is raised when the water rose RISE above the lowest it was in those hours, at once,
+#     and when at their end it fell less than a setting says. A night the logic had the heater on, or the probe gave no reading, is not judged,
+#     and one judged fine ends the warning;
+#   - a heater that does not heat: on for the minutes a setting says with the water never rising, it is warned of. Hot water drawn takes more
+#     heat than the heater gives, so the water may fall with the heater on: only no rise at all, for long, is the sign. A rise ends the warning.
+# A warning is in the state's note, in the node's telemetry, and told to the house through the node (host.warn), which says it to every panel.
+# Nothing here opens a contact that is stuck: the heater's own thermostat is what is left then.
 #
 # THE SETTINGS are kept in the flash (persist), with the mode. The calibration is Tasmota's own temperature offset, so the display and the MQTT say the
 # water the logic reads. Two of them are the lowest and the highest a target is set to: they are the range a panel is told the thermostat has, a
@@ -50,6 +62,12 @@ class BoilerThermostat
     static ASKED_MS = 600000
     # the settings are saved this long after the last change
     static SAVE_MS = 3000
+    # the relay is opened again this often, in seconds, while the logic has it open
+    static REOPEN_S = 60
+    # the water rose: this many tenths of a degree above the lowest it was
+    static RISE = 10
+    # the warnings it raises, as the node tells the house: a contact that may be stuck closed, and a heater that does not heat
+    static WARNINGS = ["stuck", "noheat"]
     # The settings, in the order a panel lists them: [key, label, how it is edited, min, max, unit]. "r" is chosen from the list its range makes and
     # "n" typed (panel_thermostat_settings.be). A window is from an hour up to another, past midnight when the second comes first, and none when the
     # two are the same. A window's target is between the two limits as they are set, which the table's own ends only bound (TARGETS); the limits are
@@ -66,13 +84,17 @@ class BoilerThermostat
         ["hyst", "Hysteresis", "r", 1, 10, "°"],
         ["ceil", "Ceiling", "n", 50, 80, "°"],
         ["calib", "Calibration", "r", -5, 5, "°"],
-        ["power", "Heater power", "n", 500, 9000, " W"]
+        ["power", "Heater power", "n", 500, 9000, " W"],
+        ["chks", "Stuck check from", "r", 0, 23, ":00"],
+        ["chke", "Stuck check to", "r", 0, 24, ":00"],
+        ["chkd", "Stuck min drop", "r", 1, 10, "°"],
+        ["nht", "No-heat alert", "n", 0, 600, " min"]
     ]
     # the settings that are a target, each within the two limits
     static TARGETS = ["w1t", "w2t"]
     # what a thermostat out of its box has: off, until someone turns it on
     static DEFAULTS = [["mode", "off"], ["w1s", 17], ["w1e", 21], ["w1t", 60], ["w2s", 5], ["w2e", 7], ["w2t", 50], ["lmin", 30], ["lmax", 70],
-                       ["hyst", 3], ["ceil", 75], ["calib", 0], ["power", 3000]]
+                       ["hyst", 3], ["ceil", 75], ["calib", 0], ["power", 3000], ["chks", 0], ["chke", 5], ["chkd", 1], ["nht", 120]]
 
     var host       # the appliance's node: what this says of itself goes through it (say, send_list)
     var history    # what it measured, kept (boiler_history.be)
@@ -85,6 +107,11 @@ class BoilerThermostat
     var said_cur   # the water the panels were last told, and the second it was
     var said_at
     var asked_at   # millis when a panel last asked for the settings, or nil
+    var alerts     # warning -> whether it holds: "stuck" and "noheat"
+    var chk        # the stuck contact's check of the hours now: [the water at their start, the lowest, the last, whether it rose], false for
+                   # hours that are not judged, nil outside them
+    var on_low     # the lowest the water was since the heater came on, or since it last rose, or nil with the heater off
+    var on_secs    # the seconds the heater has been on with no rise
 
     def init(host)
         import persist
@@ -106,6 +133,9 @@ class BoilerThermostat
         self.stopped = false
         self.exception = false
         self.secs = 0
+        self.alerts = {}
+        for k: BoilerThermostat.WARNINGS  self.alerts[k] = false end
+        self.on_secs = 0
         self.history = BoilerHistory()
         self.history.load()
         self.calibrate()
@@ -279,9 +309,83 @@ class BoilerThermostat
         var was = self.exception
         self.exception = h == nil
         self.set_relay(self.wants(h))
+        if !self.relay && !self.stopped && self.secs % BoilerThermostat.REOPEN_S == 0  tasmota.set_power(0, false) end
+        self.check_stuck(h)
+        self.check_heating()
         self.history.tick(h == nil ? nil : tasmota.rtc()["local"], self.water, self.relay)
         if was != self.exception  self.exception_changed() end
         self.say_state()
+    end
+
+    # A warning comes or goes: said in the log, in the state's note from the next word, and told to the house through the node
+    def alert(kind, on)
+        if self.alerts[kind] == on return end
+        self.alerts[kind] = on
+        var what = kind == "stuck" ? "the relay may be stuck closed" : "the heater is on and the water does not rise"
+        log(BoilerThermostat.TAG + ": " + what + (on ? "" : ": over"), 2)
+        self.host.warn(kind, on)
+    end
+
+    # the warnings and whether each holds, for the node to tell the house again
+    def warnings()
+        return self.alerts
+    end
+
+    # The stuck contact's check at the hour `h` (nil with no clock), every second. Its hours are a setting, and none when the two are the same
+    def check_stuck(h)
+        var c = self.cfg
+        if c["chks"] == c["chke"]
+            # no check: what its hours had gathered goes, and a warning it raised with them
+            self.chk = nil
+            self.alert("stuck", false)
+            return
+        end
+        if h == nil || !BoilerThermostat.within(h, c["chks"], c["chke"])
+            # the hours over: judged by how far the water fell, unless it rose in them, which the warning already says
+            var k = self.chk
+            if isinstance(k, list)  self.alert("stuck", k[3] || k[0] - k[2] < c["chkd"] * 10) end
+            self.chk = nil
+            return
+        end
+        if self.chk == false return end
+        if self.relay || self.water == nil
+            self.chk = false
+            return
+        end
+        if self.chk == nil
+            self.chk = [self.water, self.water, self.water, false]
+            return
+        end
+        var k = self.chk
+        k[2] = self.water
+        if self.water < k[1]  k[1] = self.water end
+        if self.water - k[1] >= BoilerThermostat.RISE
+            k[3] = true
+            self.alert("stuck", true)
+        end
+    end
+
+    # The heater's check, every second: on with the water never as much as a rise above the lowest it was, for the minutes the setting says
+    # (0 for no warning). What counts as a rise is RISE, or half the hysteresis when that is less: the heater goes off a hysteresis above
+    # where it came on
+    def check_heating()
+        var c = self.cfg
+        if c["nht"] == 0  self.alert("noheat", false) end
+        if !self.relay || self.water == nil
+            self.on_low = nil
+            self.on_secs = 0
+            return
+        end
+        if self.on_low == nil || self.water < self.on_low  self.on_low = self.water end
+        var rise = c["hyst"] * 5 < BoilerThermostat.RISE ? c["hyst"] * 5 : BoilerThermostat.RISE
+        if self.water - self.on_low >= rise
+            self.alert("noheat", false)
+            self.on_low = self.water
+            self.on_secs = 0
+            return
+        end
+        self.on_secs += 1
+        if c["nht"] > 0 && self.on_secs >= c["nht"] * 60  self.alert("noheat", true) end
     end
 
     # The exceptional mode came or went: said in the log, and a panel that has the settings on show hears them again, with or without their first row
@@ -312,6 +416,8 @@ class BoilerThermostat
     # the few words the page shows beside the water
     def note()
         if self.water == nil return "No probe" end
+        if self.alerts["stuck"] return "Relay stuck?" end
+        if self.alerts["noheat"] return "Not heating" end
         return self.exception ? "No clock" : ""
     end
 
@@ -427,7 +533,8 @@ class BoilerThermostat
     # what the node adds of the thermostat to Tasmota's telemetry, which goes to the house's MQTT
     def telemetry()
         import string
-        return string.format(",\"Boiler\":{\"Mode\":\"%s\",\"Target\":%d,\"Heating\":%d,\"NoClock\":%d}", self.cfg["mode"],
-                             self.target_of(self.window_at(BoilerThermostat.hour_now())), self.relay ? 1 : 0, self.exception ? 1 : 0)
+        return string.format(",\"Boiler\":{\"Mode\":\"%s\",\"Target\":%d,\"Heating\":%d,\"NoClock\":%d,\"Alert\":\"%s\"}", self.cfg["mode"],
+                             self.target_of(self.window_at(BoilerThermostat.hour_now())), self.relay ? 1 : 0, self.exception ? 1 : 0,
+                             self.alerts["stuck"] ? "stuck" : (self.alerts["noheat"] ? "noheat" : ""))
     end
 end

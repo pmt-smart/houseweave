@@ -9,8 +9,10 @@
 #   statics    ID, KIND, MODEL and NAME: the driver's name, the kind a panel gives it, its model, and what it is called before a panel names it
 #   methods    describe(), a new map, what a panel registers it with; state(), its whole state; command(cmd), a panel's command, true when taken;
 #              tick(), every second; stop(), the node is about to restart; rows(), its rows of the node's Main settings; signal(), whether the
-#              node's LED is to blink slowly; telemetry(), what Tasmota's telemetry says of it
-# and it says what changes through this node: say(section, fields), send_list(section, entries), and described() when what describe() says changed.
+#              node's LED is to blink slowly; telemetry(), what Tasmota's telemetry says of it; warnings(), a new or kept map of the warnings it
+#              raises and whether each holds
+# and it says what changes through this node: say(section, fields), send_list(section, entries), described() when what describe() says changed,
+# and warn(kind, on) when a warning comes or goes.
 #
 # ITS ADDRESS is shaped as a Zigbee device's, for everything on a panel that reads one: the EUI-64 of the node's radio address, its first three
 # bytes, FFFE, and its last three.
@@ -22,6 +24,11 @@
 # were not told; "x" the settings' schema, in numbered frames; "e" a command refused. To the panels that hear it, one frame at a time. The
 # description, "d", goes only to the panels that show the device, each alone, with the whole state: when one marks it (house_state.be), and after a
 # boot. A panel registers a device a description names, and one that does not show the device has no use for it.
+#
+# A WARNING OF THE DEVICE'S, "w", goes to every panel of the house, each alone, whether it shows the device or not: {"k": the kind, "on": whether
+# it holds, "n": the device's name}, a notification on each (panel_alarm.be, device_word). It is said as it comes and goes, and all of them
+# again, held or not, after a boot and every WARN_AGAIN_S: a panel that restarted has lost its list, and one that was off when a warning ended
+# still has it open.
 #
 # Compiled into the appliance's firmware: one class, nothing at the top, every module imported where it is used. `ApplianceNode.start()` is the whole of
 # the appliance's autoexec.be. It comes after NodeHost, NodePairing, PairSign and the device's class, which it names.
@@ -44,6 +51,8 @@ class ApplianceNode : Driver
     static NAME_KEY = "appliance_name"
     # an Identify blinks the LED this many times
     static IDENTIFY_BLINKS = 6
+    # the device's warnings are told to every panel again this often, in seconds
+    static WARN_AGAIN_S = 1800
 
     var house, meshcmd, wifi, ota, link, backup, heard_from, budget, pairing
     var window_until, by_button, identify_until, blink_pin, blink_rest, hold
@@ -56,6 +65,7 @@ class ApplianceNode : Driver
     var name       # the name a panel gave the device, or "" for none
     var told_at    # millis when the panels that show the device were last told all of it, or nil
     var led_rest   # the LED's level before the device's signal blinked it, or nil with none going
+    var warn_secs  # the seconds since the device's warnings were last told to every panel
     var led_lit    # the signal's blink is in its lit second
 
     def init()
@@ -68,6 +78,7 @@ class ApplianceNode : Driver
         self.told = {}
         self.outbox = []
         self.pumping = false
+        self.warn_secs = 0
         self.ieee = ApplianceNode.eui64(str(tasmota.wifi().find("mac", "")))
         self.name = str(persist.find(ApplianceNode.NAME_KEY, ""))
         self.pairing = NodePairing(self)
@@ -143,6 +154,7 @@ class ApplianceNode : Driver
     def say_all()
         self.told = {}
         self.tell_marking()
+        self.tell_warnings()
     end
 
     # the rows of its Main settings that are its own: the device's
@@ -346,6 +358,32 @@ class ApplianceNode : Driver
         self.tell_marking()
     end
 
+    # a warning of the device's came or went: every panel of the house hears it
+    def warn(kind, on)
+        self.tell_warning(kind, on)
+    end
+
+    # One warning of the device's, as it stands, to every panel of the house, each alone
+    def tell_warning(kind, on)
+        import json
+        var h = self.house
+        if h == nil || !h.up return end
+        var w = {"k": kind, "on": on == true, "n": self.name != "" ? self.name : self.device.NAME}
+        var text = json.dump({"ZbDriver": {self.ieee: {"w": w}}})
+        for p: h.list.ids(false)
+            if h.list.is_panel(p) && !h.event_node(p, text)
+                log("APPLIANCE: the device's warning did not go to the panel " + str(p), 3)
+            end
+        end
+    end
+
+    # every warning of the device's, held or not, to every panel: after a boot, and every so often
+    def tell_warnings()
+        self.warn_secs = 0
+        var w = self.device.warnings()
+        for kind: w.keys()  self.tell_warning(kind, w[kind]) end
+    end
+
     # --- Tasmota's own turns --------------------------------------------------------------------
 
     # every second: the device's logic, and the LED
@@ -355,6 +393,8 @@ class ApplianceNode : Driver
         except .. as e, m
             log("APPLIANCE: the device's second failed - " + str(e) + ": " + str(m), 2)
         end
+        self.warn_secs += 1
+        if self.warn_secs >= ApplianceNode.WARN_AGAIN_S  self.tell_warnings() end
         self.signal()
     end
 

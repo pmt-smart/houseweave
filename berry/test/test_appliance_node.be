@@ -325,9 +325,9 @@ def say_checks()
         of = x["of"]
         for e: x["l"]  got.push(e) end
     end
-    check("the settings' schema comes whole, in frames a panel puts together", [of, size(got), got[0]["k"], got[-1]["k"], fits], [12, 12, "w1s", "power", true])
+    check("the settings' schema comes whole, in frames a panel puts together", [of, size(got), got[0]["k"], got[-1]["k"], fits], [16, 16, "w1s", "nht", true])
     check("and the values with it", section(h, 4, "v"), {"w1s": 17, "w1e": 21, "w1t": 60, "w2s": 5, "w2e": 7, "w2t": 50, "lmin": 30, "lmax": 70, "hyst": 3, "ceil": 75,
-                                                           "calib": 0, "power": 3000})
+                                                           "calib": 0, "power": 3000, "chks": 0, "chke": 5, "chkd": 1, "nht": 120})
     # a queue that grows with nobody to take it does not grow for ever
     a.outbox = []
     a.pumping = true
@@ -389,7 +389,8 @@ def mark_checks()
     check("the mark of a device that is not this node's says nothing", [h.state.prime("0x00124B0000B00001"), h.sent], [true, []])
     h.state.marks[9] = {"u": 0, "s": {IEEE: true}}
     a.say_all()
-    check("after a boot, in step: everything again to the panels that show it, and to no node that is no panel", [size(h.to(4)), size(h.to(5)), size(h.to(9))], [2, 2, 0])
+    # what the device is and its state, two messages, and its two warnings as they stand, one each
+    check("after a boot, in step: everything again to the panels that show it, and to no node that is no panel", [size(h.to(4)), size(h.to(5)), size(h.to(9))], [4, 4, 0])
     h.sent.clear()
     h.up = false
     a.say_all()
@@ -401,10 +402,60 @@ def mark_checks()
     natives.espnow_mesh_stamp = / -> bytes("010200000001")
     h.sent.clear()
     NodeHost.again_after_boot(a, NodeHost.AGAIN_TRIES)
-    check("which is what the boot does once the node is in its house and in step", size(h.to(4)), 2)
+    check("which is what the boot does once the node is in its house and in step", size(h.to(4)), 4)
     tasmota.replies.remove("_EspNowMeshId")
 end
 mark_checks()
+
+# A warning of the device's goes to every panel of the house, each alone, whether it shows the device or not: as it comes, as it goes, and all
+# of them again after a boot and every so often
+def warning_checks()
+    at_hour(12)
+    var a = boot(50.0)
+    var h = a.house
+    a.every_second()
+    settle(a)
+    h.sent.clear()
+    a.device.alert("stuck", true)
+    var w = {"ZbDriver": {IEEE: {"w": {"k": "stuck", "on": true, "n": "Boiler"}}}}
+    check("a warning comes: every panel of the house hears it, the one that shows the device and the one that does not, and no other node",
+          [h.to(4), h.to(5), h.to(7), h.to(9)], [[w], [w], [], []])
+    check("in a frame of the mesh", size(json.dump(w)) <= 218, true)
+    h.sent.clear()
+    a.run("ZbRelayName " + json.dump({"IEEE": IEEE, "Name": "Water heater"}), "mesh", 4)
+    a.device.alert("stuck", false)
+    check("and when it goes, by the name the house gave the device", h.to(5), [{"ZbDriver": {IEEE: {"w": {"k": "stuck", "on": false, "n": "Water heater"}}}}])
+    h.sent.clear()
+    a.device.alert("noheat", true)
+    h.sent.clear()
+    var i = 0
+    while i < ApplianceNode.WARN_AGAIN_S - 2
+        a.every_second()
+        i += 1
+    end
+    settle(a)
+    var told = def (n)
+        var out = {}
+        for m: h.to(n)
+            var z = m.find("ZbDriver")
+            var s = z != nil && z.contains(IEEE) ? z[IEEE].find("w") : nil
+            if s != nil  out[s["k"]] = s["on"] end
+        end
+        return out
+    end
+    check("nothing is said again before its time", told(5), {})
+    a.every_second()
+    a.every_second()
+    settle(a)
+    check("every half hour, all of them as they stand, held or not: a panel that restarted has lost its list, and one that was off has one open",
+          [told(4), told(5)], [{"stuck": false, "noheat": true}, {"stuck": false, "noheat": true}])
+    h.sent.clear()
+    h.up = false
+    a.device.alert("noheat", false)
+    check("and nothing while the house is not up", h.sent, [])
+    h.up = true
+end
+warning_checks()
 
 def window_checks()
     at_hour(12)
@@ -446,7 +497,7 @@ def restart_checks()
     a.every_second()
     check("heating", tasmota.power, true)
     a.json_append()
-    check("Tasmota's telemetry has the device", tasmota.appended[-1], ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":1,\"NoClock\":0}")
+    check("Tasmota's telemetry has the device", tasmota.appended[-1], ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":1,\"NoClock\":0,\"Alert\":\"\"}")
     check("its rows of the Main settings are the device's, with the node's Info and Restart after them",
           a.render_for(["settings"], nil, nil)[2], [["Water", "40.0°", 0, 0], ["Heater", "On", 0, 0], ["Info", "", 1, 0, ["info"]], ["Restart", "", 2, 2]])
     a.save_before_restart()

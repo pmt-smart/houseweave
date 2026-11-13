@@ -299,6 +299,8 @@ class PanelZigbee
                 if dv != nil  dv.described(id, secs["d"]) end
                 self.emit(self.ui.pair_described(id, secs["d"]))
             end
+            # a warning the device says of itself, to every panel of the house whether it has the device or not: a notification here
+            if secs.contains("w") && self.alarm != nil  self.emit(self.alarm.device_word(id, secs["w"])) end
             if self.thermostat != nil self.thermostat.on_driver(id, secs) end
             if self.cover != nil self.cover.on_driver(id, secs) end
         end
