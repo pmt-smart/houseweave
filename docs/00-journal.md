@@ -13,6 +13,7 @@ was wrong and what holds.
 - [2026-11-12 — The house's part of a node, out of the bridge's relay](#2026-11-12--the-houses-part-of-a-node-out-of-the-bridges-relay)
 - [2026-11-12 — The house's list and mesh know an appliance](#2026-11-12--the-houses-list-and-mesh-know-an-appliance)
 - [2026-11-12 — A panel takes an appliance: its device, its page, its pairing](#2026-11-12--a-panel-takes-an-appliance-its-device-its-page-its-pairing)
+- [2026-11-13 — An appliance's own side: its node, the water heater's thermostat and its history](#2026-11-13--an-appliances-own-side-its-node-the-water-heaters-thermostat-and-its-history)
 
 ---
 
@@ -381,3 +382,74 @@ and the bridge's, which shares the house's layer, 48:
 |---|---|---|---|
 | panel (US) | 2 176 KB | 2 071 136 bytes | 153.4 KB |
 | bridge | 1 856 KB | 1 748 400 bytes | 148.6 KB |
+
+## 2026-11-13 — An appliance's own side: its node, the water heater's thermostat and its history
+
+The fifth step towards an appliance as a node: its own side, in Berry, with its tests off the device ([03 §3](03-architecture.md)). No image
+carries it yet.
+
+**What every node with no screen shares grew.** The window of entering the house, its button and its LED, the boot with no network saved, the
+clock, and the way what a node says is cut to the frames of the mesh went from the bridge's relay to `NodeHost`, and the pairing's link from the
+bridge's own class to `NodePairing` (`berry/node_pairing.be`). The relay hands them over and does what it did, under the same log tag and the
+same names of timers and rules; what is a bridge's in each is asked of the node: what its window announces after its seconds (the Zigbee channel),
+what it does when the window closes (the room's channel a panel chose), and what is its own in a guest's first word. The drivers' host cuts its
+messages with the same two functions. `NodeHost` and `NodePairing` follow `ClockLink` in the bridge's lists, since the drivers' host names the
+first.
+
+**The time of a node with no screen.** The time went only between a panel and the bridge of the house. A bridge or an appliance with no clock at
+all asks the house for it: its own word, which says it has none, to the bridges and the appliances of the house, one a minute, each in its turn,
+until it has a clock ([05 §4](05-the-house.md)). `ZbRelayTime` over the mesh is every node's word, taken by `NodeHost.run` with the number of
+the one that said it: a node with no screen that asks is answered alone, and a panel's word is answered to the panels that hear the node, as
+it was. A node hears the answer as an event of the house, from an owner that is not struck off.
+
+**The appliance's node** (`berry/appliance_node.be`). It runs what a panel says of a device: a driver's command, a ping, an Identify, which
+blinks its LED, and the name the house gave the device; any other word is refused and said at level 1. It says the device's state as a
+bridge's drivers do, the fields the panels were not told, one frame at a time, and a command's answer whole. **The description goes only to the
+panels that show the device**, each alone, with the whole state, when one marks it and after a boot: a panel registers a device a description
+names. **The page of its devices** is the one device, answered at once (`HouseDevices.own`), and the item carries only what classifies it (the
+kind, the caps, the endpoint, the range): the whole description with a name is 231 bytes, and an item has 216. Its window blinks the board's
+second LED, which follows no relay, and announces a device of the house with no Zigbee channel. The button's short press is taken by a rule
+that does nothing, since with none Tasmota toggles the relay. Before Tasmota restarts, for a command, an OTA or a reset, the device is stopped
+first, and the node adds the device to Tasmota's telemetry.
+
+**The water heater's thermostat** (`berry/boiler_thermostat.be`). The heater comes on with the water at or below the target less the hysteresis,
+and goes off at the target. Two windows of the day have each its hours and its target, past midnight when the second hour comes first and none
+when the two are the same; outside both the heater is off. It is off in the mode off, with no reading of the probe, at the ceiling, and once
+the node is about to restart. **The target a panel sees and sets is a window's**: the one in force, or the next to begin. A relay switched by
+another hand is seen at the next second and taken as the mode asked for. **With no clock** it holds the first window's target, and says so in
+the state's note, in a first row of its settings that is only read, by the node's LED, a second lit and a second dark, and in the telemetry;
+a panel that has the settings on show hears them again when the mode comes or goes. Out of its box it is off, with the windows 17 to 21 at 60
+degrees and 5 to 7 at 50, a hysteresis of 3 and a ceiling of 75: the hours are a first guess, for the bench. The probe's calibration is
+Tasmota's temperature offset, so the display and the MQTT say the water the logic reads. The water is said to the panels when it moved three
+tenths from what they have, or a minute after it was last said.
+
+**Its history** (`berry/boiler_history.be`): a slot every five minutes for a week, with the water in half degrees and the heater's minutes, and
+a day's lowest and highest water and its minutes for a year, 5 504 bytes in all, written to the file system on the hour and before a restart,
+beside the file and then over it. The slots filled with no clock are kept in order, a day of them at most, and take the places just before the
+moment the clock comes, marked.
+
+**The tests.** New suites for the node (69 checks), the thermostat (81) and the history (29); `NodeHost`'s has the window, the clock and the
+cutting over a node that is no bridge (105); the mesh's has the appliance's page (488); the relay's pass with the constants read from
+`NodeHost` (226). The appliance's files have a list of their own in the simulator's VM, and `brain.test.mjs` holds them to the build's
+rules as it holds the brain's and the relay's: one class a file, strict with globals by name, nothing at the top.
+
+**What the gate caught.** One test of the simulator matched the words of a log line the bridge says through `NodeHost` now, "this node leaves
+the house".
+
+**No check for an older build.** A house takes an appliance once every node of it runs a build that knows the role ([05 §1](05-the-house.md)).
+The rule is kept by the order of the updates, with no check in a panel: a check would cost bytes in every image for a change that happens
+once, and a node that is only off would hold the adding.
+
+**Open:** the image (its env, its template, its `autoexec.be`), the simulated appliance, and the house's server, which names the roles 1 to
+3: until the appliance has a part to back up, it keeps no backup and says nothing to the server. For the bench: whether a rule on the short
+press keeps Tasmota from the relay, whether Tasmota leaves the second LED alone, which coil of the relay is the one that turns on, and the
+windows' hours. The schedule takes a thermostat's target between 5 and 45 degrees, a room's.
+
+**The images, measured** on the build of this change (`12f844a/592f7062`), against `7d99467/592f7062`: the panel's is 176 bytes larger, for the
+page of an appliance's devices, and the bridge's 4 496 bytes larger, for what `NodeHost` gained: the time asked of the house and answered, and
+the window and the pairing that ask the node what is its own.
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 071 312 bytes | 153.2 KB |
+| bridge | 1 856 KB | 1 752 896 bytes | 144.2 KB |
