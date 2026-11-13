@@ -17,6 +17,7 @@ was wrong and what holds.
 - [2026-11-13 — The THR320D's image: an appliance in a firmware of its own](#2026-11-13--the-thr320ds-image-an-appliance-in-a-firmware-of-its-own)
 - [2026-11-13 — A thermostat's range is its own two limits](#2026-11-13--a-thermostats-range-is-its-own-two-limits)
 - [2026-11-13 — The simulated appliance, and a relay opened at every boot](#2026-11-13--the-simulated-appliance-and-a-relay-opened-at-every-boot)
+- [2026-11-13 — A latching relay checked by the water, and a device's warning to every panel](#2026-11-13--a-latching-relay-checked-by-the-water-and-a-devices-warning-to-every-panel)
 
 ---
 
@@ -599,3 +600,49 @@ The panel's and the bridge's were not built: nothing they compile changed.
 | image | app partition | used | free |
 |---|---|---|---|
 | THR320D | 1 856 KB | 1 476 368 bytes | 414.2 KB |
+
+## 2026-11-13 — A latching relay checked by the water, and a device's warning to every panel
+
+**The question.** Does the THR320D measure the heater's power? It does not: its template has no pin of an energy chip, where the POW Elite's
+has one and no probe socket. A meter would have said whether the relay is closed, which nothing else on the board does: the relay is a
+latching one and Tasmota never reads its contact. What is left to tell it by is the water ([02 §5](02-hardware.md), [03 §3](03-architecture.md)).
+
+**The off pulse, repeated.** While the logic has the relay open, the thermostat opens it again every minute. A pulse that did not take would
+leave the heater on with nothing to say so; pulsing an open latching relay moves nothing.
+
+**A contact stuck closed.** By day the water rises with the sun, and a rise says nothing. In the small hours there is no sun, and with the
+heater off the water can only fall. The check is set in the thermostat's settings: its hours, midnight to five out of the box, and how far
+the water has to fall in them, a degree. With the logic having kept the heater off the whole time, a warning is raised at the hours' end when
+the water fell less than that, and at once when it rose a degree above the lowest it was in them, which only the heater does. Hours the logic
+heated in, or with no reading of the probe, are not judged; hours judged fine end the warning; and the two hours made the same are no check.
+
+**A heater that does not heat.** The first rule thought of, the heater on for a while and the water not up, would have fired at every shower:
+hot water drawn takes more heat than the heater gives, and the water falls with the heater on. The rule is no rise at all, a degree above the
+lowest the water was since the heater came on, for the minutes a setting says, two hours out of the box and 0 for no warning. A rise ends the
+warning and starts the count again; a warning that holds when the heater goes off stays until the heater heats.
+
+**The warning, to the house.** A warning is in the state's note, on the page's line ("Relay stuck?", "Not heating"), and in the node's
+telemetry. And the node tells every panel of the house, each alone, whether the panel shows the device or not ([05 §4](05-the-house.md)): the
+kind, whether it holds, the device's name. A panel keeps it as a notification of its own, the way it keeps the word of a node that left the
+house, so it lights the house page's sign and is in the Notifications: "Boiler may be stuck on", "Boiler is not heating". One notification
+while it holds, however often it is said; seen when the node says it holds no more; and the next time it holds is another. The panels' lists
+are in RAM, so the node says all its warnings again, held or not, after its boot and every half hour: a panel that restarted has lost its
+list, and one that was off when a warning ended still has it open.
+
+**What none of it does** is open a contact that is stuck. The heater's own thermostat is what is left then, and it stays in place.
+
+**The numbers are first guesses**, to set against what the thermostat's history shows of a night: how far this heater's water falls with
+nobody using it. The rise that counts, a degree, is not a setting.
+
+**The tests.** The thermostat's suite has the three checks (125 checks), the node's the warning to every panel and its saying again (80), the
+panel alarm's the notification kept, not repeated, ended and raised again (264), and the panel thermostat's the message that brings it (205).
+In the simulator's house, the heater on with the water still for the minute its setting was given is a notification on the panel by the
+name the panel gave the device, and seen once the water rises.
+
+**The images, measured** on the build of this change (`25f78c2/592f7062`): the panel's is 928 bytes larger than `3ee439c`'s, and the
+THR320D's 4 016 bytes larger than `449b370`'s. The bridge's was not built: nothing it compiles changed.
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 072 864 bytes | 151.7 KB |
+| THR320D | 1 856 KB | 1 480 384 bytes | 410.3 KB |
