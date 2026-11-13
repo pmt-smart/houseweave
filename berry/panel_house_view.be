@@ -206,10 +206,6 @@ class PanelHouseView
         return true
     end
 
-    static def role_word(n)
-        return n["role"] == HouseList.ROLE_BRIDGE ? "Bridge" : "Panel"
-    end
-
     # a node's name as the screens say it: its own, or its role and the end of its radio address (HouseList.label)
     static def label(h, id)
         var s = h.list.label(id)
@@ -406,14 +402,16 @@ class PanelHouseView
         if n == nil return ["Node", "", rows] end
         var bridge = n["role"] == HouseList.ROLE_BRIDGE
         var server = n["role"] == HouseList.ROLE_SERVER
+        # a node that owns devices and has no screen, a bridge or an appliance: what is done to it is done by its word over the mesh
+        var owner = HouseList.owns(n["role"])
         if kind == "houseStrike"
             if server
                 rows.push(PanelUi.row(nil, "It is out of the house", "", false, nil, nil))
                 rows.push(PanelUi.row(nil, "Pair it again to have it back", "", false, nil, nil))
-            elif bridge
-                # a bridge removed goes back to its factory settings: its word over the mesh, and its devices leave every panel
+            elif owner
+                # a bridge, or an appliance, removed goes back to its factory settings: its word over the mesh, and its devices leave every panel
                 rows.push(PanelUi.row(nil, "Back to its factory settings", "", false, nil, nil))
-                rows.push(PanelUi.row(nil, "Its Wi-Fi and Zigbee erased", "", false, nil, nil))
+                rows.push(PanelUi.row(nil, bridge ? "Its Wi-Fi and Zigbee erased" : "Its Wi-Fi and settings erased", "", false, nil, nil))
                 rows.push(PanelUi.row(nil, "Devices here", str(size(self.ui.store.remote_by_owner().find(id, []))), false, nil, nil))
             else
                 rows.push(PanelUi.row(nil, "It leaves, and the key changes", "", false, nil, nil))
@@ -424,8 +422,8 @@ class PanelHouseView
         end
         if kind == "houseMove"
             rows.push(PanelUi.row(nil, "It leaves this house", "", false, nil, nil))
-            if bridge
-                rows.push(PanelUi.row(nil, "Its Wi-Fi and devices stay on it", "", false, nil, nil))
+            if owner
+                rows.push(PanelUi.row(nil, bridge ? "Its Wi-Fi and devices stay on it" : "Its Wi-Fi and settings stay on it", "", false, nil, nil))
                 rows.push(PanelUi.row(nil, "Devices here", str(size(self.ui.store.remote_by_owner().find(id, []))), false, nil, nil))
             end
             rows.push(PanelUi.row(nil, "A panel of the other adds it", "", false, nil, nil))
@@ -897,11 +895,16 @@ class PanelHouseView
             # the devices of the alarm that go with this panel, a warning
             var a = self.alarm_leaving(h)
             if h.writes() && PanelHouseView.last_panel(h)
-                # the last panel takes the house's bridges along: a house always has a panel
-                var n = size(h.bridges())
+                # the last panel takes along every node with no screen, the bridges and the appliances: a house always has a panel. The row counts
+                # them as bridges while they all are, and as nodes with an appliance among them
+                var n = size(h.screenless())
+                var leave = "Leave"
+                if n > 0
+                    leave = "Leave with " + (n == size(h.bridges()) ? PanelUi.plural(n, "bridge", "bridges") : PanelUi.plural(n, "node", "nodes"))
+                end
                 rows.push(PanelUi.row(nil, "The last panel", "", false, nil, nil))
                 if a > 0 rows.push(PanelUi.row(nil, "In the alarm", PanelUi.plural(a, "device", "devices"), 2, nil, nil)) end
-                rows.push(PanelUi.row(nil, n > 0 ? "Leave with " + PanelUi.plural(n, "bridge", "bridges") : "Leave", "", 2, ["house", "leave", n > 0 ? -1 : 0] + tail, nil))
+                rows.push(PanelUi.row(nil, leave, "", 2, ["house", "leave", n > 0 ? -1 : 0] + tail, nil))
             else
                 if a > 0 rows.push(PanelUi.row(nil, "In the alarm", PanelUi.plural(a, "device", "devices"), 2, nil, nil)) end
                 rows.push(PanelUi.row(nil, "Leave", "", 2, ["house", "leave", 0] + tail, nil))
@@ -1064,10 +1067,11 @@ class PanelHouseView
     end
 
     # The word alone: the effect that sends it, and its answer awaited. A factory reset (a bridge's Remove from house) not answered strikes the bridge off all
-    # the same, ADMIN_MS later (silent); answered, the bridge goes by itself, and says so to the panels (house_mesh.be, go)
+    # the same, ADMIN_MS later (silent); answered, the bridge goes by itself, and says so to the panels (house_mesh.be, go). An appliance takes the same
+    # words (node_host.be)
     def admin_word(h, id, what)
         import json
-        if !h.writes() || h.list.role(id) != HouseList.ROLE_BRIDGE || h.list.revoked(id) return [] end
+        if !h.writes() || !h.list.is_owner(id) || h.list.revoked(id) return [] end
         var n = PanelHouseView.draw_password()
         var m = {"do": what, "n": n}
         var pw = nil
@@ -1173,12 +1177,12 @@ class PanelHouseView
             return PanelHouseView.window_open(ui)
         end
         if what == "strike"
-            # a bridge goes back to its factory settings, by its word (and is struck off when it goes, or when it says nothing); a panel is told to leave, and struck off;
-            # the server, which hears no word of the mesh, struck off at once
+            # a bridge, or an appliance, goes back to its factory settings, by its word (and is struck off when it goes, or when it says nothing); a panel is told to
+            # leave, and struck off; the server, which hears no word of the mesh, struck off at once
             var out = []
             if h.list.role(a[2]) == HouseList.ROLE_SERVER
                 if !h.revoke(a[2]) return [] end
-            elif h.list.role(a[2]) == HouseList.ROLE_BRIDGE
+            elif h.list.is_owner(a[2])
                 out = self.admin_word(h, a[2], "factory")
                 if size(out) == 0 return [] end
             elif !h.remove(a[2])

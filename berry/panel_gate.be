@@ -12,6 +12,9 @@
 #
 # The devices of the bridge the panel is paired with are not gated: a group on its own acts on its own. Only the devices of other bridges are.
 #
+# AN APPLIANCE owns the one device it is (HouseList.owns), and is looked at as a bridge that owns one: the same heartbeat, the same bit, the same
+# hysteresis. The reason its device's page gives calls it the "Device" (word).
+#
 # It is a driver of its own, which looks at the mesh every second, and gives the panel's way of marking a device as `apply`.
 #
 # THE OWN BRIDGE. With `own` (a closure, the number the house gives the panel's own bridge, or 0) it looks at that bridge the same way,
@@ -68,6 +71,14 @@ class PanelGate
             if !m.contains(self.store.owner_of(ieee))  gone.push(ieee) end
         end
         for ieee: gone  self.held.remove(ieee) end
+    end
+
+    # what a device's page calls the node that owns it, in the reason it has no buttons: an appliance is the "Device", and any other owner the "Bridge".
+    # The house's list is read by its global name: its file comes after this one, and a name is compiled only once it is declared
+    static def word(node)
+        import global
+        var h = global.contains("house") ? global.house : nil
+        return h != nil && h.list.role(node) == global.HouseList.ROLE_DEVICE ? "Device" : "Bridge"
     end
 
     # whether a neighbour says it is in step: the bit 0 of the byte 19 of its heartbeat
@@ -144,17 +155,17 @@ class PanelGate
             end
         end
         if n == nil
-            self.down(node, "Bridge not heard")
+            self.down(node, PanelGate.word(node) + " not heard")
             return
         end
         var state = n.find("state", 2)
         if state == 2
-            self.down(node, "Bridge off")
+            self.down(node, PanelGate.word(node) + " off")
             return
         end
         if state == 1 return end
         if !PanelGate.in_step(n)
-            self.down(node, "Bridge syncing")
+            self.down(node, PanelGate.word(node) + " syncing")
             return
         end
         var beat = n.find("beat", -1)
@@ -166,7 +177,7 @@ class PanelGate
             self.ready[node] = true
             self.why.remove(node)
         elif !self.ready.find(node, false)
-            self.why[node] = "Bridge starting"
+            self.why[node] = PanelGate.word(node) + " starting"
         end
     end
 
@@ -187,6 +198,6 @@ class PanelGate
     def reason(dev)
         var node = self.store.owner_of(dev)
         if node == 0 || self.ready.find(node, false) return nil end
-        return self.why.find(node, "Bridge not heard")
+        return self.why.find(node, PanelGate.word(node) + " not heard")
     end
 end

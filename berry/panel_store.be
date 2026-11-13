@@ -690,9 +690,33 @@ class PanelStore
         return out
     end
 
-    # A device of another room's bridge, taken from what that bridge says of it (house_devices.be: [IEEE, model, Config, name]), into a zone: classified as a paired device
-    # is (config_profile), named as the bridge's panels named it or, with no name, as a new device is, the bridge's (set_owner), and in the zone's next place. A refusal
-    # leaves nothing: a device the panel has, a zone that is not there or is full, a Config that does not say what it is, a bridge that is not one
+    # What an item of an owner's page of devices is (house_devices.be: [IEEE, model, Config, name, and the description when the owner gave one]), as a
+    # device's record keeps it: [kind, caps, endpoint, its [4], its [5]], or nil when nothing says. A description is a driver's, read as a pairing reads it
+    # (PanelUi.pair_described): a kind this panel knows, its caps, its range, and for a blind what it moves. With none, Z2T's Config says (config_profile)
+    static def item_profile(info)
+        var d = size(info) > 4 ? info[4] : nil
+        if isinstance(d, map)
+            var kind = str(d.find("kind"))
+            if !PanelStore.KIND_NAME.contains(kind) return nil end
+            var lo = int(d.find("min", 0))
+            var hi = int(d.find("max", 0))
+            if kind == "cover"
+                var app = PanelStore.APPS.find(str(d.find("app", "")))
+                lo = 0
+                hi = app != nil ? app : 0
+            end
+            return [kind, int(d.find("caps", 0)), int(d.find("ep", 1)), lo, hi]
+        end
+        var p = PanelStore.config_profile(info[2])
+        if p == nil return nil end
+        var ct = (p[1] & PanelStore.CAP_CT) != 0 ? PanelStore.CT_DEFAULT : [0, 0]
+        return [p[0], p[1], p[2], ct[0], ct[1]]
+    end
+
+    # A device of another node of the house, a bridge of another room or an appliance, taken from what that node says of it (house_devices.be), into a zone:
+    # classified by what the item says (item_profile), named as its owner's panels named it or, with no name, as a new device is, its owner's (set_owner), and
+    # in the zone's next place. A refusal leaves nothing: a device the panel has, a zone that is not there or is full, an item that does not say what it is,
+    # an owner that is no number of a house
     def add_remote_device(zone_id, owner, info)
         import string
         if !isinstance(info, list) || size(info) < 4 || type(info[0]) != "string" || size(info[0]) != 18 || info[0][0 .. 1] != "0x"
@@ -702,11 +726,10 @@ class PanelStore
         if self.find_zone(zone_id) == nil return PanelStore.refuse("no_such_zone", nil) end
         if type(owner) != "int" || owner < 1 || owner > 254 return PanelStore.refuse("bad_owner", str(owner)) end
         if self.find_device(ieee) != nil return PanelStore.refuse("device_exists", nil) end
-        var p = PanelStore.config_profile(info[2])
+        var p = PanelStore.item_profile(info)
         if p == nil return PanelStore.refuse("unsupported", ieee) end
-        var ct = (p[1] & PanelStore.CAP_CT) != 0 ? PanelStore.CT_DEFAULT : [0, 0]
         var name = size(str(info[3])) > 0 ? str(info[3]) : self.auto_name(p[0])
-        self.register_device([ieee, name, p[0], p[1], ct[0], ct[1], str(info[1]), p[2], 0, 0])
+        self.register_device([ieee, name, p[0], p[1], p[3], p[4], str(info[1]), p[2], 0, 0])
         self.set_owner(ieee, owner)
         var r = self.add_to_zone(zone_id, ieee)
         if !r["ok"]

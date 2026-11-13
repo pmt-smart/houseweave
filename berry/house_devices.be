@@ -8,6 +8,8 @@
 # The bridge keeps what Z2T told of its devices (heard: what the relay forwards of a ZbInfo), and a bridge that has nothing, or nothing in FRESH_MS, asks Z2T for the map (ZbInfo,
 # ask_info) and answers SETTLE_MS later, when the reports of it have come. The list is in the order of the IEEEs.
 #
+# An appliance answers the same way for the one device it is, and says what the device is in the item ("d"): it has no Z2T to give a Config.
+#
 # It is one of HouseMesh's parts (house_mesh.be), as HouseState is: it sends over the host, which keeps what the driver did not take.
 
 #@ solidify:HouseDevices
@@ -30,7 +32,7 @@ class HouseDevices
     var waiting      # the bridge's: panel -> the place it asked for, to be answered when the map has come
     var ask_info     # the bridge's: a closure () -> nothing, which asks Z2T for the map
     var name_of      # the bridge's: a closure (ieee) -> the name the panels gave the device, or nil
-    var page         # the panel's: the page asked for: {"owner", "from", "total", "items": {index: [ieee, model, config, name]}, "tries", "at"}, or nil
+    var page         # the panel's: the page asked for: {"owner", "from", "total", "items": {index: [ieee, model, config, name, description if said]}, "tries", "at"}, or nil
     var on_page      # the panel's: a closure () -> nothing, told when an item of the page has come
 
     def init(host)
@@ -160,18 +162,21 @@ class HouseDevices
         return size(p["items"]) >= want
     end
 
-    # an item of a page, from the bridge it was asked of
+    # an item of a page, from the node it was asked of: a bridge, or an appliance (HouseList.owns). An owner that knows what its device is says so in the
+    # item ("d", the description a driver gives of a device, in the place of the Config), and the item keeps it as its fifth
     def take_item(src, d)
         var p = self.page
         if p == nil || p["owner"] != src || size(d) < 5 || d[1] != HouseDevices.WIRE return end
         var from = self.host.list.node(src)
-        if from == nil || from["role"] != HouseList.ROLE_BRIDGE return end
+        if from == nil || !HouseList.owns(from["role"]) return end
         p["total"] = d[3]
         if d[2] != HouseDevices.END
             import json
             var m = json.load(d[4 ..].asstring())
             if isinstance(m, map) && type(m.find("i")) == "string"
-                p["items"][d[2]] = [m["i"], str(m.find("m", "")), isinstance(m.find("c"), list) ? m["c"] : [], str(m.find("n", ""))]
+                var it = [m["i"], str(m.find("m", "")), isinstance(m.find("c"), list) ? m["c"] : [], str(m.find("n", ""))]
+                if isinstance(m.find("d"), map)  it.push(m["d"]) end
+                p["items"][d[2]] = it
             end
         end
         if self.on_page != nil self.on_page() end

@@ -1,5 +1,6 @@
 # house_state.be -- the state of a device of one room shown in another: the marks a panel puts on the devices it shows, the
-# state the bridge that owns them floods, and the way a panel that lost some asks for it again.
+# state the bridge that owns them floods, and the way a panel that lost some asks for it again. The owner is a bridge, or an appliance,
+# which owns the one device it is (HouseList.owns): what is said here of a bridge that owns is said of both.
 #
 # THE MARKS. A panel that shows a device of another bridge (PanelStore.remote_by_owner) tells that bridge so: a MARK frame, to one node, with the IEEEs of its devices at
 # that bridge, 16 to a frame, the first with bit 0 and the last with bit 1 of its flags. The owner keeps, for each panel, the set and the time it was told, and a set not told
@@ -232,9 +233,9 @@ class HouseState
         if size(d) < HouseState.HEAD + 2 || d[1] != HouseState.WIRE return end
         if self.wanted == nil || self.deliver == nil return end
         var w = self.wanted()
-        # the owner of a device is a bridge of the house: a frame of state from any other is let go
+        # the owner of a device is a bridge of the house, or an appliance (HouseList.owns): a frame of state from any other is let go
         var from = self.host.list.node(src)
-        if !w.contains(src) || from == nil || from["role"] != HouseList.ROLE_BRIDGE
+        if !w.contains(src) || from == nil || !HouseList.owns(from["role"])
             self.let_go += 1
             return
         end

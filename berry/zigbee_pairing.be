@@ -6,7 +6,7 @@
 # chose. Then the exchange ends: the node is in the house, and everything else goes over the mesh.
 #
 # The pairing, as the driver reports it to the rules:
-#   {"EspNowPair":{"Heard":{"Id","Mac","Rssi","Channel","Version","Name","Zigbee","Network","Busy","Guest","Display"}}}
+#   {"EspNowPair":{"Heard":{"Id","Mac","Rssi","Channel","Version","Name","Zigbee","Network","Busy","Guest","Display","Appliance"}}}
 #   {"EspNowPair":{"Scan":"Sweeping"}}, {"EspNowPair":{"Scan":"Done","Count":<n>}}
 #   {"EspNowPair":{"Blinking":<mac>}}: the node picked identifies itself, and the glass asks
 #   {"EspNowPair":{"Paired":<mac>,"Epoch":<n>,"Guest":1}}, {"EspNowPair":{"Guest":"Ended"}}
@@ -44,7 +44,7 @@ class ZigbeePairing : Driver
 
     var bridge      # the ZigbeeBridge
     var found       # the nodes the search heard, strongest first:
-                    # [{"id", "mac", "name", "rssi", "channel", "version", "network", "busy", "zigbee", "guest", "display"}]
+                    # [{"id", "mac", "name", "rssi", "channel", "version", "network", "busy", "zigbee", "guest", "display", "appliance"}]
     var searching   # the search runs
     var sweeping    # and listens on every channel, with the Wi-Fi paused
     var asking      # the step: nil, "blink", "blinking", "pairing", "hello", "house", "offer" or "wifi"
@@ -313,7 +313,17 @@ class ZigbeePairing : Driver
         return {"id": int(v.find("Id", 0)), "mac": str(v.find("Mac", "")), "name": str(v.find("Name", "")),
                 "rssi": int(v.find("Rssi", -100)), "channel": int(v.find("Channel", 0)), "version": int(v.find("Version", 0)),
                 "network": v.find("Network") == 1, "busy": v.find("Busy") == 1, "zigbee": int(v.find("Zigbee", 0)), "guest": v.find("Guest") == 1,
-                "display": v.find("Display") == 1}
+                "display": v.find("Display") == 1, "appliance": v.find("Appliance") == 1}
+    end
+
+    # The role a node of the search comes into the house with (HouseList.ROLE_...), by what its window said: a panel with a display, an appliance on one,
+    # and a bridge with neither, which is every window of a build that says neither
+    static def role_of(e)
+        import global
+        var l = global.HouseList
+        if e == nil return l.ROLE_BRIDGE end
+        if e.find("display") == true return l.ROLE_PANEL end
+        return e.find("appliance") == true ? l.ROLE_DEVICE : l.ROLE_BRIDGE
     end
 
     # the sweep began, with the Wi-Fi paused, or the search is over: the list, as the driver sorts it, strongest first, and the node tapped meanwhile asked
@@ -460,8 +470,8 @@ class ZigbeePairing : Driver
         self.hello_at = tasmota.millis() + ZigbeePairing.HELLO_MS
     end
 
-    # The node says who it is: a panel that is in the house and writes adds it to the list, as a panel when its window said it has a display
-    # and as a bridge otherwise, and gives it the welcome. Anything else has nothing to do, and the glass says why
+    # The node says who it is: a panel that is in the house and writes adds it to the list, as a panel when its window said it has a display,
+    # as an appliance when it said it is on one, and as a bridge otherwise, and gives it the welcome. Anything else has nothing to do, and the glass says why
     def guest_step(m)
         self.hello_at = nil
         self.house_result = nil
@@ -473,9 +483,7 @@ class ZigbeePairing : Driver
         if l != nil && mine == 2 && theirs == 1
             l.bind(/ msg -> ZigbeePairing.tell(msg), / ok, why -> self.house_over(ok, why))
             var name = str(m.find("name", self.chosen != nil ? self.chosen["name"] : ""))
-            import global
-            var kind = self.chosen != nil && self.chosen.find("display") == true ? global.HouseList.ROLE_PANEL : global.HouseList.ROLE_BRIDGE
-            if l.give(kind, name, str(m.find("ip", "")))
+            if l.give(ZigbeePairing.role_of(self.chosen), name, str(m.find("ip", "")))
                 self.asking = "house"
                 self.changed()
                 return
@@ -504,7 +512,7 @@ class ZigbeePairing : Driver
         self.go_on()
     end
 
-    # The node is in the house, or was not taken: a bridge is offered the Wi-Fi, and otherwise the exchange is over
+    # The node is in the house, or was not taken: a bridge, or an appliance, is offered the Wi-Fi, and otherwise the exchange is over
     def go_on()
         var bridge = self.chosen == nil || self.chosen.find("display") != true
         self.offer = bridge ? self.wifi_offer(self.hello_ssid, self.hello_up) : nil

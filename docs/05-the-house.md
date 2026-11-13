@@ -40,8 +40,8 @@ bridge's period, keeps the panels' marks of its device across a restart, and lea
 bridge owns those of its network (`HouseList.owns`), and it is not a bridge in what is Zigbee's: it has no alarm number, is no panel's favourite
 bridge, and unnamed is called "Device" and the end of its radio address. A node whose build does not know the role keeps its identity in the
 list and does not speak to it (it gives the mesh's driver none of them, and sends them no new key), so **a house takes an appliance once every
-node of it runs a build that knows the role**. The list and the mesh know the role; the panels' screens do not show an appliance's device yet,
-and no image is an appliance's.
+node of it runs a build that knows the role**. A panel adds an appliance as it adds a bridge (§2), shows it on the mesh's page, and takes its device
+into a zone (§4); no image is an appliance's yet.
 
 ## 2. Coming in and going out
 
@@ -52,7 +52,9 @@ exchange**: neither side writes a record, and the exchange's link lives in RAM w
 gives it the **welcome** (its number, the house's key and the list, in pieces of up to 90 bytes, each acknowledged), the house's channel, and the
 room's Zigbee channel for a new bridge; a bridge with no network is offered the panel's Wi-Fi, or offers its own (only after its button). Then the
 exchange ends, the node is in the house, and everything else goes over the mesh. Wi-Fi passwords go only through the driver, over the encrypted link,
-after a touch on the glass.
+after a touch on the glass. **A window says what it is on**, and the panel writes the node into the list with that role: a display is a panel, an
+appliance is one (the search calls it a device, and never the nearest bridge), and a window that says neither is a bridge's. An appliance is offered
+the Wi-Fi as a bridge is.
 
 **A panel always has a house.** A panel whose driver has no number founds its own house ("House-" and a code of its radio address) at its first boot
 and as soon as it leaves a house, unless it is waiting at its window to be taken by another. From its own house its mesh page offers to join another;
@@ -60,7 +62,8 @@ from another's, to leave.
 
 **Going out**: a panel **removes** a node (the word to leave, and the node struck off with a change of the key); a panel **leaves** by itself, and
 the last panel of a house takes along every node that has no screen, since none of them writes the list; a
-bridge's **Remove from house** sends it back to its factory state; **Join another house** sends a node out and opens its window for the other house.
+bridge's, or an appliance's, **Remove from house** sends it back to its factory state; **Join another house** sends a node out and opens its window
+for the other house.
 A node that leaves loses the list, the keys and its number, here and in the driver (`EspNowMeshLeave`), and is a new node to any house. A node that
 finds itself struck off leaves. A node removed is forgotten whole, by every node, the ones that were off included.
 
@@ -102,6 +105,20 @@ bridge; the panel keeps only its own view.
   own**: the devices of the panel's own room are never held by the network's state.
 - **The room's own traffic** goes over the mesh as well: the bridge in step is the room's session, and everything a panel says to its own bridge
   goes as frames of the mesh.
+
+**An appliance owns the one device it is**, and a panel treats it as a bridge that owns one, wherever the question is who owns a device and not
+what is Zigbee's (`HouseList.owns`):
+
+- **Adding**: the zone's + has a row of its own for it, **Mesh device**, in a house with an appliance, with or without a bridge. It opens the
+  appliance's page of devices, asked and answered as a bridge's (with more than one appliance, which first). The appliance has no Z2T to give a
+  Config, so **its item says what the device is**: the description a driver gives of a device (`"d"`: the kind, the caps, the range), which the
+  panel reads as it reads one at a pairing (`PanelStore.item_profile`).
+- **Commands, marks and state** go to it and come from it by its number, as with any owner. What it says of its device over the mesh (its driver's
+  word, `ZbDriver`) is taken as a bridge's that is not the house's is (`PanelBoot.takes`); a word of the house's (the alarm, the time) is not: an
+  appliance is never the bridge of the house, nor a panel's favourite.
+- **The sync gate** looks at it by the same heartbeat and the same bit, and the reason on its device's page calls it the device: "Device not heard".
+
+The device an appliance is has an address of an IEEE's shape, 64 bits, so everything that keys a device by its IEEE takes it as it is.
 
 **Presence.** A node's heartbeat is not repeated, so by heartbeats a node sees only its neighbours. Every node of a house of more than one also
 floods its **presence** (`MSG_HERE`) every 10 s on a bridge or an appliance and 30 s on a panel, with how it is tied to the mesh and the nodes it hears in their

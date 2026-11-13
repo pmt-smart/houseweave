@@ -207,11 +207,12 @@ do
     check("and forgotten once it is not one any more", g.ready.contains(9), false)
 end
 
-# the house layer, as far as the gate reads it: how the bridge 9 is heard, `by`
+# the house layer, as far as the gate reads it: how the bridge 9 is heard, `by`, the neighbours it lists, `near`, and its list, for a node's role
 class GateHouse
-    var by
+    var by, near, list
+    def init() self.list = HouseList(4) end
     def heard_by(node) return node == 9 ? self.by : nil end
-    def neighbors() return [] end
+    def neighbors() return self.near != nil ? self.near : [] end
 end
 
 # a bridge two hops away: the house says how it is heard (house_mesh.be, heard_by), by the heartbeat of the neighbour that lists it, and the gate counts that
@@ -233,6 +234,44 @@ do
     gh.by = nb(5, 0, 20, false)
     g.tick()
     check("the neighbour not in step: not ready", [g.ready.find(9, false), g.why.find(9)], [false, "Bridge syncing"])
+    global.house = nil
+end
+
+# an appliance, the node 8, owns the one device it is: it is looked at as a bridge that owns one, and its device's page calls it the device
+do
+    var BOILER = "0xA0B765FFFE000008"
+    var store = PanelStore(nil)
+    var z = store.create_zone("home", "Room", [0, 0], [3, 3])["value"]
+    store.register_device([BOILER, "Boiler", "thermostat", 48, 300, 700, "", 1, 0, 0])
+    store.add_to_zone(z, BOILER)
+    store.set_owner(BOILER, 8)
+    var told = []
+    var g = PanelGate(store, def (id, off) told.push([id, off]) end)
+    var gh = GateHouse()
+    var d = bytes()
+    d.add(HouseList.ROLE_DEVICE, 1)
+    d .. bytes(-32)
+    d .. bytes("A0B765000008")
+    gh.list.author(HouseList.K_IDENT, 8, d)
+    global.house = gh
+    g.tick()
+    check("an appliance that is not heard: its device is gated, and the reason calls it the device", [told, g.available(BOILER), g.reason(BOILER)],
+          [[[BOILER, true]], false, "Device not heard"])
+    told.clear()
+    gh.near = [nb(8, 0, 700, true)]
+    g.tick()
+    check("its first heartbeat in step is not enough, as a bridge's is not", [told, g.reason(BOILER)], [[], "Device starting"])
+    gh.near = [nb(8, 0, 300, true)]
+    g.tick()
+    check("the second one is: its device has its buttons", [told, g.available(BOILER), g.reason(BOILER)], [[[BOILER, false]], true, nil])
+    told.clear()
+    gh.near = [nb(8, 0, 100, false)]
+    g.tick()
+    check("not in step, it is gated at once", [told, g.reason(BOILER)], [[[BOILER, true]], "Device syncing"])
+    gh.near = [nb(8, 2, 30000, true)]
+    g.tick()
+    check("and silent, it is off", g.reason(BOILER), "Device off")
+    check("a bridge beside it keeps its own word", PanelGate.word(9), "Bridge")
     global.house = nil
 end
 

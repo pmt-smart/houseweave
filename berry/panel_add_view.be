@@ -1,6 +1,7 @@
 # panel_add_view.be -- what a zone's + adds: its first screen asks for a Zigbee device or a relay
 # device, and shows only the one the panel can add now; a Zigbee device is the search, which starts as its screen
-# opens (PanelUi.begin_pairing); a relay device is born on a relay, of the kind chosen, a Light, a Switch or Other.
+# opens (PanelUi.begin_pairing); a relay device is born on a relay, of the kind chosen, a Light, a Switch or Other. In a house with an
+# appliance, a third row, Mesh device, takes the device that node is (panel_remote_view.be).
 #
 # A provider of views for PanelUi (panel_ui.be, `providers`), as the clock's and the Tap's are: it comes after PanelUi,
 # whose rows it makes and whose stack it works on, and keeps the relay device being made until its check.
@@ -55,6 +56,8 @@ class PanelAddView
             # a row the panel cannot add now is not there: Zigbee off or no link, or both relays feeding Zigbee
             if self.ui.can_add_zigbee() rows.push(PanelUi.row(nil, "Zigbee device", "", false, ["add", "zigbee", id], nil)) end
             if self.ui.can_add_relay() rows.push(PanelUi.row(nil, "Relay device", "", false, ["add", "relay", id], nil)) end
+            # an appliance of the house, a node that is itself a device: its own row, and its screens are the house's (panel_remote_view.be)
+            if self.ui.can_add_mesh() rows.push(PanelUi.row(nil, "Mesh device", "", false, ["remote", "mesh", id], nil)) end
             return [title, "", rows]
         end
         var d = self.draft

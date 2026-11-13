@@ -293,12 +293,124 @@ def section_pair_on()
     global.espnow_mesh_neighbors = / -> []
 end
 
+# Mesh device: an appliance of the house, a node that is itself a device. The +'s own row, its page, the item that says what the device is, the device
+# taken, and the screens back at the zone
+def with_appliances(l, ids)
+    for n: ids
+        var d = bytes()
+        d.add(HouseList.ROLE_DEVICE, 1)
+        d .. key_of(n)
+        d .. mac_of(n)
+        l.author(HouseList.K_IDENT, n, d)
+    end
+    return l
+end
+
+def section_mesh()
+    var f = fixture("A0:B7:65:00:00:06", true)
+    var ui = f["ui"]
+    var store = f["store"]
+    var room = store.create_zone("home", "Room", [0, 0], [3, 3])["value"]
+    check("a house with no appliance has no device of the mesh to offer", [PanelRemoteView.offers_mesh(), ui.can_add_mesh()], [false, false])
+    ui.open(["add", room])
+    check("and the + has no row for one", rows(ui), [["Zigbee device", "", true], ["Relay device", "", true]])
+    ui.stack = []
+    with_appliances(global.house.list, [9])
+    global.house.list.author(HouseList.K_NAME, 9, bytes().fromstring("Boiler"))
+    check("an appliance is no bridge to pair on, nor one to take a Zigbee device from",
+          [PanelRemoteView.others(global.house), PanelRemoteView.pair_bridges(global.house), PanelRemoteView.appliances(global.house)], [[6, 7], [6, 7], [9]])
+    check("with one, the + offers a device of the mesh", [PanelRemoteView.offers_mesh(), ui.can_add_mesh()], [true, true])
+    # the zone's screen under the +'s, as the panel has it when the + is touched
+    ui.open(["zone", room])
+    ui.open(["add", room])
+    check("its own row, under the Zigbee's and the relay's", rows(ui), [["Zigbee device", "", true], ["Relay device", "", true], ["Mesh device", "", true]])
+    ui.list_row(2, 0, false)
+    check("with one appliance its page is asked of it at once, in the first screen's place", [ui.top()["view"], global.house.devices.asked, size(ui.stack)],
+          [["addDevices", room, 9], [[9, 0]], 2])
+    check("and the screen says it is asking the device", rows(ui), [["Asking the device", "", false]])
+    var boiler = ["0xA0B765FFFE000009", "THR320D", [], "Boiler", {"kind": "thermostat", "caps": 48, "min": 300, "max": 700, "step": 10, "modes": ["off", "heat"], "measure": "Water"}]
+    global.house.devices.given([boiler], 0, 1)
+    check("the item says what the device is, with no Config", rows(ui), [["Boiler", "Thermostat", true]])
+    var fx = ui.list_row(0, 0, false)
+    var saved = false
+    for e: fx if e == ["save"] saved = true end end
+    var d = store.find_device("0xA0B765FFFE000009")
+    check("taken, it is a thermostat of the zone, with the range the item gave, and the appliance's",
+          [saved, store.zone_of(d[0])["id"], d[1], d[2], d[3], d[4], d[5], d[6], d[7], store.owner_of(d[0]), store.remote_by_owner()],
+          [true, room, "Boiler", "thermostat", 48, 300, 700, "THR320D", 1, 9, {9: ["0xA0B765FFFE000009"]}])
+    check("the screens are back at the zone's, and not past it", [size(ui.stack), ui.top()["view"]], [1, ["zone", room]])
+    check("the document is valid", store.validate(), [])
+    # its options: it leaves this panel only, and no other device takes its place; out of the house it goes with its node
+    ui.open(["deviceOptions", "0xA0B765FFFE000009"])
+    var options = []
+    for r: rows(ui)  options.push(r[0]) end
+    check("the device an appliance is has no Replace and no Remove from the house", [options.find("Replace"), options.find("Remove from the house"), options.find("Remove from this panel") != nil,
+          ui.appliance_owned("0xA0B765FFFE000009"), ui.replaceable("0xA0B765FFFE000009")], [nil, nil, true, true, false])
+    store.add_remote_device(room, 7, ["0x00124B0000CC0001", "TS0505B", ["L01.5"], "Bedroom"])
+    ui.open(["deviceOptions", "0x00124B0000CC0001"])
+    options = []
+    for r: rows(ui)  options.push(r[0]) end
+    check("a bridge's device beside it has both ways off", [options.find("Remove from this panel") != nil, options.find("Remove from the house") != nil, ui.appliance_owned("0x00124B0000CC0001")],
+          [true, true, false])
+    ui.back()
+    ui.back()
+    ui.open(["add", room])
+    ui.list_row(2, 0, false)
+    global.house.devices.given([boiler], 0, 1)
+    check("asked again, the device the panel has says so, and is not to touch", rows(ui), [["Boiler", "Added", false]])
+    # two appliances: which first
+    ui.stack = []
+    with_appliances(global.house.list, [10])
+    global.espnow_mesh_neighbors = / -> [{"id": 9, "state": 0}]
+    ui.open(["zone", room])
+    ui.open(["add", room])
+    ui.list_row(2, 0, false)
+    check("with more than one the + asks which, by their names, with the signal", [ui.top()["view"], ui.list_view(ui.top()["view"])[0], rows(ui)],
+          [["addBridges", room, "mesh"], "Mesh device", [["Boiler", "", true], ["Device 00000A", "No signal", true]]])
+    ui.list_row(1, 0, false)
+    check("and the one touched is asked for its page", [ui.top()["view"], global.house.devices.asked[-1]], [["addDevices", room, 10], [10, 0]])
+    var heater = ["0xA0B765FFFE00000A", "THR320D", [], "", {"kind": "thermostat", "caps": 48, "min": 300, "max": 700}]
+    global.house.devices.given([heater], 0, 1)
+    ui.list_row(0, 0, false)
+    check("taken from the list of two, the screens are back at the zone's too", [size(ui.stack), ui.top()["view"], store.find_device("0xA0B765FFFE00000A")[1], store.owner_of("0xA0B765FFFE00000A")],
+          [1, ["zone", room], "Thermostat 1", 10])
+    global.espnow_mesh_neighbors = / -> []
+    # a house of a panel and an appliance, with no bridge: no Zigbee device to add, and the device of the mesh still
+    var alone = with_appliances(HouseList(4), [9])
+    var pd = bytes()
+    pd.add(HouseList.ROLE_PANEL, 1)
+    pd .. key_of(4)
+    pd .. mac_of(4)
+    alone.author(HouseList.K_IDENT, 4, pd)
+    global.house.list = alone
+    ui.wireless = FakeWireless()
+    check("in a house with no bridge the + offers the device of the mesh and no Zigbee device", [ui.can_add_zigbee(), ui.can_add_mesh(), PanelRemoteView.offers()], [false, true, false])
+    global.house.up = false
+    check("and none with the mesh down", ui.can_add_mesh(), false)
+end
+
+# what an item of an owner's page is, as the store reads it
+def section_item()
+    check("an item with a Config is what the Config says, a lamp of temperature with its range", PanelStore.item_profile(["0x00124B0000DD0001", "M", ["L01.2"], ""]), ["light", 7, 1, 153, 500])
+    check("one with a description is what the description says, whatever its Config", PanelStore.item_profile(["0x00124B0000DD0001", "M", ["L01.2"], "", {"kind": "thermostat", "caps": 48, "min": 50, "max": 350, "ep": 2}]),
+          ["thermostat", 48, 2, 50, 350])
+    check("a blind's description gives what it moves, and no range", PanelStore.item_profile(["0x00124B0000DD0001", "M", [], "", {"kind": "cover", "caps": 0, "app": "gate", "min": 9, "max": 9}]), ["cover", 0, 1, 0, 2])
+    check("a kind this panel does not know is not one to take", PanelStore.item_profile(["0x00124B0000DD0001", "M", ["L01.2"], "", {"kind": "boiler"}]), nil)
+    check("nor an item that says nothing", PanelStore.item_profile(["0x00124B0000DD0001", "M", [], ""]), nil)
+    var s = PanelStore(nil)
+    var zone = s.create_zone("home", "Room", [0, 0], [3, 3])["value"]
+    check("a described device of a kind unknown is refused, and leaves nothing", [s.add_remote_device(zone, 9, ["0x00124B0000DD0001", "M", [], "", {"kind": "boiler"}])["refusal"], s.find_device("0x00124B0000DD0001")],
+          ["unsupported", nil])
+end
+
 section_offers()
 section_pair_on()
 section_screens()
 section_take()
 section_status()
 section_store()
+section_mesh()
+section_item()
 
 if failures == 0
     print("ok - " + str(checks) + " checks")

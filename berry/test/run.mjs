@@ -171,7 +171,7 @@ const tests = [
   // where a line about a device goes, the link or the mesh
   { driver: "../panel_route.be", test: "test_panel_route.be" },
   // the buttons of another room's devices are not there while its bridge is not ready
-  { driver: "../panel_gate.be", before: [...STORE], test: "test_panel_gate.be" },
+  { driver: "../panel_gate.be", before: [...STORE, "../house_list.be"], test: "test_panel_gate.be", modules: { crypto: "stub_crypto.be" } },
   // the house's list and key on the mesh, over a fake mesh: the heartbeat's bytes, what is answered, what is taken, the outbox, the driver's table
   { driver: "../house_mesh.be", before: ["../mesh_events.be", "../house_list.be", "../mesh_beat.be", "../house_key.be", "../house_state.be", "../house_devices.be", "../house_link.be", "../house_channel.be", "../house_commands.be", "../house_mqtt.be", "../house_alarm.be"], test: "test_house_mesh.be", stub: "stub_relay.be", modules: { crypto: "stub_crypto.be", gpio: "stub_gpio.be", mqtt: "stub_mqtt.be" } },
   { driver: "../house_server.be", before: ["../mesh_events.be", "../house_list.be", "../mesh_beat.be", "../house_key.be", "../house_state.be", "../house_devices.be", "../house_link.be", "../house_channel.be", "../house_commands.be", "../house_mqtt.be", "../house_alarm.be", "../house_mesh.be", "../server_link.be"], test: "test_house_server.be", modules: { crypto: "stub_crypto.be", gpio: "stub_gpio.be", mqtt: "stub_mqtt.be", webserver: "stub_webserver.be" } },

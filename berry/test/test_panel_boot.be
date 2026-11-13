@@ -68,6 +68,31 @@ def unpair_checks()
     check("a favourite chosen already stays", h.fav, 3)
 end
 unpair_checks()
+
+# --- what a node says over the mesh that this panel takes: an owner's, a bridge or an appliance, and not a panel's -----------------
+def takes_checks()
+    # the house's list, as far as the question reads it: the nodes that own devices, and the ones struck off
+    class TakesList
+        var owners, gone
+        def init() self.owners = [6, 7, 8] self.gone = [7] end
+        def is_owner(id) return self.owners.find(id) != nil end
+        def revoked(id) return self.gone.find(id) != nil end
+    end
+    class TakesHouse
+        var list
+        def init() self.list = TakesList() end
+    end
+    var h = TakesHouse()
+    var own = / -> 6
+    var report = {"ZbReceived": {"0x1234": {"Power": 1}}}
+    var alarm = {"ZbAlarm": {"state": "disarmed"}}
+    check("from the bridge of the house, everything: its devices' and the house's words", [PanelBoot.takes(h, 6, own, report), PanelBoot.takes(h, 6, own, alarm)], [true, true])
+    check("from an appliance, what it says of its device, its driver's word among it, and not a word of the house's",
+          [PanelBoot.takes(h, 8, own, {"ZbDriver": {"0xA0B765FFFE000008": {"s": {"cur": 580}}}}), PanelBoot.takes(h, 8, own, report), PanelBoot.takes(h, 8, own, alarm)], [true, true, false])
+    check("and its answer to a word of this panel's", PanelBoot.takes(h, 8, own, {"ZbRelayAdmin": {"n": "ABC"}}), true)
+    check("nothing from a panel, from no node, or from an owner struck off", [PanelBoot.takes(h, 5, own, report), PanelBoot.takes(h, 0, own, report), PanelBoot.takes(h, 7, own, report)], [false, false, false])
+end
+takes_checks()
     import global
     # --- joBr99's stack: no project named ------------------------------------
     var boot = PanelBoot.start(nil)

@@ -2,14 +2,16 @@
 # bridge's driver says of each one, kept as it says it. The panel never sees an attribute or
 # a datapoint of a thermostat: the driver (zbdriver_thermostat.be, on the bridge) turns them into
 # a state in tenths of a degree,
-#   cur    the room's temperature, from the device's own sensor
+#   cur    the temperature it measures, from the device's own sensor: the room's, or what its description names ("measure")
 #   set    the target
 #   mode   "off" or "heat": a thermostat for heating, and nothing else
 #   dem    how much the heating works, 0 to 100
 #   floor  the temperature of the floor probe, for a device that has one
 #   up     whether the device answers
+#   note   a few words the page shows beside the temperature while they hold, and "" when they do not
 # and, for the settings screen (panel_thermostat_settings.be), the device's settings: the schema, a list the driver says in
-# numbered frames, and the values by key. The state is said only when it changed, and this keeps the last word of each.
+# numbered frames, and the values by key. The state is said only when it changed, and this keeps the last word of each. An appliance
+# that is a thermostat says the same of itself, with no bridge between (HouseList.ROLE_DEVICE).
 # The message that carries it
 # is ZbDriver, which PanelZigbee hands over with the device it is about (zigbee_bridge.be's
 # EVENTS has it for the panel's transport, zbbridge_drivers.be makes it on the bridge).
@@ -72,7 +74,7 @@ class PanelThermostat
         # the page of a thermostat on show follows the temperatures too, and a target the device says is the one the finger set is the
         # device's now
         if s.contains("set") && self.zb.ui != nil  self.zb.ui.thermostat_said(id, s["set"]) end
-        if (s.contains("cur") || s.contains("floor") || s.contains("set")) && self.zb.ui != nil && self.zb.ui.thermostat_shows(id)  self.zb.refresh_later(id) end
+        if (s.contains("cur") || s.contains("floor") || s.contains("set") || s.contains("note")) && self.zb.ui != nil && self.zb.ui.thermostat_shows(id)  self.zb.refresh_later(id) end
         # and whether it heats, which turns its icon warm
         if (s.contains("mode") || s.contains("dem")) && self.zb.plan != nil  self.zb.plan.on_heating(id, self.heating(id)) end
         # the mode is the lit and unlit of a lamp: told to the plan even when it is the one it

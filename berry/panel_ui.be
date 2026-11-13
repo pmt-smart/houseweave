@@ -1133,7 +1133,7 @@ class PanelUi
         return out
     end
 
-    # The nodes a search heard over ESP-NOW: the ones with their window open, a panel said so, the strongest bridge first and
+    # The nodes a search heard over ESP-NOW: the ones with their window open, a panel and an appliance said so, the strongest bridge first and
     # marked, and a tap asks one to identify itself. Two heard means two windows at once: the one that identifies itself is the one. The search needs no
     # network: it pauses the Wi-Fi to listen on every channel. Every pairing is a guest's: a window of a build that takes none needs an update
     def zigbee_pair_view()
@@ -1147,9 +1147,15 @@ class PanelUi
         for b: found
             var ready = b["version"] == 2 && !b["busy"] && b.find("guest") == true
             var panel = b.find("display") == true
-            var nearest = ready && !panel && !marked
+            var appliance = b.find("appliance") == true
+            var nearest = ready && !panel && !appliance && !marked
             if nearest  marked = true end
-            var hint = !ready ? (b["busy"] && b["version"] == 2 ? "busy" : "update it") : panel ? "panel" : nearest ? "nearest" : ""
+            var hint = "update it"
+            if ready
+                hint = panel ? "panel" : appliance ? "device" : nearest ? "nearest" : ""
+            elif b["busy"] && b["version"] == 2
+                hint = "busy"
+            end
             rows.push(PanelUi.row(nil, PanelUi.node_word(b), hint, false, ready ? ["zigbeePairWith", b["id"]] : nil, nil))
         end
         if size(found) == 0
@@ -1180,14 +1186,26 @@ class PanelUi
     end
 
     # a node a pairing's search heard, as the screens call a node of the house (HouseList.label): the name it was given, or, with none or Tasmota's own
-    # host name, its role and the end of its radio address, "Bridge 4A7E21"
+    # host name, its role and the end of its radio address, "Bridge 4A7E21"; the role is what its window says it is on, a display, an appliance, or neither
     static def node_word(b)
         import string
         var name = str(b.find("name", ""))
         if name != "" && string.find(name, "tasmota-") != 0 return name end
         var m = string.split(str(b.find("mac", "")), ":")
         if size(m) != 6 return name != "" ? name : str(b.find("mac", "")) end
-        return (b.find("display") == true ? "Panel " : "Bridge ") + m[3] + m[4] + m[5]
+        var word = "Bridge "
+        if b.find("display") == true
+            word = "Panel "
+        elif b.find("appliance") == true
+            word = "Device "
+        end
+        return word + m[3] + m[4] + m[5]
+    end
+
+    # what the Wi-Fi's offer calls the node of a pairing that has no display: the "device" an appliance is, and else the "bridge"
+    static def zigbee_chosen_kind(st)
+        var b = st.find("chosen")
+        return b != nil && b.find("appliance") == true ? "device" : "bridge"
     end
 
     # The node picked, asked to identify itself: a bridge's light blinks fast, a panel's screen says so, and the user says whether it is the one before
@@ -1217,33 +1235,34 @@ class PanelUi
     end
 
     # The Wi-Fi the pairing offers: the bridge's to this panel, or
-    # this panel's to the bridge, only on a touch, and what came of it
+    # this panel's to the bridge, only on a touch, and what came of it. An appliance is offered it as a bridge is, and the words call it the device
     def zigbee_wifi_view()
         var st = self.zigbee_state()
         var o = st.find("offer")
         var w = st.find("wifi")
+        var node = PanelUi.zigbee_chosen_kind(st)
         var done = [PanelUi.row(nil, "Done", "", false, ["back"], nil)]
         if w != nil
             var ws = w["state"]
             if ws == "asking" || ws == "joining"
-                return self.notice(w["kind"] == "use" ? "Joining " + w["ssid"] : "The bridge joins " + w["ssid"], "A few seconds.",
+                return self.notice(w["kind"] == "use" ? "Joining " + w["ssid"] : "The " + node + " joins " + w["ssid"], "A few seconds.",
                                    [PanelUi.row(nil, "Wait", "", false, nil, nil)])
             end
             if ws == "connected"
-                var said = w["kind"] != "use" ? "The bridge is on the Wi-Fi." : "The panel is on the bridge's Wi-Fi."
+                var said = w["kind"] != "use" ? "The " + node + " is on the Wi-Fi." : "The panel is on the " + node + "'s Wi-Fi."
                 return self.notice("Joined " + w["ssid"], said, done)
             end
-            if ws == "unknown" return self.notice("The bridge joins " + w["ssid"], "Its address shows in the house in a minute.", done) end
-            var why = w["reason"] == "Refused" || w["reason"] == "Button" ? "The bridge gives its Wi-Fi only after its button." : PanelUi.wifi_reason(w["reason"]) + "."
+            if ws == "unknown" return self.notice("The " + node + " joins " + w["ssid"], "Its address shows in the house in a minute.", done) end
+            var why = w["reason"] == "Refused" || w["reason"] == "Button" ? "The " + node + " gives its Wi-Fi only after its button." : PanelUi.wifi_reason(w["reason"]) + "."
             return self.notice("Did not join " + w["ssid"], why, done)
         end
         if o == nil return self.notice("Added", "", done) end
         if o["kind"] == "use"
             var how = ". The panel joins it."
-            return self.notice("Use the bridge's Wi-Fi?", o["ssid"] + how,
+            return self.notice("Use the " + node + "'s Wi-Fi?", o["ssid"] + how,
                                [PanelUi.row(nil, "Use", "", false, ["zigbeePairOffer", "use"], nil), PanelUi.row(nil, "Not now", "", false, ["back"], nil)])
         end
-        return self.notice("Give the bridge Wi-Fi?", "It has none. It joins " + o["ssid"] + ".",
+        return self.notice("Give the " + node + " Wi-Fi?", "It has none. It joins " + o["ssid"] + ".",
                            [PanelUi.row(nil, "Give", "", false, ["zigbeePairOffer", "give"], nil), PanelUi.row(nil, "Not now", "", false, ["back"], nil)])
     end
 
@@ -2502,7 +2521,16 @@ class PanelUi
     # whether a device has a Replace: a Zigbee device of one channel; a relay device has no network to search, and a
     # channel of a device of several is the device's
     def replaceable(id)
-        return !PanelStore.is_relay_id(id) && size(self.store.channels_of(PanelStore.ieee_part(id))) < 2
+        return !PanelStore.is_relay_id(id) && size(self.store.channels_of(PanelStore.ieee_part(id))) < 2 && !self.appliance_owned(id)
+    end
+
+    # whether a device is the one an appliance of the house is (HouseList.ROLE_DEVICE): it is on no Zigbee network, so no search finds another to take
+    # its place, and it leaves the house as its node does, on the mesh's page
+    def appliance_owned(id)
+        import global
+        var h = global.contains("house") && global.contains("HouseList") ? global.house : nil
+        var n = PanelStore.is_relay_id(id) ? 0 : self.store.owner_of(id)
+        return h != nil && n > 0 && h.list.role(n) == global.HouseList.ROLE_DEVICE
     end
 
     # The interview of a device whose search ended first (the ✓, the title, the
@@ -2640,12 +2668,15 @@ class PanelUi
 
     # whether the lamp took StartUpOnOff = 0: 1 accepted, 2 refused
     # The ways off of a device: one of a bridge of the house leaves this panel only, and stays in the house and on the other panels, or leaves
-    # the house, its bridge's network and every panel, while that bridge is ready; one with no bridge numbered, or a relay, leaves as it did
+    # the house, its bridge's network and every panel, while that bridge is ready; one with no bridge numbered, or a relay, leaves as it did. The device
+    # an appliance is leaves this panel only: out of the house it goes with its node, which the mesh's page removes
     def remove_rows(id)
         var node = PanelStore.is_relay_id(id) ? 0 : self.store.owner_of(id)
         if node == 0 return [PanelUi.row(nil, "Remove", "", 2, ["open", "confirm", "removeDevice", id], nil)] end
         var out = [PanelUi.row(nil, "Remove from this panel", "", 2, ["open", "confirm", "removeDevice", id], nil)]
-        if self.gate == nil || self.gate.available(id)  out.push(PanelUi.row(nil, "Remove from the house", "", 2, ["open", "confirm", "removeHouse", id], nil)) end
+        if (self.gate == nil || self.gate.available(id)) && !self.appliance_owned(id)
+            out.push(PanelUi.row(nil, "Remove from the house", "", 2, ["open", "confirm", "removeHouse", id], nil))
+        end
         return out
     end
 
@@ -2695,9 +2726,15 @@ class PanelUi
         return []
     end
 
-    # Whether a zone's + is there: Editing on, a free place, and a Zigbee device or a relay device to add
+    # Whether a zone's + is there: Editing on, a free place, and a Zigbee device, a relay device or a device of the mesh to add
     def can_add(zone)
-        return self.prefs["editing"] && size(PanelStore.free_slots(zone)) > 0 && (self.can_add_zigbee() || self.can_add_relay())
+        return self.prefs["editing"] && size(PanelStore.free_slots(zone)) > 0 && (self.can_add_zigbee() || self.can_add_relay() || self.can_add_mesh())
+    end
+
+    # a device of the mesh: an appliance of the house, a node that is itself a device a zone can take (panel_remote_view.be)
+    def can_add_mesh()
+        import global
+        return global.contains("PanelRemoteView") && global.PanelRemoteView.offers_mesh()
     end
 
     # a Zigbee device, with Zigbee on and the link to the network up; "Not ready" in the local mode is no link. With no bridge of its own, a panel of a house

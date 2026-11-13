@@ -134,6 +134,13 @@ class FakeHouse
         end
         return out
     end
+    def screenless()
+        var out = []
+        for id: self.list.ids(false)
+            if id != self.list.me && !self.list.is_panel(id) out.push(id) end
+        end
+        return out
+    end
     def set_house_name(n)
         self.list.author(HouseList.K_NAME, 0, bytes().fromstring(n))
         return true
@@ -666,6 +673,27 @@ def section_guest()
     check("a panel picked: does its screen show it", ui.list_view(["zigbeePairBlink"])[0], "Does Den panel bedroom show it?")
     ui.zigbee = FakeZb(zb_state({"asking": "blinking", "chosen": window(true)}))
     check("a bridge picked: is it blinking", ui.list_view(["zigbeePairBlink"])[0], "Is Bedroom blinking?")
+    # an appliance: its window says it is on one. It is called by its role, is not the nearest bridge, blinks as a bridge does, and the Wi-Fi's words call
+    # it the device
+    var thr = window(true)
+    thr["id"] = 4
+    thr["mac"] = "B0:B0:B0:00:00:04"
+    thr["name"] = "tasmota-000004-0004"
+    thr["rssi"] = -30
+    thr["appliance"] = true
+    ui.zigbee = FakeZb(zb_state({"found": [thr, window(true)]}))
+    rows = []
+    for r: ui.list_view(["zigbeePair"])[2] rows.push([r[2], r[3], r[5] != nil]) end
+    check("an appliance heard is called a device, by the end of its radio address, and the nearest is the strongest bridge, not it", [rows[-3], rows[-2]],
+          [["Device 000004", "device", true], ["Bedroom", "nearest", true]])
+    ui.zigbee = FakeZb(zb_state({"asking": "blinking", "chosen": thr}))
+    check("an appliance picked: is it blinking", ui.list_view(["zigbeePairBlink"])[0], "Is Device 000004 blinking?")
+    ui.zigbee = FakeZb(zb_state({"chosen": thr, "offer": {"kind": "give", "ssid": "Cottage"}}))
+    check("the Wi-Fi offered to an appliance calls it the device", ui.list_view(["zigbeePairWifi"])[0], "Give the device Wi-Fi?")
+    ui.zigbee = FakeZb(zb_state({"chosen": thr, "wifi": {"kind": "give", "ssid": "Cottage", "state": "unknown", "reason": ""}}))
+    check("and so does what came of it", ui.list_view(["zigbeePairWifi"])[0], "The device joins Cottage")
+    ui.zigbee = FakeZb(zb_state({"chosen": window(true), "offer": {"kind": "give", "ssid": "Cottage"}}))
+    check("a bridge is the bridge still", ui.list_view(["zigbeePairWifi"])[0], "Give the bridge Wi-Fi?")
 end
 
 # Join another house: the leave, said so; the panel then waits to be added by a panel of the other house
@@ -1216,12 +1244,79 @@ def section_server()
     check("the backup in this panel's OTA opens its own Backup screen", taps.find("Backup"), ["backupOpen"])
 end
 
+# An appliance in the house, the node 8: a node with no screen that owns the one device it is. Its page is a bridge's without what is Zigbee's, it is removed
+# by the word of its factory reset as a bridge is, and the last panel takes it along
+def appliance_fixture()
+    var f = fixture(true, true)
+    var d = bytes()
+    d.add(HouseList.ROLE_DEVICE, 1)
+    d .. key_of(8)
+    d .. mac_of(8)
+    global.house.list.author(HouseList.K_IDENT, 8, d)
+    return f
+end
+
+def section_appliance()
+    var f = appliance_fixture()
+    var ui = f["ui"]
+    var kept = tasmota.timers
+    tasmota.timers = TimerBook(tasmota)
+    ui.open(["house"])
+    var labels = []
+    for r: rows(ui)  labels.push(r[0]) end
+    check("the mesh's page calls an appliance by its role and the end of its radio address", labels, ["", "Panel 000004 *", "Panel 000005", "Kitchen", "Bridge 000007", "Device 000008"])
+    ui.open(["houseNode", 8])
+    check("its page: its two settings and what is done to a node, and no favourite to be", rows(ui),
+          [["Main settings", "", true], ["Wireless settings", "", true], ["Join another house", "", true], ["Remove from house", "", true]])
+    check("it is no bridge to be a panel's favourite", f["pv"].act(ui, ["house", "favorite", 8]), [])
+    ui.open(["houseStrike", 8])
+    check("removed, it goes back to its factory settings, with no Zigbee to erase", rows(ui),
+          [["Back to its factory settings", "", false], ["Its Wi-Fi and settings erased", "", false], ["Devices here", "0", false], ["Remove", "Device 000008", true], ["Cancel", "", true]])
+    var out = ui.list_row(3, 0, false)
+    check("Remove sends it the word of its factory reset, as to a bridge, and it is not struck off yet", [out[0][0], out[0][1], json.load(out[0][2][13 ..])["do"], global.house.struck],
+          ["sendAt", 8, "factory", []])
+    tasmota.timers.advance(PanelHouseView.ADMIN_MS + 10)
+    check("saying nothing in time, it is struck off all the same", global.house.struck, [8])
+    tasmota.timers = kept
+    # to another house, and with the last panel
+    var g = appliance_fixture()
+    ui = g["ui"]
+    ui.open(["house"])
+    ui.open(["houseNode", 8])
+    ui.open(["houseMove", 8])
+    check("to another house it keeps its Wi-Fi and its settings", rows(ui),
+          [["It leaves this house", "", false], ["Its Wi-Fi and settings stay on it", "", false], ["Devices here", "0", false], ["A panel of the other adds it", "", false],
+           ["Join another house", "Device 000008", true], ["Cancel", "", true]])
+    ui.list_row(4, 0, false)
+    check("and the word goes to it", global.house.moved_nodes, [8])
+    global.house.list.author(HouseList.K_REVOKE, 5, bytes())
+    ui.open(["houseLeave"])
+    check("the last panel takes it along with the bridges, and the row counts them as nodes", rows(ui),
+          [["It founds one of its own", "", false], ["The last panel", "", false], ["Leave with 3 nodes", "", true], ["Cancel", "", true]])
+    ui.list_row(2, 0, false)
+    check("and leaving asks the house to take every node with no screen", global.house.left, [-1])
+    # a house of a panel and an appliance alone: one node goes with the last panel
+    var l = HouseList(4)
+    for n: [4, 8]
+        var d = bytes()
+        d.add(n == 4 ? HouseList.ROLE_PANEL : HouseList.ROLE_DEVICE, 1)
+        d .. key_of(n)
+        d .. mac_of(n)
+        l.author(HouseList.K_IDENT, n, d)
+    end
+    global.house.list = l
+    global.house.left = nil
+    ui.open(["houseLeave"])
+    check("with no bridge in the house the appliance still goes with the last panel", rows(ui)[2], ["Leave with 1 node", "", true])
+end
+
 section_key()
 section_found()
 section_pairing()
 section_guest()
 section_leave()
 section_server()
+section_appliance()
 
 if failures == 0
     print("ok - " + str(checks) + " checks")

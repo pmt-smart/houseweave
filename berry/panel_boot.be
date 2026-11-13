@@ -17,7 +17,7 @@
 
 #@ solidify:PanelBoot
 class PanelBoot
-    # what a bridge of the house that is not the panel's own says over the mesh that the panel takes: what it says of its devices
+    # what a bridge of the house that is not the panel's own, or an appliance, says over the mesh that the panel takes: what it says of its devices
     static DEVICE_EVENTS = ["ZbReceived", "ZbState", "ZbResponse", "ZbInfo", "ZbPing", "ZbDriver"]
     # how often the panel's configuration is looked at against the house (house_upkeep)
     static UPKEEP_MS = 10000
@@ -620,19 +620,9 @@ class PanelBoot
                     global.zb_bridge.bridges = / -> house.up ? size(house.bridges()) : 0
                 end
                 # What the bridges say over the mesh reaches the rules, as an event of Z2T's would, at the next turn of the loop: inside the mesh's rule,
-                # Tasmota runs no other. From the bridge of the house, everything (the alarm's, the time, the drivers'); from another bridge of the house,
-                # what it says of its devices (the reports, the interview, the answers, the map, the pings, its drivers), which the
-                # panel hears when it shows some of them or commanded the bridge; and from any, its answer to a word of this panel's
+                # Tasmota runs no other (takes says which events)
                 house.events = def (src, text, m)
-                    if src == 0 || house.list.role(src) != HouseList.ROLE_BRIDGE || house.list.revoked(src) return end
-                    if src != route.own() && !m.contains("ZbRelayAdmin")
-                        var device = false
-                        for k: PanelBoot.DEVICE_EVENTS
-                            if m.contains(k)  device = true end
-                        end
-                        if !device return end
-                    end
-                    tasmota.defer(/ -> tasmota.publish_rule(text))
+                    if PanelBoot.takes(house, src, route.own, m)  tasmota.defer(/ -> tasmota.publish_rule(text)) end
                 end
             end
             # and the buttons of those devices, which are not there while their bridge is not ready
@@ -659,8 +649,8 @@ class PanelBoot
                 self.house.on_left = def ()
                     if st.drop_owned() > 0  st.save() end
                 end
-                # and the nodes the house forgets (house_mesh.be, sweep()): the devices of a bridge that is no more leave this panel, which the Notifications say,
-                # and the web passwords this panel drew for it, the words it waits the answer of, and the gate's looks at it go
+                # and the nodes the house forgets (house_mesh.be, sweep()): the devices of a bridge, or an appliance, that is no more leave this panel, which the
+                # Notifications say, and the web passwords this panel drew for it, the words it waits the answer of, and the gate's looks at it go
                 var ui = self.ui
                 self.house.forgets.push(def (m, forgot)
                     var changed = false
@@ -668,8 +658,8 @@ class PanelBoot
                         if m.contains(n) continue end
                         var k = st.drop_bridge(n)
                         changed = true
-                        log("HOUSE: bridge " + str(n) + " is no node of the house, and its " + str(k) + " devices left this panel", 2)
-                        if k > 0 && self.zb != nil && self.zb.alarm != nil  self.zb.emit(self.zb.alarm.house_word("left", forgot.find(n, "A bridge"), k)) end
+                        log("HOUSE: the node " + str(n) + " is no node of the house, and its " + str(k) + " devices left this panel", 2)
+                        if k > 0 && self.zb != nil && self.zb.alarm != nil  self.zb.emit(self.zb.alarm.house_word("left", forgot.find(n, "A node"), k)) end
                     end
                     if changed  st.save() end
                     var hv = ui.provider_of("house", nil)
@@ -703,6 +693,20 @@ class PanelBoot
             log("HOUSE: the panel's upkeep failed - " + str(e) + ": " + str(m), 2)
         end
         tasmota.set_timer(PanelBoot.UPKEEP_MS, / -> self.house_upkeep(), "panel_house_upkeep")
+    end
+
+    # Whether what the node `src` says over the mesh, the event `m`, is this panel's to take. From the bridge of the house (`own`, a closure -> its number),
+    # everything (the alarm's, the time, the drivers'); from another bridge of the house, what it says of its devices (the reports, the interview, the
+    # answers, the map, the pings, its drivers), which the panel hears when it shows some of them or commanded the bridge; and from any, its answer to a
+    # word of this panel's. An appliance is heard as a bridge that is not the house's: it owns a device too (HouseList.owns), and what it says of it comes
+    # the same way. A panel, the server, and a node struck off own nothing, and nothing of theirs is taken
+    static def takes(house, src, own, m)
+        if src == 0 || !house.list.is_owner(src) || house.list.revoked(src) return false end
+        if m.contains("ZbRelayAdmin") || src == own() return true end
+        for k: PanelBoot.DEVICE_EVENTS
+            if m.contains(k) return true end
+        end
+        return false
     end
 
     # A bridge of the house as the views show it, {"mac", "name", "ip", "id"}, or nil

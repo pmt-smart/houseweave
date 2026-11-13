@@ -765,6 +765,42 @@ def page_checks()
 end
 page_checks()
 
+# A thermostat that measures something other than a room, an appliance on a water heater: its description names the measure, its range and its step, and
+# a notice of its state follows the temperature for as long as the state says it
+def water_checks()
+    var BOILER = "0xA0B765FFFE000009"
+    var f = fixture()
+    var ui = f["ui"]
+    f["store"].register_device([BOILER, "Boiler", "thermostat", 48, 300, 700, "THR320D", 1, 0, 0])
+    f["store"].add_to_zone("hall", BOILER)
+    ui.live[BOILER] = "on"
+    driver_says(f, BOILER, {"s": {"cur": 580, "set": 600, "mode": "heat", "dem": 100}})
+    var line = / -> sets_of(ui.render_thermostat(["thermostat", "d", BOILER]))["$thermostat.lines.0"]
+    ui.thermostat_open(["d", BOILER])
+    check("until its description comes, the measure is called the room's", line(), "Room 58.0°")
+    driver_says(f, BOILER, {"d": description({"min": 300, "max": 700, "step": 10, "floor": false, "model": "THR320D", "measure": "Water"})})
+    var s = sets_of(ui.render_thermostat(["thermostat", "d", BOILER]))
+    check("the line says the measure the description names, with no floor", [s["$thermostat.target"], s["$thermostat.lines.0"]], ["60.0°C", "Water 58.0°"])
+    driver_says(f, BOILER, {"s": {"note": "No clock"}})
+    check("a notice of its state follows the temperature", line(), "Water 58.0°  No clock")
+    driver_says(f, BOILER, {"s": {"cur": 575}})
+    check("and stays while the state says nothing else of it", line(), "Water 57.5°  No clock")
+    driver_says(f, BOILER, {"s": {"note": ""}})
+    check("and goes when the state says there is none", line(), "Water 57.5°")
+    tasmota.at_ms = 10000
+    var up = ui.thermostat_step("$thermostat.plus.count")
+    check("the + takes the target on by the step the description gave, a whole degree", [sets_of(up)["$thermostat.target"], up[-1]], ["61.0°C", ["thermostatTarget", [BOILER], 610]])
+    tasmota.at_ms = nil
+    f["thermostat"].on_state(BOILER, {"set": 700})
+    check("and stops at the highest its record has", ui.thermostat_step("$thermostat.plus.count"), [])
+    # a description that names no measure, or an empty one, is a room's
+    driver_says(f, BOILER, {"d": description({"min": 300, "max": 700, "measure": ""})})
+    check("a description with no word for the measure leaves the room's", line(), "Room 57.5°")
+    f["thermostat"].forget(BOILER)
+    check("a thermostat that left the panel leaves no notice behind", f["thermostat"].get(BOILER, "note", nil), nil)
+end
+water_checks()
+
 def touch_page_checks()
     var f = page_fixture()
     var ui = f["ui"]
@@ -916,6 +952,10 @@ def follow_checks()
     zb.to_refresh = {}
     f["thermostat"].on_state(TH, {"set": 230})
     check("and so is a target the dial set, which changes nothing else", zb.to_refresh.contains(TH), true)
+    zb.to_refresh = {}
+    f["thermostat"].on_state(TH, {"note": "No clock"})
+    check("and a notice of its state, which the line shows", zb.to_refresh.contains(TH), true)
+    f["thermostat"].on_state(TH, {"note": ""})
     zb.to_refresh = {}
     ui.page = "zone"
     f["thermostat"].on_state(TH, {"cur": 211})

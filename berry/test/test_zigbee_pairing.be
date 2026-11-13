@@ -82,6 +82,7 @@ end
 class HouseList
     static ROLE_BRIDGE = 1
     static ROLE_PANEL = 2
+    static ROLE_DEVICE = 4
 end
 global.HouseList = HouseList
 
@@ -467,6 +468,32 @@ def window_checks()
     global.house = was
 end
 window_checks()
+
+# --- an appliance: its window says it is on one, and it comes into the house with its own role, offered the Wi-Fi as a bridge is ---
+def appliance_checks()
+    import global
+    var fake = FakeLink(2)
+    global.house = FakeHouse(fake)
+    told.clear()
+    var bridge_entry = heard_entry(1, "B0:B0:B0:00:00:01", -58, 2, "zbbridge-living")
+    var screen = heard_entry(2, "B0:B0:B0:00:00:02", -40, 2, "Den panel bedroom")
+    screen["Display"] = 1
+    var thr = heard_entry(4, "B0:B0:B0:00:00:04", -50, 2, "tasmota-000004-0004")
+    thr["Appliance"] = 1
+    thr["Zigbee"] = 0
+    check("a window on an appliance is listed as one, and one of a build that does not say is not",
+          [ZigbeePairing.entry(thr)["appliance"], ZigbeePairing.entry(thr)["display"], ZigbeePairing.entry(bridge_entry)["appliance"]], [true, false, false])
+    check("the role a node comes into the house with: a display is a panel, an appliance its own, and neither, or nothing chosen, a bridge",
+          [ZigbeePairing.role_of(ZigbeePairing.entry(screen)), ZigbeePairing.role_of(ZigbeePairing.entry(thr)), ZigbeePairing.role_of(ZigbeePairing.entry(bridge_entry)), ZigbeePairing.role_of(nil)],
+          [HouseList.ROLE_PANEL, HouseList.ROLE_DEVICE, HouseList.ROLE_BRIDGE, HouseList.ROLE_BRIDGE])
+    to_guest(thr)
+    rule("ZbPair", "guest", {"ZbPair": "guest", "name": "Boiler", "ip": "", "house": 1, "ssid": "", "up": false})
+    check("an appliance that can take a welcome is given one as an appliance, with its name", [fake.gives[-1], p.asking], [[HouseList.ROLE_DEVICE, "Boiler", ""], "house"])
+    fake.ended(true, "")
+    check("in the house, and with no Wi-Fi, it is offered this panel's, as a bridge is", [p.asking, p.offer, p.state()["house"]], ["offer", {"kind": "give", "ssid": "Cottage"}, "in"])
+    p.run("done", [])
+end
+appliance_checks()
 
 # --- what the views read of the Zigbee: the bridge of the house, and whether it is in step -----------------------------------
 bridge.info = {"mac": "A0:B7:65:77:00:07", "name": "Living room", "ip": "192.168.2.61", "id": 7}

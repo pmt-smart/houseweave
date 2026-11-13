@@ -2314,6 +2314,50 @@ def section_device()
     check("and the status says it", [size(st["Nodes"]), roles[1], roles[4]], [2, "Device", "Panel"])
 end
 
+# A panel and the device an appliance is: the panel marks it at the appliance, takes the state the appliance says of it, and the item of its page, with what
+# the device is, as it does a bridge's
+def section_device_owner()
+    var boiler = "0xA0B765FFFE000008"
+    var hm = fresh(HouseList.ROLE_PANEL, 4)
+    hm.found("Cottage")
+    hm.add_node(HouseList.ROLE_DEVICE, key(8), mac(8), nil, "Boiler", 8)
+    hm.add_node(HouseList.ROLE_PANEL, key(5), mac(5), nil, nil, 5)
+    var wanted = {8: [boiler]}
+    var got = []
+    hm.state.wanted = / -> wanted
+    hm.state.deliver = / r -> got.push(r)
+    empty(sent)
+    empty(nbrs)
+    nbrs.push({"id": 8, "state": 0})
+    hm.state.tick()
+    check("a panel that shows the device of an appliance marks it there: one frame, to the appliance alone, with the device's address",
+          [size(sent), sent[0][0], sent[0][3][0], sent[0][3][4 .. 11].tohex()], [1, 8, HouseState.MSG_MARK, "A0B765FFFE000008"])
+    hm.on_frame(state_frame(8, 1, "{}", 6))
+    check("the appliance's answer says the mark was heard", hm.state.sent[8][3], true)
+    hm.on_frame(state_frame(8, 2, '{"' + boiler + '":{"Power":1}}', 3))
+    check("and what it floods of its device is handed to the panel", [got, hm.state.let_go], [[{boiler: {"Power": 1}}], 0])
+    # a panel owns no device, whatever this panel's configuration says
+    wanted = {8: [boiler], 5: [boiler]}
+    hm.on_frame(state_frame(5, 3, '{"' + boiler + '":{"Power":0}}', 3))
+    check("a frame of state from a panel is let go, though the configuration names it an owner", [size(got), hm.state.let_go], [1, 1])
+    # its page of devices: the one it is, which its item says what is
+    var told = []
+    hm.devices.on_page = / -> told.push(1)
+    hm.devices.ask(8, 0)
+    var body = '{"i":"' + boiler + '","m":"THR320D","c":[],"n":"Boiler","d":{"kind":"thermostat","caps":48,"min":300,"max":700,"measure":"Water"}}'
+    hm.on_frame(item_frame(8, 0, 1, body))
+    var cur = hm.devices.current()
+    check("an appliance's page is its one device, and the item keeps the description it gave",
+          [size(told), hm.devices.whole(), cur[2], cur[0][0][0], cur[0][0][2], cur[0][0][3], size(cur[0][0]), cur[0][0][4]["kind"], cur[0][0][4]["measure"]],
+          [1, true, 1, boiler, [], "Boiler", 5, "thermostat", "Water"])
+    hm.devices.ask(8, 0)
+    hm.on_frame(item_frame(8, 0, 1, '{"i":"' + boiler + '","m":"THR320D","c":[],"n":"Boiler","d":"thermostat"}'))
+    check("a description that is no map is not kept: the item is as one with none", size(hm.devices.current()[0][0]), 4)
+    hm.devices.ask(5, 0)
+    hm.on_frame(item_frame(5, 0, 1, body))
+    check("and an item a panel sends is no page, though it was asked", hm.devices.current()[2], nil)
+end
+
 def run_all()
     section_own()
     section_start()
@@ -2351,6 +2395,7 @@ def run_all()
     section_leave()
     section_sweep()
     section_device()
+    section_device_owner()
 end
 run_all()
 

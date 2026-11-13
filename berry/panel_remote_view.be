@@ -10,6 +10,10 @@
 # PAIR NEW DEVICE ON A BRIDGE OF THE HOUSE: with more than one bridge to pair on, it asks which, this panel's favourite first
 # (HouseMesh.favorite), and the search opens that bridge's network over the mesh; the device found is that bridge's (PanelUi.pair_place). With one, it is that one.
 # EXISTING DEVICE asks the same way: with one bridge, its devices at once. With none, the + offers no Zigbee device (PanelUi.can_add_zigbee).
+#
+# MESH DEVICE is the +'s own row for an appliance of the house, a node that is itself a device (HouseList.ROLE_DEVICE): no Zigbee device, and offered in a
+# house with no bridge too. With one appliance, its page at once, which holds the one device it is; with more, which first. The page is the same as a
+# bridge's, asked of the appliance the same way, and its item says what the device is (HouseDevices.take_item).
 
 #@ solidify:PanelRemoteView
 class PanelRemoteView
@@ -50,6 +54,15 @@ class PanelRemoteView
         return out
     end
 
+    # the appliances of the house, not struck off: the nodes that are themselves a device a zone can take
+    static def appliances(house)
+        var out = []
+        for id: house.list.ids(false)
+            if house.list.role(id) == HouseList.ROLE_DEVICE  out.push(id) end
+        end
+        return out
+    end
+
     # the bridges a new device may be paired on, the favourite first and then the rest by their numbers
     static def pair_bridges(house)
         var fav = house.favorite()
@@ -72,7 +85,13 @@ class PanelRemoteView
         return h != nil && h.up && h.list.me >= 1 && size(PanelRemoteView.others(h)) > 0
     end
 
-    # whether a bridge is heard on the mesh now, as a neighbour or two hops away (house_mesh.be, heard_by): alive, not suspect
+    # whether a + has a device of the mesh to offer: a house with an appliance
+    static def offers_mesh()
+        var h = PanelRemoteView.house()
+        return h != nil && h.up && h.list.me >= 1 && size(PanelRemoteView.appliances(h)) > 0
+    end
+
+    # whether a bridge, or an appliance, is heard on the mesh now, as a neighbour or two hops away (house_mesh.be, heard_by): alive, not suspect
     static def heard(id)
         var h = PanelRemoteView.house()
         if h == nil return false end
@@ -95,10 +114,12 @@ class PanelRemoteView
             return [title, "", rows]
         end
         if view[0] == "addBridges"
-            for id: PanelRemoteView.others(h)
+            # the nodes whose devices the zone can take: the bridges, or, for a device of the mesh, the appliances
+            var mesh = size(view) > 2 && view[2] == "mesh"
+            for id: mesh ? PanelRemoteView.appliances(h) : PanelRemoteView.others(h)
                 rows.push(PanelUi.row(nil, PanelRemoteView.name_of(h, id), PanelRemoteView.heard(id) ? "" : "No signal", false, ["remote", "bridge", view[1], id], nil))
             end
-            return ["Bridge", "", rows]
+            return [mesh ? "Mesh device" : "Bridge", "", rows]
         end
         if view[0] == "addPairOn"
             # where the new device is paired: a bridge heard on the mesh, the favourite first and said so
@@ -109,11 +130,12 @@ class PanelRemoteView
             end
             return ["Pair on", "", rows]
         end
-        # addDevices: the page of the bridge's devices
+        # addDevices: the page of the owner's devices, a bridge's or an appliance's
         var owner = view[2]
+        var asking = h.list.role(owner) == HouseList.ROLE_DEVICE ? "Asking the device" : "Asking the bridge"
         var cur = h.devices.current()
         if cur == nil || cur[2] == nil
-            rows.push(PanelUi.row(nil, "Asking the bridge", "", false, nil, nil))
+            rows.push(PanelUi.row(nil, asking, "", false, nil, nil))
             return ["Devices", "", rows]
         end
         var items = cur[0]
@@ -125,7 +147,7 @@ class PanelRemoteView
         end
         var i = 0
         for it: items
-            var kind = PanelStore.config_profile(it[2])
+            var kind = PanelStore.item_profile(it)
             var have = self.ui.store.find_device(it[0]) != nil
             var label = it[3] != "" ? it[3] : (it[1] != "" ? it[1] : it[0])
             var hint = have ? "Added" : (kind == nil ? "Not supported" : PanelUi.capital(kind[0]))
@@ -133,7 +155,7 @@ class PanelRemoteView
             i += 1
         end
         if size(items) < HouseDevices.PAGE && first + size(items) < total
-            rows.push(PanelUi.row(nil, "Asking the bridge", "", false, nil, nil))
+            rows.push(PanelUi.row(nil, asking, "", false, nil, nil))
         end
         if first > 0 rows.push(PanelUi.row(nil, "Previous", "", false, ["remote", "page", view[1], owner, first - HouseDevices.PAGE], nil)) end
         if first + HouseDevices.PAGE < total rows.push(PanelUi.row(nil, "Next", "", false, ["remote", "page", view[1], owner, first + HouseDevices.PAGE], nil)) end
@@ -142,7 +164,7 @@ class PanelRemoteView
 
     # --- a touch -----------------------------------------------------------------------------------------------------------
 
-    # ["remote", "pair"|"existing"|"bridge"|"page"|"device", zone, ...]
+    # ["remote", "pair"|"existing"|"mesh"|"bridge"|"page"|"device", zone, ...]
     def act(ui, a)
         var what = a[1]
         var zone = a[2]
@@ -168,6 +190,16 @@ class PanelRemoteView
             end
             return ui.open(["addBridges", zone])
         end
+        if what == "mesh"
+            ui.stack.remove(size(ui.stack) - 1)
+            # with one appliance, its device at once; with more, which first
+            var b = PanelRemoteView.appliances(h)
+            if size(b) == 1
+                h.devices.ask(b[0], 0)
+                return ui.open(["addDevices", zone, b[0]])
+            end
+            return ui.open(["addBridges", zone, "mesh"])
+        end
         if what == "bridge"
             h.devices.ask(a[3], 0)
             return ui.open(["addDevices", zone, a[3]])
@@ -176,14 +208,16 @@ class PanelRemoteView
             h.devices.ask(a[3], a[4] < 0 ? 0 : a[4])
             return ui.show()
         end
-        # a device of the page: the zone takes it, as its bridge's, and the screens go back to the zone's
+        # a device of the page: the zone takes it, as its owner's, and the screens go back to the zone's
         var cur = h.devices.current()
         if cur == nil || a[4] >= size(cur[0]) return [] end
         var r = ui.store.add_remote_device(zone, a[3], cur[0][a[4]])
         if !r["ok"] return [] end
         var out = [["save"]]
-        ui.stack.remove(size(ui.stack) - 1)
-        for e: ui.back() out.push(e) end
+        # the +'s screens go, as many as there are: the page of devices, and the list of owners under it when the house has more than one. Counted as two, a
+        # house of one owner, whose page opens with no list, would go back past the zone
+        while ui.top() != nil && self.shows(ui.top()["view"][0])  ui.stack.remove(size(ui.stack) - 1) end
+        for e: size(ui.stack) == 0 ? ui.to_plan() : ui.show()  out.push(e) end
         return out
     end
 end

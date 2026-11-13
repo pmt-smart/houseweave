@@ -97,20 +97,29 @@ class PanelThermostatView
                 ["set", "$thermostat.plus.iconColor", t != nil && t >= r[1] ? PanelThermostatView.DIM : PanelThermostatView.TONE]]
     end
 
-    # the line of words under the target: the room's temperature, and the floor's when a member has a probe, by the mean of what they
-    # said. What they are doing is the lit mode's to say: the line that said it in a word left the page
+    # the line of words under the target: the temperature the members measure, and the floor's when a member has a probe, by the mean of what they
+    # said. The word of the measure is the room's, or the one a member's description gives ("measure": a thermostat on a water heater measures "Water"),
+    # and a member's notice, a few words its state carries ("note": a target held with no clock), follows the temperatures. What they are doing is the lit
+    # mode's to say: the line that said it in a word left the page
     static def lines(thermostat, members)
         var rooms = []
         var floors = []
+        var word = "Room"
+        var note = ""
         for d: members
             var cur = thermostat.get(d[0], "cur", nil)
             var floor = thermostat.get(d[0], "floor", nil)
             if cur != nil  rooms.push(cur) end
             if floor != nil  floors.push(floor) end
+            var s = thermostat.shape.find(d[0])
+            if s != nil && type(s.find("measure")) == "string" && s["measure"] != ""  word = s["measure"] end
+            var said = thermostat.get(d[0], "note", "")
+            if type(said) == "string" && said != ""  note = said end
         end
         var room = PanelThermostatView.mean(rooms)
-        var first = "Room " + (room != nil ? PanelThermostatView.degrees(room) + "°" : "--")
+        var first = word + " " + (room != nil ? PanelThermostatView.degrees(room) + "°" : "--")
         if size(floors) > 0  first += "  Floor " + PanelThermostatView.degrees(PanelThermostatView.mean(floors)) + "°" end
+        if note != ""  first += "  " + note end
         return [first]
     end
 
