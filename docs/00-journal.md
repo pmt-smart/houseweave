@@ -16,6 +16,7 @@ was wrong and what holds.
 - [2026-11-13 — An appliance's own side: its node, the water heater's thermostat and its history](#2026-11-13--an-appliances-own-side-its-node-the-water-heaters-thermostat-and-its-history)
 - [2026-11-13 — The THR320D's image: an appliance in a firmware of its own](#2026-11-13--the-thr320ds-image-an-appliance-in-a-firmware-of-its-own)
 - [2026-11-13 — A thermostat's range is its own two limits](#2026-11-13--a-thermostats-range-is-its-own-two-limits)
+- [2026-11-13 — The simulated appliance, and a relay opened at every boot](#2026-11-13--the-simulated-appliance-and-a-relay-opened-at-every-boot)
 
 ---
 
@@ -546,3 +547,55 @@ bridge's 880 bytes larger, and the THR320D's 1 264 bytes larger:
 | panel (US) | 2 176 KB | 2 071 936 bytes | 152.6 KB |
 | bridge | 1 856 KB | 1 753 776 bytes | 143.3 KB |
 | THR320D | 1 856 KB | 1 476 336 bytes | 414.3 KB |
+
+## 2026-11-13 — The simulated appliance, and a relay opened at every boot
+
+The seventh step towards an appliance as a node: the THR320D in the simulator, in the VM's house tests and in the app
+([10 §6 and §7](10-simulator-and-tft.md)). No device was flashed.
+
+**The VM's module, rebuilt.** `libs/nspanel-sim/vm/wasm/berry.mjs` compiles the fork's pairing driver, and it had been built before the
+driver learned to announce an appliance: a simulated node would have been heard as a bridge. It is rebuilt from the fork as it is
+(`592f7062`, 504 069 bytes), as [10 §8](10-simulator-and-tft.md) says to when a compiled driver changes. Two of the radio's tests were of
+the driver before: one took a window of the third kind for an error, and one compared the whole announcement a scan hears, which has a field
+more. Both follow the driver, and a third hears an appliance's window.
+
+**The board** (`libs/nspanel-sim/vm/src/appliance.ts`) is the THR320D around the node's Berry of the repository: one Power on a latching
+relay, the WTS01's temperature among Tasmota's sensors while the probe is plugged, `TempOffset`, the button detached from the relay and the
+two LEDs. **The relay's contact is kept apart from what Tasmota believes**: it goes where the last pulse of a coil left it, through a
+restart and a power cut. Three things of the simulator changed for it. A device says whether its relays are the room's circuits, which feed
+the lamps of the house's networks: a panel's are, and an appliance's relay, which was taken for the panel's first, is not. Tasmota's sensors
+are a host operation, empty on a device with none. And a restart tells the Berry drivers a moment before it happens, on every simulated
+device, as Tasmota does when it saves its settings.
+
+**The house test.** With the node's button held, the panel adds the appliance to its house from the glass, over the fork's own pairing; the
+Hall's + has its row, Mesh device, and takes the one device the appliance is, with the range of its two limits; Heat and a target go to it
+over the mesh, its relay follows the water, and the panel hears each; the probe unplugged opens the relay and says "No probe"; a limit set
+from the panel moves the range the panel keeps. The device's buttons are not there until the panel has heard its node in step twice in a row,
+the gate a bridge's devices have, and its page says "Device syncing" or "Device starting" meanwhile: the test waits for it, as the bridge's
+does for its link.
+
+**What reading Tasmota's restart found: the relay after a boot.** The thermostat opened the relay before a restart, and took what Tasmota
+said of it at the boot. Tasmota copies the relay's state for the next boot before it tells its drivers of the restart (`SettingsSaveAll`), so
+with the heater on when a restart was asked, an OTA's for one, the relay was opened and then closed again by Tasmota at the boot, before any
+thermostat ran, and for good on a boot that comes up without Berry. Keeping no state for a restart ends that, and leaves another case: after
+a crash Tasmota then takes the relay for open and pulses nothing, and a thermostat that takes its word has nothing to turn off while the
+contact may be closed. The relay is opened at every
+boot now, in three places ([02 §5](02-hardware.md)): the image keeps no relay state for a restart (`SetOption0 0`); a rule of Tasmota's own,
+`ON System#Init DO Power1 0 ENDON`, pulses the off coil at every boot whatever its cause, with no Berry running; and the thermostat opens the
+relay as it starts, whatever Tasmota believes. The simulated board has the first two as the image has them, and the test boots one with its
+contact closed and Tasmota taking it for open.
+
+**The app.** The simulator's house has the appliance beside the panel and the bridge, from its box, with its flash kept in the browser as
+theirs is: its box has its button, held or pressed, its LED, whether its heater has power, the water at its probe and the probe unplugged;
+the console and the log have it; and the House tab names the role of a node that is a device.
+
+**For the bench.** That the relay clicks open at every boot of the board, a restart's and a power up's; that a restart asked with the heater
+on does not close it at the boot; and the three earlier ones: which coil closes the relay, the second LED, and the display with the probe
+unplugged.
+
+**The image, measured** on the build of this change (`449b370/592f7062`), against `3ee439c/592f7062`: the THR320D's is 32 bytes larger.
+The panel's and the bridge's were not built: nothing they compile changed.
+
+| image | app partition | used | free |
+|---|---|---|---|
+| THR320D | 1 856 KB | 1 476 368 bytes | 414.2 KB |
