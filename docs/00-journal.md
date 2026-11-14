@@ -19,6 +19,7 @@ was wrong and what holds.
 - [2026-11-13 — The simulated appliance, and a relay opened at every boot](#2026-11-13--the-simulated-appliance-and-a-relay-opened-at-every-boot)
 - [2026-11-13 — A latching relay checked by the water, and a device's warning to every panel](#2026-11-13--a-latching-relay-checked-by-the-water-and-a-devices-warning-to-every-panel)
 - [2026-11-14 — A day of as many windows as a setting says, and one target with none](#2026-11-14--a-day-of-as-many-windows-as-a-setting-says-and-one-target-with-none)
+- [2026-11-14 — An appliance on the house's server, and one backup part for the nodes with no screen](#2026-11-14--an-appliance-on-the-houses-server-and-one-backup-part-for-the-nodes-with-no-screen)
 
 ---
 
@@ -682,3 +683,41 @@ panel's and the bridge's were not built: nothing they compile changed.
 | image | app partition | used | free |
 |---|---|---|---|
 | THR320D | 1 856 KB | 1 481 728 bytes | 409.0 KB |
+
+## 2026-11-14 — An appliance on the house's server, and one backup part for the nodes with no screen
+
+**What was missing.** An appliance had no word with the house's server: a node's link to the server comes with its backup
+(`berry/node_host.be`), and an appliance gave the house's layer no part of a backup. So it said no hello, kept no backup, and took no
+Upgrade from the House tab. The server, on its side, knew three roles and two kinds of backup.
+
+**One part for the nodes with no screen.** A bridge's part of the backup was what persist keeps under six keys, by the bridge's name. An
+appliance's is the same thing with other keys: the name the house gave its device, and the device's settings, under the key the device
+says it keeps them. So the bridge's class is now every such node's (`berry/keys_backup.be`), made with the word of the node's kind
+(`bridge`, `device`), its keys, and the key whose entries are the devices the screens count, or none for a node that is one device
+([06 §7](06-ota-and-backup.md)). A bridge's backup is what it was, field for field, and so is its fingerprint: a bridge on the new firmware
+finds no change to back up.
+
+**Not what the device measured.** The thermostat's history stays in the appliance's own file: it is no configuration, and a restore
+would write an old history over a newer one.
+
+**The server.** The list's fourth role is `device`. A backup's kind is the word it names its node under, where it was a bridge's when it
+said `bridge` and a panel's otherwise: the server takes a backup of any of the three, lists each by its kind, and in a hardware swap gives
+one only to a node of its kind. The House tab needed nothing: it shows a node's role as the server says it, and offers a backup to the
+nodes of its kind.
+
+**The add-on is version 1.7.0**, with its line in the changelog and its lock ([07 §1](07-home-assistant.md)). It is not released: no tag.
+
+**The tests.** The part's suite has a bridge's as before and an appliance's (51 checks): named under its kind's word, the one device it
+is, a backup of the other kind refused both ways, the restore. The server's has an appliance (16 tests): its role, its hello, its backup,
+the list, a swap refused across kinds and done between two appliances. In the simulator's house, an appliance added from the glass says
+hello as a device; at the round its backup has its device's name and settings and nothing else; a setting changed, which it says nothing
+of, is found at the next round by the fingerprint; and the server's Restore puts the backup in place of the changes made since, the
+heater off before the restart.
+
+**The images, measured** on the build of this change (`5664740/592f7062`): the bridge's is 336 bytes larger than `3ee439c`'s, and
+the THR320D's 2 720 bytes larger than `8a1c70b`'s. The panel's was not built: of what it compiles, only comments changed.
+
+| image | app partition | used | free |
+|---|---|---|---|
+| bridge | 1 856 KB | 1 754 112 bytes | 143.0 KB |
+| THR320D | 1 856 KB | 1 484 448 bytes | 406.3 KB |
