@@ -1011,6 +1011,37 @@ def warning_checks()
 end
 warning_checks()
 
+# A device that keeps a history lists a row for it among its settings: the row opens the chart, which asks the device and is drawn on the
+# plan's page once the device has said the series
+def history_checks()
+    var f = fixture()
+    var ui = f["ui"]
+    f["store"].register_device([TH, "Thermostat 1", "thermostat", 48, 50, 350, "TS0601", 1, 0, 0])
+    ui.prefs["editing"] = false
+    ui.act(["thermostat", "open", TH])
+    say_schema(f, TH, [{"k": "hist", "l": "History", "t": "h"}, {"k": "hyst", "l": "Hysteresis", "t": "r", "min": 1, "max": 10, "u": "°"}], 2)
+    var rows = rows_of(f, TH)
+    check("the history's row: no value beside it, and a touch with Editing off, where a setting's row has none",
+          [rows[0][2], rows[0][3], rows[0][5], rows[1][5]], ["History", "", ["thermostat", "history", TH], nil])
+    var out = ui.act(["thermostat", "history", TH])
+    check("the touch asks the device for the last day and puts the chart on top, on the plan's page",
+          [out[0], ui.top()["view"], ui.page_of(ui.top()["view"]) == ui.shape["pages"]["plan"], ui.list_of(ui.top()["view"])],
+          [["thermostat", [TH], "history", "d"], ["history", TH], true, nil])
+    var drawn = ui.render(ui.top())
+    check("what it draws is a canvas of the plan's page, the chart", [drawn[0][0], drawn[0][1] == ui.history, ui.history.title()], ["calendar", true, "Last 24 hours"])
+    f["effects"].clear()
+    driver_says(f, TH, {"h": {"at": 0, "of": 2, "l": [{"p": "d", "t": nil, "w": 3000}]}})
+    check("a frame of the series that is not its last draws nothing", has_effect(f["effects"], "calendar"), false)
+    driver_says(f, TH, {"h": {"at": 1, "of": 2, "l": [""]}})
+    check("the last one draws the chart again, with what the device said", [has_effect(f["effects"], "calendar"), ui.history.head["w"]], [true, 3000])
+    ui.back()
+    check("the chart left: it is kept no more, and the settings are on top", [ui.history, ui.top()["view"][0]], [nil, "thermostatSettings"])
+    f["effects"].clear()
+    driver_says(f, TH, {"h": {"at": 0, "of": 1, "l": [{"p": "d", "t": nil, "w": 3000}]}})
+    check("a series that comes with no chart open is nobody's", has_effect(f["effects"], "calendar"), false)
+end
+history_checks()
+
 if failures == 0
     print("ok - " + str(checks) + " checks")
 else

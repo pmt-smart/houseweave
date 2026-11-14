@@ -12,6 +12,7 @@
 #   "e"  a choice of the options ("o"), by their index: a list the touch opens, with a dot on the one it has
 #   "n"  a whole number between "min" and "max", in "u"nits: the keypad, which has digits and no sign
 #   "r"  the same, chosen from the list its range makes, for what may be below zero, in steps of "s" (1 when it says none)
+#   "h"  no setting: the row that opens the chart of what the device measured (panel_history.be), which a device that keeps a history lists
 # and "w": 0 for what is only read. A value the driver has not said is "?". Editing off, the rows are facts.
 
 #@ solidify:PanelThermostatSettings
@@ -33,12 +34,12 @@ class PanelThermostatSettings
         return shown
     end
 
-    # A frame of the schema, {"at": where it starts, "of": how many entries there are, "l": these}, which follow each other. One that
-    # starts past what was gathered is a frame lost: nothing is kept, and the screen asks again when it is opened. True when the
-    # last one came. Only one device's schema is kept, as only one screen of settings is open at a time
-    static def frame(model, id, f)
+    # A frame of a list a device says in numbered frames, {"at": where it starts, "of": how many entries there are, "l": these}, which follow
+    # each other, gathered in `model.parts`: the list once its last frame came, and nil until then. One that starts past what was gathered is
+    # a frame lost: nothing is kept. Only one device's list is gathered at a time
+    static def gather(model, id, f)
         var l = f.find("l")
-        if !isinstance(l, list) return false end
+        if !isinstance(l, list) return nil end
         var at = f.find("at", 0)
         var got = model.parts.find(id)
         if at == 0 || got == nil
@@ -48,7 +49,7 @@ class PanelThermostatSettings
         end
         if at > size(got)
             model.parts.remove(id)
-            return false
+            return nil
         end
         # what overlaps what is there is the same list said again
         var i = size(got) - at
@@ -56,8 +57,16 @@ class PanelThermostatSettings
             got.push(l[i])
             i += 1
         end
-        if size(got) < f.find("of", 0) return false end
+        if size(got) < f.find("of", 0) return nil end
         model.parts.remove(id)
+        return got
+    end
+
+    # A frame of the schema: true when the last one came. A frame lost leaves nothing, and the screen asks again when it is opened. Only one
+    # device's schema is kept, as only one screen of settings is open at a time
+    static def frame(model, id, f)
+        var got = PanelThermostatSettings.gather(model, id, f)
+        if got == nil return false end
         model.schema = {}
         model.schema[id] = got
         return true
@@ -151,7 +160,10 @@ class PanelThermostatSettings
             var key = e.find("k")
             var t = e.find("t")
             var tap = nil
-            if ed && e.find("w", 1) != 0
+            if t == "h"
+                # what the device measured is read, with Editing on or off
+                tap = ["thermostat", "history", id]
+            elif ed && e.find("w", 1) != 0
                 if t == "b"
                     tap = ["thermostat", "toggle", id, key]
                 elif t == "e" || t == "r"
@@ -160,7 +172,7 @@ class PanelThermostatSettings
                     tap = ["keyboard", "thermostatNumber", id, key]
                 end
             end
-            rows.push(PanelThermostatSettings.row(nil, e.find("l", key), PanelThermostatSettings.text(e, PanelThermostatSettings.value(thermostat, id, key)), tap))
+            rows.push(PanelThermostatSettings.row(nil, e.find("l", key), t == "h" ? "" : PanelThermostatSettings.text(e, PanelThermostatSettings.value(thermostat, id, key)), tap))
         end
         return ["Settings", "", rows]
     end

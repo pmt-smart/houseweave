@@ -2445,11 +2445,29 @@ test("an appliance, the THR320D on a water heater: its button opens its window a
   h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "setting", 0, "wn"]]));
   h.run(6000);
   assert.equal(thr.heating, true, `no window: the target holds at every hour: ${trace()}`);
+  // five minutes on: a slot of the appliance's history is written, with the water and the heater's time in it
+  h.run(310000);
   h.panel.vm.call("_act", JSON.stringify(["thermostat", "open", IEEE]));
   assert.ok(h.until("Windows", 8000), `the settings' screen: ${words()}\n${trace()}`);
   assert.ok(h.shows("Target") && !h.shows("Window 1 from"), `the count, and the one target where the windows were: ${words()}`);
   const listed = JSON.parse(h.panel.vm.call("_settings", IEEE));
-  assert.deepEqual([listed.schema, listed.values.wn, listed.values.w1t], [12, 0, 45], `the panel has the settings as they stand: ${JSON.stringify(listed)}`);
+  assert.deepEqual([listed.schema, listed.values.wn, listed.values.w1t], [13, 0, 45], `the panel has the settings as they stand: ${JSON.stringify(listed)}`);
+  // the chart of what it measured: the row of its settings opens it on the plan's page, asked of the appliance over the mesh, and a swipe is
+  // the month's
+  const liveHeap = () => probe(h.panel, "(def () import gc gc.collect() gc.collect() return gc.allocated() end)()");
+  const heapBefore = liveHeap();
+  h.tapRow("History");
+  const chart = () => probe(h.panel, "(def () var cv = global.plan.canvas if cv == nil return [] end var out = [cv.title()] for op: cv.ops(global.plan.style) if op[0] == 'xstr' out.push(op[11]) end end return out end)()");
+  const drawn = (title) => chart()[0] === title && chart().some((s) => String(s).startsWith("Heater on 0 h"));
+  for (let t = 0; t < 10000 && !drawn("Last 24 hours"); t += 250) h.run(250);
+  assert.ok(drawn("Last 24 hours"), `the last day's chart on the plan's page, with the heater's time and energy: ${JSON.stringify(chart())}\n${trace()}`);
+  assert.ok(chart().some((s) => /^\d+°$/.test(String(s))) && chart().some((s) => /^\d+h$/.test(String(s))), `its scale and its hours: ${JSON.stringify(chart())}`);
+  // what the chart keeps of the panel's heap while it is on show, over what the list of the settings under it kept: its object and its series
+  const kept = liveHeap() - heapBefore;
+  assert.ok(kept < 1024, `the chart on show keeps under 1 KB of the heap more than the settings' list did: ${kept} bytes`);
+  drag(h, [300, 200], [100, 200]);
+  for (let t = 0; t < 10000 && !drawn("Last 30 days"); t += 250) h.run(250);
+  assert.ok(drawn("Last 30 days"), `a swipe: the last month's, asked of the appliance in its turn: ${JSON.stringify(chart())}\n${trace()}`);
   // a restart asked with the heater on: off before it, open through the boot, and on again once the thermostat has the water
   assert.equal(thr.heating, true);
   thr.console("Restart 1");

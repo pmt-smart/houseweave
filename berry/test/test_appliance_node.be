@@ -325,7 +325,8 @@ def say_checks()
         of = x["of"]
         for e: x["l"]  got.push(e) end
     end
-    check("the settings' schema comes whole, in frames a panel puts together", [of, size(got), got[0]["k"], got[-1]["k"], fits], [17, 17, "wn", "nht", true])
+    check("the settings' schema comes whole, in frames a panel puts together", [of, size(got), got[0]["k"], got[-1]["k"], fits], [18, 18, "hist", "nht", true])
+    check("the history's row first", got[0], {"k": "hist", "l": "History", "t": "h"})
     check("and the values with it", section(h, 4, "v"), {"wn": 2, "w1s": 17, "w1e": 21, "w1t": 60, "w2s": 5, "w2e": 7, "w2t": 50, "lmin": 30, "lmax": 70, "hyst": 3, "ceil": 75,
                                                            "calib": 0, "power": 3000, "chks": 0, "chke": 5, "chkd": 1, "nht": 120})
     # a queue that grows with nobody to take it does not grow for ever

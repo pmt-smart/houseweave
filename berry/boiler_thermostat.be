@@ -8,7 +8,8 @@
 #   dem    100 with the heater on, 0 with it off
 #   up     false with no reading of the probe
 #   note   "No probe", a warning ("Relay stuck?", "Not heating"), "No clock", or "" for none
-# and its description names what it measures ("measure": "Water"). A target set on the page is that window's from then on.
+# and its description names what it measures ("measure": "Water"). A target set on the page is that window's from then on. What it measured is
+# kept here (boiler_history.be) and said when a panel asks for it, for the chart the panel draws: the last day, or the last month.
 #
 # THE LOGIC, every second. The heater comes on with the water at or below the target less the hysteresis, and goes off at the target. A day has as
 # many windows as a setting says, from none to the most its range allows, each with its hours and its target; outside them all the heater is off.
@@ -69,6 +70,8 @@ class BoilerThermostat
     static REOPEN_S = 60
     # the water rose: this many tenths of a degree above the lowest it was
     static RISE = 10
+    # the bytes of the history an entry of its list carries
+    static CHUNK = 48
     # the warnings it raises, as the node tells the house: a contact that may be stuck closed, and a heater that does not heat
     static WARNINGS = ["stuck", "noheat"]
     # A setting is [key, label, how it is edited, min, max, unit]: "r" is chosen from the list its range makes and "n" typed
@@ -253,13 +256,35 @@ class BoilerThermostat
         return self.exception && self.cfg["wn"] > 0
     end
 
-    # The settings' schema: while the first target is held for want of a clock, a first row that is only read and says it; then the settings
+    # The settings' schema: while the first target is held for want of a clock, a first row that is only read and says it; the row that opens
+    # the chart of what it measured, which is no setting ("h", panel_thermostat_settings.be); then the settings
     def schema()
         var out = []
         var r = self.limits()
         if self.holding()  out.push({"k": "held", "l": "No clock: holding", "t": "n", "min": r[0], "max": r[1], "u": "°", "w": 0}) end
+        out.push({"k": "hist", "l": "History", "t": "h"})
         for e: self.table()  out.push(BoilerThermostat.wire(e)) end
         return out
+    end
+
+    # What it measured, for the chart a panel draws, asked with the period, "d" the last day or "m" the last month: a list in the node's numbered
+    # frames. Its first entry says what the series is, {"p": the period, "t": the local time it ends at, or nil with no clock, "w": the
+    # heater's power in watts}, and the rest are the series' bytes (boiler_history.be) in base64, CHUNK bytes an entry, two of which fit a
+    # frame. With no clock the history has no place for what it holds, and no series goes
+    def send_history(p)
+        if p != "d" && p != "m" return false end
+        var local = BoilerThermostat.hour_now() != nil ? tasmota.rtc()["local"] : nil
+        var entries = [{"p": p, "t": local, "w": self.cfg["power"]}]
+        if local != nil
+            var b = p == "d" ? self.history.day_series(local) : self.history.month_series(local)
+            var i = 0
+            while i < size(b)
+                var j = i + BoilerThermostat.CHUNK - 1
+                entries.push(b[i .. (j < size(b) ? j : size(b) - 1)].tob64())
+                i += BoilerThermostat.CHUNK
+            end
+        end
+        return self.host.send_list("h", entries)
     end
 
     # the values of the settings a panel lists, by key
@@ -578,6 +603,8 @@ class BoilerThermostat
             taken = self.set_setting(cmd.find("k"), cmd.find("v"))
         elif verb == "settings"
             taken = self.send_settings()
+        elif verb == "history"
+            taken = self.send_history(cmd.find("v"))
         elif verb == "read"
             taken = true
         end

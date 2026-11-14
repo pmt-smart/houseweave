@@ -77,7 +77,7 @@ and sent a moment after the last touch, so a few touches are one write. For a gr
   A thermostat that measures something other than a room says so in its description, and the line names it: "Water 58.0°" for one on a water
   heater. A few words its state carries follow the temperature while they hold, "Water 58.0°  No clock" for one that keeps a target with no
   clock to follow its hours by. The water heater's thermostat is an appliance ([05 §4](05-the-house.md)): its target is the one of the window of
-  the day in force, or of the next to begin, and a touch changes that window's. Its settings begin with how many windows the day has
+  the day in force, or of the next to begin, and a touch changes that window's. Its settings, under the row of its history, begin with how many windows the day has
   ("Windows", none to four, two out of its box) and list the from, the to and the target of each of those: one more is a window with no hours
   until it is given some, and one fewer leaves the last as it was, not followed. With none, one row, "Target", is where the windows were, and
   that target holds at every hour, as on a thermostat that has no hours. Then come
@@ -88,6 +88,17 @@ and sent a moment after the last touch, so a few touches are one write. For a gr
   of its box, and no check with the two hours the same), and the minutes a heater that is on may go with no rise ("No-heat alert", two hours,
   and 0 for no warning). A warning shows on the page's line, "Water 58.0°  Relay stuck?" or "Not heating", and in the house's Notifications
   on every panel, "Boiler may be stuck on" or "Boiler is not heating".
+- **A device's history**, for a device that keeps one, as the water heater's thermostat does: the first row of its settings, "History", which
+  takes a touch with Editing on or off, opens a chart drawn on the plan's page, with no byte of `.tft` (`berry/panel_history.be`). The device
+  is asked for the series when the chart opens, and the page says "Reading the device" until it comes. **The last 24 hours**: the water as a
+  column every quarter of an hour, in another tone for a time the device ran with no clock; the target, a line across; the heater's time, a
+  band under the columns; the scale's two ends at the left, in whole tens of degrees; every sixth hour under its column; and a line of text
+  with the heater's time and its energy, "Heater on 2 h 15   6.8 kWh". **The last 30 days**, a swipe to either side away, two dots at the
+  top right saying which chart is on: a bar a day from the water's lowest to its highest, under it a bar of the day's energy against the most
+  of any day, every fifth day of the month under its bar, and the month's heater time and energy. The energy is the heater's minutes times
+  the power typed in its settings: the board measures no current. The glass draws rectangles, circles and text ([09 §4](09-drawing-for-the-glass.md)),
+  so the curve is columns, and the columns side by side of one height go as one rectangle: a day at its most is 154 instructions, 3.5 KB on
+  the wire, a third of a second. The panel keeps the series, 192 bytes at the most, only while the chart is on show.
 - **A blind**: its position in large type and what it is doing; up, stop and down, as on the wall; a slider from 100% at the top to 0% at the
   bottom in steps of 5, whose release sends the blind there; and the ventilation, a position almost closed, in one touch.
 - **A switch of two channels** that opens and closes something (a gate, a window) has a **driver** on the bridge: its mode (Motor or Pulse) and

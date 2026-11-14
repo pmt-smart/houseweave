@@ -12,6 +12,9 @@
 # WITH NO CLOCK a slot has no place. The appliance still fills one every SLOT_S, and keeps them in order (pending, a day of them at most); when the
 # clock comes they take the places just before that moment, with EXC, which is how the chart tells the time the appliance ran with no clock.
 #
+# THE CHART is drawn from two series made of the rings when a panel asks (day_series, month_series): the last day in steps of a quarter of an
+# hour, and the last thirty days, each as bytes.
+#
 # Compiled into the appliance's firmware: one class, nothing at the top, every module imported where it is used.
 
 #@ solidify:BoilerHistory
@@ -27,6 +30,10 @@ class BoilerHistory
     static NONE = 255
     static EXC = 0x80
     static PENDING_MAX = 288
+    # what a chart of the last day and one of the last month are drawn from: a quarter of an hour a step, a day of them, and thirty days
+    static STEP_SLOTS = 3
+    static DAY_STEPS = 96
+    static MONTH_DAYS = 30
 
     var file       # the file it is kept in
     var slots      # bytes, 2 a slot: the water, and the minutes on with EXC
@@ -206,6 +213,50 @@ class BoilerHistory
         if self.day == nil || d > self.day || d <= self.day - BoilerHistory.DAYS return nil end
         var i = (d % BoilerHistory.DAYS) * 4
         return [self.days[i], self.days[i + 1], self.days[i + 2] | (self.days[i + 3] << 8)]
+    end
+
+    # --- the series a chart is drawn from --------------------------------------------------------
+
+    # The last day, at the local time `local`: DAY_STEPS steps of STEP_SLOTS slots, the last the one that time is in, 2 bytes each: the water at
+    # the step's end, in half degrees (NONE for a step with no reading), and the minutes the heater was on in it, with EXC for a step that went
+    # with no clock
+    def day_series(local)
+        var out = bytes()
+        var last = local / BoilerHistory.SLOT_S / BoilerHistory.STEP_SLOTS
+        var k = last - BoilerHistory.DAY_STEPS + 1
+        while k <= last
+            var w = BoilerHistory.NONE
+            var m = 0
+            var i = 0
+            while i < BoilerHistory.STEP_SLOTS
+                var s = self.slot_at(k * BoilerHistory.STEP_SLOTS + i)
+                if s != nil
+                    if s[0] != BoilerHistory.NONE  w = s[0] end
+                    m = (m & BoilerHistory.EXC) | ((m & 0x7F) + s[1]) | (s[2] ? BoilerHistory.EXC : 0)
+                end
+                i += 1
+            end
+            out.add(w, 1)
+            out.add(m, 1)
+            k += 1
+        end
+        return out
+    end
+
+    # The last month, at the local time `local`: MONTH_DAYS days, the last the one that time is in, 4 bytes each, as the ring keeps a day: the
+    # lowest and the highest water, in half degrees (NONE for a day with no reading), and the minutes the heater was on, the low byte first
+    def month_series(local)
+        var out = bytes()
+        var last = local / BoilerHistory.SLOT_S / BoilerHistory.DAY_SLOTS
+        var d = last - BoilerHistory.MONTH_DAYS + 1
+        while d <= last
+            var x = self.day_at(d)
+            out.add(x != nil ? x[0] : BoilerHistory.NONE, 1)
+            out.add(x != nil ? x[1] : BoilerHistory.NONE, 1)
+            out.add(x != nil ? x[2] : 0, 2)
+            d += 1
+        end
+        return out
     end
 
     # --- the file -------------------------------------------------------------------------------

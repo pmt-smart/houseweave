@@ -160,6 +160,37 @@ def file_checks()
 end
 file_checks()
 
+# What a chart is drawn from: the last day in steps of a quarter of an hour, and the last thirty days, each as bytes, the newest last
+def series_checks()
+    var h = fresh("s.bin")
+    # noon of the eleventh day: the step it is in begins with the slot it is in
+    var now = DAY0 + 10 * 86400 + 12 * 3600
+    var slot = now / S
+    h.put(slot - 3, 100, 5)
+    h.put(slot - 2, 104, 3)
+    h.put(slot - 1, BoilerHistory.NONE, 0)
+    var d = h.day_series(now)
+    check("the last day: a quarter of an hour a step, two bytes each", size(d), BoilerHistory.DAY_STEPS * 2)
+    check("a step is its three slots: the water of the last that read, and the minutes of them all", [d[94 * 2], d[94 * 2 + 1]], [104, 8])
+    check("the step the time is in has nothing yet, and nor has one nothing filled", [d[95 * 2], d[95 * 2 + 1], d[0], d[1]], [255, 0, 255, 0])
+    h.put(slot - 6, 90, 2 | BoilerHistory.EXC)
+    d = h.day_series(now)
+    check("a step with a slot the appliance filled with no clock says so", [d[93 * 2], d[93 * 2 + 1]], [90, 2 | BoilerHistory.EXC])
+    h.put(slot - 96 * 3 - 1, 80, 1)
+    d = h.day_series(now)
+    check("what is older than a day is not in it", [d[0], d[1]], [255, 0])
+    d = h.day_series(now + 900)
+    check("a quarter of an hour later the series is a step on", [d[93 * 2], d[92 * 2], d[95 * 2]], [104, 90, 255])
+    var m = h.month_series(now)
+    check("the last month: thirty days, four bytes each", size(m), BoilerHistory.MONTH_DAYS * 4)
+    check("a day as the ring keeps it: the lowest and the highest water, and the minutes on, the low byte first",
+          [m[29 * 4], m[29 * 4 + 1], m.get(29 * 4 + 2, 2)], [90, 104, 10])
+    check("the day before, and a day nothing filled", [m[28 * 4], m[28 * 4 + 1], m.get(28 * 4 + 2, 2), m[0], m[1], m.get(2, 2)], [80, 80, 1, 255, 255, 0])
+    var empty = fresh("t.bin")
+    check("a history that holds nothing gives series of no reading", [empty.day_series(now)[0 .. 1], empty.month_series(now)[0 .. 3]], [bytes("FF00"), bytes("FFFF0000")])
+end
+series_checks()
+
 if failures == 0
     print("ok - " + str(checks) + " checks")
 else

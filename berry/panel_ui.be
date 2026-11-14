@@ -103,6 +103,7 @@ class PanelUi
     var gate      # the gate that holds the devices of a bridge that is not ready (panel_gate.be), or nil
     var schedule  # the schedule's screens (panel_schedule_view.be), or nil: a device's Schedule row, and its pages for an event
     var alarm     # the alarm's screens (panel_alarm_view.be), or nil: two rows of Screens, and the rows of a device's options
+    var history   # the chart of what a device measured (panel_history.be), while its view is open, or nil
     var tones     # the slots of the list whose hint or tail is in a colour of its own now: path -> true; the others are the theme's quiet one
 
     def init(store, shape, items, prefs)
@@ -513,7 +514,7 @@ class PanelUi
     # nil for the views that are not lists.
     def list_of(view)
         var kind = view[0]
-        if kind == "zone" || kind == "help" || kind == "helpText" || kind == "detail" || kind == "lock" || kind == "color" || kind == "thermostat" || kind == "cover" || kind == "calendar" || kind == "alarm" || kind == "notifs" return nil end
+        if kind == "zone" || kind == "help" || kind == "helpText" || kind == "detail" || kind == "lock" || kind == "color" || kind == "thermostat" || kind == "cover" || kind == "calendar" || kind == "alarm" || kind == "notifs" || kind == "history" return nil end
         return self.list_view(view)
     end
 
@@ -530,7 +531,7 @@ class PanelUi
         if view[0] == "house" && self.shape["pages"].find("mesh") != nil return self.shape["pages"]["mesh"] end
         if view[0] == "lock" return self.shape["pages"].find("lock", self.shape["pages"]["list"]) end
         # the colour picker is drawn where the cards go
-        if view[0] == "color" || view[0] == "calendar" || view[0] == "alarm" || view[0] == "notifs" return self.shape["pages"]["plan"] end
+        if view[0] == "color" || view[0] == "calendar" || view[0] == "alarm" || view[0] == "notifs" || view[0] == "history" return self.shape["pages"]["plan"] end
         # the web setup and the hotspot on the QR's page, when the layout has one,
         # while they have a code to draw; a hotspot that closed
         # says so on the dialog's page
@@ -650,6 +651,7 @@ class PanelUi
             if leaving == "zigbeePairBlink" out.push(["zigbee", "notBlinking"]) end
             if leaving == "zigbeePairWifi" out.push(["zigbee", "done"]) end
             if leaving == "thermostatSettings" self.thermostat_leave(self.top()["view"][1]) end
+            if leaving == "history" self.history = nil end
             self.stack.remove(size(self.stack) - 1)
         end
         if size(self.stack) == 0 return out + self.to_plan() end
@@ -740,6 +742,7 @@ class PanelUi
         if view[0] == "lock" return self.render_lock(view) end
         if view[0] == "calendar" return self.schedule != nil ? [["calendar", self.schedule]] : self.back() end
         if view[0] == "alarm" || view[0] == "notifs" return self.alarm != nil ? [["calendar", self.alarm.canvas(view[0])]] : self.back() end
+        if view[0] == "history" return self.history != nil ? [["calendar", self.history]] : self.back() end
         if view[0] == "color"
             var zone = self.store.find_zone(view[1])
             return zone != nil ? [["picker", zone["id"], zone.find("color", 0)]] : self.back()
@@ -3462,6 +3465,7 @@ class PanelUi
         var c = self.settings_of(a[1])
         if c == nil return [] end
         var id = a[1]
+        if a[0] == "history" return self.history_open(id) end
         if a[0] == "open"
             # a lamp's are the panel's, read from it; the others' the driver says, schema and values
             var d = self.store.find_device(id)
@@ -3511,6 +3515,22 @@ class PanelUi
         if (v[0] != "thermostatSettings" && v[0] != "thermostatChoice") || v[1] != id return [] end
         if self.page != self.shape["pages"]["list"] return [] end
         return self.show()
+    end
+
+    # The chart of what a device measured, opened from the row of its settings that a device with a history lists: asked of the device, and
+    # drawn on the plan's page, where it says it is reading the device until the series comes (panel_history.be)
+    def history_open(id)
+        import global
+        if !global.contains("PanelHistory") return [] end
+        self.history = global.PanelHistory(self, id)
+        return [self.history.ask()] + self.push_view(["history", id]) + self.show()
+    end
+
+    # A frame of a device's history came: the chart, when it is the one on show and its series is whole now, is drawn
+    def history_said(id, f)
+        if self.history == nil || !self.history.take(id, f) return [] end
+        var entry = self.top()
+        return entry != nil && entry["view"][0] == "history" ? self.render(entry) : []
     end
 
     # the screen of a thermostat's settings left: its schema goes

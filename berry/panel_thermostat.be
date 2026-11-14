@@ -46,6 +46,8 @@ class PanelThermostat
         end
         if secs.contains("s") && isinstance(secs["s"], map)  self.on_state(id, secs["s"]) end
         if self.settings(id, secs)  self.zb.emit(self.zb.ui.thermostat_changed(id)) end
+        # what it measured, for the chart of it a panel has open (panel_history.be)
+        if secs.contains("h") && isinstance(secs["h"], map) && self.zb.ui != nil  self.zb.emit(self.zb.ui.history_said(id, secs["h"])) end
         if secs.contains("e")
             # its command found no driver, or the driver would not take it: the plan's own wait ends in the "?" and a ping, which is
             # true, and a target or a setting set on the page has no such wait, so the "?" is told here, until a word of the

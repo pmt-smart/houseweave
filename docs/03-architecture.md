@@ -40,7 +40,7 @@ the first boot, and runs the house's schedule every second.
 | `berry/panel_plan_view.be`, `berry/panel_draw.be`, `berry/panel_plan.be` | the plan of zone cards on the glass: drawn as Nextion drawing instructions, and its touches |
 | `berry/panel_ui.be` | the screens beyond the plan: a zone's screen, the generic list and its views (settings, options, confirmations), the detail pages, Help, the pattern lock, the keyboard |
 | providers of views | screens that plug into `PanelUi`: the clock (`panel_clock.be`), the schedule (`panel_schedule_view.be`, `panel_calendar_draw.be`), the alarm (`panel_alarm_view.be`, `panel_alarm_draw.be`, `panel_alarm_canvas.be`), the house (`panel_house_view.be`), a remote node's screens (`node_wireless.be`), the +'s (`panel_add_view.be`, `panel_remote_view.be`), a zone's Tap (`panel_tap_view.be`), a two-channel switch's driver (`panel_driver_view.be`) |
-| device kinds | thermostats (`panel_thermostat.be`, `panel_thermostat_view.be`, `panel_thermostat_settings.be`), blinds (`panel_cover.be`, `panel_cover_view.be`), a lamp's settings (`panel_lamp_settings.be`), a page's row of buttons (`panel_page_buttons.be`) |
+| device kinds | thermostats (`panel_thermostat.be`, `panel_thermostat_view.be`, `panel_thermostat_settings.be`), the chart of what a device measured (`panel_history.be`), blinds (`panel_cover.be`, `panel_cover_view.be`), a lamp's settings (`panel_lamp_settings.be`), a page's row of buttons (`panel_page_buttons.be`) |
 | `berry/panel_text.be` | what the keyboard types, read as places and sizes |
 | `berry/panel_web.be` | the "Panel rooms" page of Tasmota's Web UI: rename zones and devices and change types in bulk |
 
@@ -107,7 +107,10 @@ device's settings, by the same part as a bridge's ([06 §7](06-ota-and-backup.md
   exceptional mode said on the panel's page, in its settings, by the node's LED and in the node's telemetry, and left when the clock comes.
 - **Its history** (`berry/boiler_history.be`): the water and the heater's minutes every five minutes, for a week, and each day's lowest and
   highest water and its minutes, for a year, in RAM and written to the file system every hour and before a restart. The time it ran with no clock
-  is kept in order and placed when the clock comes.
+  is kept in order and placed when the clock comes. A panel that opens the chart asks for it with the thermostat's verb `history` and a
+  period: the last day in 96 steps of a quarter of an hour, or the last 30 days, said as a list in the node's numbered frames, what the series
+  is first (its period, the local time it ends at, the heater's power) and then its bytes in base64 ([08 §4](08-screens.md)). Nothing of it
+  crosses the mesh while no chart is open.
 
 **The THR320D's image** carries them (`tasmota32-houseweave-thr320d`, [11 §2](11-build-and-flash.md)), with Tasmota's serial bridge, which reads
 the probe, and its driver of the board's display, and with no Zigbee2Tasmota. `berry/appliance_autoexec.be` (named `autoexec.be` on the

@@ -243,7 +243,7 @@ def exception_checks()
     check("the state says it in its note, and shows the first window's target", [s["note"], s["set"], s["mode"], s["dem"]], ["No clock", 600, "heat", 100])
     var x = t.schema()
     check("the settings have a first row that is only read and says the target held",
-          [size(x), x[0], t.values()["held"]], [18, {"k": "held", "l": "No clock: holding", "t": "n", "min": 30, "max": 70, "u": "°", "w": 0}, 60])
+          [size(x), x[0], t.values()["held"]], [19, {"k": "held", "l": "No clock: holding", "t": "n", "min": 30, "max": 70, "u": "°", "w": 0}, 60])
     check("the telemetry says it", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":1,\"NoClock\":1,\"Alert\":\"\"}")
     check("the ceiling and the probe hold as ever", [second(t, 76.0), second(t, nil), second(t, 50.0)], [false, false, true])
     t.cfg["mode"] = "off"
@@ -258,7 +258,7 @@ def exception_checks()
     check("the clock comes, outside the windows: the heater off, the mode left by itself", [second(t, 50.0), t.exception, t.signal(), t.state()["note"]], [false, false, false, ""])
     check("said in the log", logged.find(["BOILER: the clock is set: the windows hold again", 2]) != nil, true)
     check("the panel that has the settings on show hears them again, with no first row",
-          [size(t.host.lists), size(t.host.lists[-1][1]), t.host.lists[-1][1][0]["k"], t.values().contains("held")], [lists + 1, 17, "wn", false])
+          [size(t.host.lists), size(t.host.lists[-1][1]), t.host.lists[-1][1][0]["k"], t.values().contains("held")], [lists + 1, 18, "hist", false])
     check("and the telemetry", t.telemetry(), ",\"Boiler\":{\"Mode\":\"heat\",\"Target\":60,\"Heating\":0,\"NoClock\":0,\"Alert\":\"\"}")
     # one that asked long ago hears nothing
     tasmota.at_ms = BoilerThermostat.ASKED_MS + 5
@@ -309,15 +309,15 @@ def command_checks()
     t.host.lists.clear()
     t.host.said.clear()
     check("the settings: the schema as a list, and the values", [t.command({"do": "settings"}), t.host.lists[0][0], size(t.host.lists[0][1]), t.host.last("v")],
-          [true, "x", 17, {"wn": 2, "w1s": 17, "w1e": 18, "w1t": 55, "w2s": 5, "w2e": 7, "w2t": 48, "lmin": 30, "lmax": 70, "hyst": 5, "ceil": 75, "calib": -2,
+          [true, "x", 18, {"wn": 2, "w1s": 17, "w1e": 18, "w1t": 55, "w2s": 5, "w2e": 7, "w2t": 48, "lmin": 30, "lmax": 70, "hyst": 5, "ceil": 75, "calib": -2,
                            "power": 3000, "chks": 0, "chke": 5, "chkd": 1, "nht": 120}])
-    check("a setting as a panel lists it: how many windows first, then each window's, then the rest",
-          [t.host.lists[0][1][0], t.host.lists[0][1][1], t.host.lists[0][1][5], t.host.lists[0][1][11], t.host.lists[0][1][12]],
-          [{"k": "wn", "l": "Windows", "t": "r", "min": 0, "max": 4, "u": ""}, {"k": "w1s", "l": "Window 1 from", "t": "r", "min": 0, "max": 23, "u": ":00"},
+    check("a setting as a panel lists it: the row that opens the history, which is no setting, how many windows, each window's, and the rest",
+          [t.host.lists[0][1][0], t.host.lists[0][1][1], t.host.lists[0][1][2], t.host.lists[0][1][6], t.host.lists[0][1][12], t.host.lists[0][1][13]],
+          [{"k": "hist", "l": "History", "t": "h"}, {"k": "wn", "l": "Windows", "t": "r", "min": 0, "max": 4, "u": ""}, {"k": "w1s", "l": "Window 1 from", "t": "r", "min": 0, "max": 23, "u": ":00"},
            {"k": "w2e", "l": "Window 2 to", "t": "r", "min": 0, "max": 24, "u": ":00"}, {"k": "calib", "l": "Calibration", "t": "r", "min": -5, "max": 5, "u": "°"},
            {"k": "power", "l": "Heater power", "t": "n", "min": 500, "max": 9000, "u": " W"}])
     check("the two limits under a Zigbee thermostat's keys and words, and a window's target between them as they are set",
-          [t.host.lists[0][1][7], t.host.lists[0][1][8], t.host.lists[0][1][3]],
+          [t.host.lists[0][1][8], t.host.lists[0][1][9], t.host.lists[0][1][4]],
           [{"k": "lmin", "l": "Operating min", "t": "n", "min": 20, "max": 45, "u": "°"}, {"k": "lmax", "l": "Operating max", "t": "n", "min": 50, "max": 75, "u": "°"},
            {"k": "w1t", "l": "Window 1 target", "t": "n", "min": 30, "max": 70, "u": "°"}])
     t.host.said.clear()
@@ -337,7 +337,7 @@ def limit_checks()
           [t.command({"do": "setting", "k": "lmax", "v": 65}), t.limits(), t.describe()["min"], t.describe()["max"], t.cfg["w1t"], t.cfg["w2t"]],
           [true, [30, 65], 300, 650, 60, 50])
     check("the node is told the thermostat is another, once, and a panel with the settings on show hears their new ends",
-          [t.host.again, size(t.host.lists), t.host.lists[-1][1][3]["max"], t.host.last("v")["lmax"]], [1, 1, 65, 65])
+          [t.host.again, size(t.host.lists), t.host.lists[-1][1][4]["max"], t.host.last("v")["lmax"]], [1, 1, 65, 65])
     check("to 55: the first window's target, above it, comes down to it, and the state says it",
           [t.command({"do": "setting", "k": "lmax", "v": 55}), t.cfg["w1t"], t.cfg["w2t"], t.host.last("s")["set"], t.host.last("v")["w1t"], t.host.again],
           [true, 55, 50, 550, 55, 2])
@@ -379,7 +379,7 @@ def count_checks()
           [true, true, 0])
     var x = t.host.lists[-1][1]
     check("a panel with the settings on show hears them again: the count, the one target where the windows were, and the rest",
-          [size(t.host.lists), size(x), x[0]["k"], x[1], x[2]["k"]], [1, 12, "wn", {"k": "w1t", "l": "Target", "t": "n", "min": 30, "max": 70, "u": "°"}, "lmin"])
+          [size(t.host.lists), size(x), x[1]["k"], x[2], x[3]["k"]], [1, 13, "wn", {"k": "w1t", "l": "Target", "t": "n", "min": 30, "max": 70, "u": "°"}, "lmin"])
     check("and their values, with no window's hours among them", [t.host.last("v")["wn"], t.host.last("v")["w1t"], t.host.last("v").contains("w1s"), size(t.host.last("v"))],
           [0, 60, false, 12])
     check("the target holds at every hour, with the hysteresis as ever", [second(t, 59.9), second(t, 60.0), second(t, 57.1), second(t, 57.0)], [true, false, false, true])
@@ -391,13 +391,13 @@ def count_checks()
     t.command({"do": "mode", "v": "heat"})
     no_clock()
     check("with no clock it holds the same, and there is no row of a target held for want of one: the target's own row says it",
-          [second(t, 40.0), t.exception, t.schema()[0]["k"], t.values().contains("held")], [true, true, "wn", false])
+          [second(t, 40.0), t.exception, t.schema()[1]["k"], t.values().contains("held")], [true, true, "wn", false])
     # one window
     at_hour(6)
     second(t, 40.0)
     t.host.lists.clear()
-    check("one window: the first, as it was left", [t.command({"do": "setting", "k": "wn", "v": 1}), size(t.host.lists[-1][1]), t.host.lists[-1][1][3]["l"],
-          t.host.lists[-1][1][4]["k"]], [true, 14, "Window 1 target", "lmin"])
+    check("one window: the first, as it was left", [t.command({"do": "setting", "k": "wn", "v": 1}), size(t.host.lists[-1][1]), t.host.lists[-1][1][4]["l"],
+          t.host.lists[-1][1][5]["k"]], [true, 15, "Window 1 target", "lmin"])
     check("in the second one's hours the heater is off", [second(t, 30.0), t.state()["set"]], [false, 550])
     at_hour(18)
     check("and on in its own", second(t, 30.0), true)
@@ -405,20 +405,20 @@ def count_checks()
     at_hour(13)
     t.host.lists.clear()
     check("three windows: the third is listed, with no hours yet, and changes nothing",
-          [t.command({"do": "setting", "k": "wn", "v": 3}), size(t.host.lists[-1][1]), t.host.lists[-1][1][7], t.host.last("v")["w3s"], t.host.last("v")["w3e"],
+          [t.command({"do": "setting", "k": "wn", "v": 3}), size(t.host.lists[-1][1]), t.host.lists[-1][1][8], t.host.last("v")["w3s"], t.host.last("v")["w3e"],
            t.host.last("v")["w3t"], second(t, 30.0)],
-          [true, 20, {"k": "w3s", "l": "Window 3 from", "t": "r", "min": 0, "max": 23, "u": ":00"}, 0, 0, 50, false])
+          [true, 21, {"k": "w3s", "l": "Window 3 from", "t": "r", "min": 0, "max": 23, "u": ":00"}, 0, 0, 50, false])
     check("given hours and a target, it is followed", [t.command({"do": "setting", "k": "w3s", "v": 12}), t.command({"do": "setting", "k": "w3e", "v": 14}),
           t.command({"do": "setting", "k": "w3t", "v": 45}), tasmota.power, t.state()["set"], second(t, 44.9), second(t, 45.0)], [true, true, true, true, 450, true, false])
     check("the target set on the page in its hours is its own", [t.command({"do": "target", "v": 460}), t.cfg["w3t"], t.cfg["w1t"]], [true, 46, 55])
     var lists = size(t.host.lists)
     check("the count it has, set again, sends no list", [t.command({"do": "setting", "k": "wn", "v": 3}), size(t.host.lists)], [true, lists])
     check("back to two: the third is not followed, nor set", [t.command({"do": "setting", "k": "wn", "v": 2}), second(t, 30.0), t.command({"do": "setting", "k": "w3s", "v": 9}),
-          size(t.host.lists[-1][1])], [true, false, false, 17])
+          size(t.host.lists[-1][1])], [true, false, false, 18])
     check("and is there as it was left when the day has three again", [t.command({"do": "setting", "k": "wn", "v": 3}), t.host.last("v")["w3s"], t.host.last("v")["w3t"],
           second(t, 30.0)], [true, 12, 46, true])
     check("four at the most", [t.command({"do": "setting", "k": "wn", "v": 4}), size(t.host.lists[-1][1]), t.command({"do": "setting", "k": "wn", "v": 5}),
-          t.command({"do": "setting", "k": "wn", "v": -1}), t.cfg["wn"]], [true, 23, false, false, 4])
+          t.command({"do": "setting", "k": "wn", "v": -1}), t.cfg["wn"]], [true, 24, false, false, 4])
     check("the count goes to the flash with the rest", persist.find("boiler")["wn"], 4)
     # the stuck contact's check with no window: a night the heater worked in is not judged
     t = fresh(50.0)
@@ -645,6 +645,33 @@ def show_checks()
           {"Mode": "heat", "Target": 60, "Heating": 0, "NoClock": 0, "Alert": ""})
 end
 show_checks()
+
+# What it measured, said for the chart a panel draws: a list the node sends in its frames, what the series is and then its bytes
+def history_checks()
+    at_hour(12)
+    var t = fresh(50.0)
+    t.cfg["power"] = 4500
+    var now = tasmota.rtc()["local"]
+    t.history.put(now / 300 - 1, 110, 4)
+    t.host.lists.clear()
+    check("the last day, asked for: taken", t.command({"do": "history", "v": "d"}), true)
+    var l = t.host.lists[-1]
+    check("a list of its own section: what the series is, with the heater's power, and its bytes in base64, 48 an entry",
+          [l[0], size(l[1]), l[1][0], size(bytes().fromb64(l[1][1])), size(bytes().fromb64(l[1][4]))], ["h", 5, {"p": "d", "t": now, "w": 4500}, 48, 48])
+    var b = bytes()
+    for i: 1 .. 4  b .. bytes().fromb64(l[1][i]) end
+    check("the series whole: the step before the one the time is in has the slot the history wrote", [size(b), b[94 * 2], b[94 * 2 + 1]], [192, 110, 4])
+    check("the last month: thirty days in three entries, the last the rest",
+          [t.command({"do": "history", "v": "m"}), size(t.host.lists[-1][1]), t.host.lists[-1][1][0]["p"], size(bytes().fromb64(t.host.lists[-1][1][3]))], [true, 4, "m", 24])
+    var lists = size(t.host.lists)
+    check("no other period, and none with no word of it", [t.command({"do": "history", "v": "y"}), t.command({"do": "history"}), size(t.host.lists)], [false, false, lists])
+    no_clock()
+    check("with no clock the history has no place for what it holds: the list says so, and carries no series",
+          [t.command({"do": "history", "v": "d"}), t.host.lists[-1][1]], [true, [{"p": "d", "t": nil, "w": 4500}]])
+    check("the row that opens the history is in the settings' list, and is no setting to set",
+          [t.schema()[0]["t"], t.values().contains("hist"), t.command({"do": "setting", "k": "hist", "v": 1})], ["h", false, false])
+end
+history_checks()
 
 if failures == 0
     print("ok - " + str(checks) + " checks")
