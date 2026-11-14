@@ -2431,6 +2431,19 @@ test("an appliance, the THR320D on a water heater: its button opens its window a
   h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "setting", 65, "lmax"]]));
   h.run(6000);
   assert.deepEqual(seen(h, IEEE).device.slice(4, 6), [300, 650], `the highest lowered to 65 on the appliance: the panel's range of it: ${trace()}`);
+  // the windows of the day are counted on the appliance: the one in force left with no hours, the heater is off; with no window at all, set
+  // from the panel, the target holds at every hour, and the settings the panel lists are the count, that one target and the rest
+  h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "setting", 17, "w1e"]]));
+  h.run(4000);
+  assert.equal(thr.heating, false, `the window in force with no hours left: outside every window, the heater is off: ${trace()}`);
+  h.panel.vm.call("_run", JSON.stringify([["thermostat", [IEEE], "setting", 0, "wn"]]));
+  h.run(6000);
+  assert.equal(thr.heating, true, `no window: the target holds at every hour: ${trace()}`);
+  h.panel.vm.call("_act", JSON.stringify(["thermostat", "open", IEEE]));
+  assert.ok(h.until("Windows", 8000), `the settings' screen: ${words()}\n${trace()}`);
+  assert.ok(h.shows("Target") && !h.shows("Window 1 from"), `the count, and the one target where the windows were: ${words()}`);
+  const listed = JSON.parse(h.panel.vm.call("_settings", IEEE));
+  assert.deepEqual([listed.schema, listed.values.wn, listed.values.w1t], [12, 0, 45], `the panel has the settings as they stand: ${JSON.stringify(listed)}`);
   // a restart asked with the heater on: off before it, open through the boot, and on again once the thermostat has the water
   assert.equal(thr.heating, true);
   thr.console("Restart 1");

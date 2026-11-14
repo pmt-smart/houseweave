@@ -89,8 +89,9 @@ gave it), answers the page of its devices with the one it is, and says the devic
 only to the panels that show it ([05 §4](05-the-house.md)). The device is a class of its own, handed the node:
 
 - **The water heater's thermostat** (`berry/boiler_thermostat.be`): a probe in the water, a relay on the heater, and its logic every second, on
-  the appliance, with every panel off and the mesh down. The heater comes on at the target less the hysteresis and goes off at the target; each of
-  two windows of the day has its hours and its target, and outside both the heater is off. The lowest and the highest a target is set to are
+  the appliance, with every panel off and the mesh down. The heater comes on at the target less the hysteresis and goes off at the target. A day
+  has as many windows as a setting says, from none to four, each with its hours and its target, and outside them all the heater is off; with no
+  window the day is not divided, and one target, the first window's, holds at every hour. The lowest and the highest a target is set to are
   two of its settings, as a Zigbee thermostat's are (`berry/zbdriver_thermostat.be`), and the range it is described with. It is off in the mode off, with no reading of the
   probe, at the ceiling, and before a restart, since its relay is a latching one and stays as it is. It opens the relay as it starts,
   whatever Tasmota believes it is, and the image's own configuration does the same at every boot with no Berry running

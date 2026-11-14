@@ -3,17 +3,20 @@
 #
 # WHAT A PANEL SEES is the thermostat it knows (panel_thermostat.be), in tenths of a degree:
 #   cur    the water, from the probe
-#   set    the target of the window in force, or of the next one to begin
+#   set    the target of the window in force, or of the next one to begin; with no window, the one target there is
 #   mode   "off", the heater never works, or "heat", it follows the windows
 #   dem    100 with the heater on, 0 with it off
 #   up     false with no reading of the probe
 #   note   "No probe", a warning ("Relay stuck?", "Not heating"), "No clock", or "" for none
 # and its description names what it measures ("measure": "Water"). A target set on the page is that window's from then on.
 #
-# THE LOGIC, every second. The heater comes on with the water at or below the target less the hysteresis, and goes off at the target. Each of the two
-# windows of the day has its hours and its target; outside both the heater is off. It is off, whatever else, in the mode off, with no reading of the
-# probe (before its first one at a boot, and once it stopped), with the water at the ceiling, and when the node is about to restart: the relay is
-# bistable and would stay as it is through a restart.
+# THE LOGIC, every second. The heater comes on with the water at or below the target less the hysteresis, and goes off at the target. A day has as
+# many windows as a setting says, from none to the most its range allows, each with its hours and its target; outside them all the heater is off.
+# It is off, whatever else, in the mode off, with no reading of the probe (before its first one at a boot, and once it stopped), with the water at
+# the ceiling, and when the node is about to restart: the relay is bistable and would stay as it is through a restart.
+#
+# WITH NO WINDOW the day is not divided: one target holds at every hour, as on a thermostat that has no hours. It is the first window's, so the
+# rule is one: with no window to follow, the first target holds.
 #
 # WITH NO CLOCK AT ALL the windows cannot be told, and the thermostat holds the first window's target, with the same hysteresis, ceiling and safety:
 # an exceptional mode, said in the state's note, in a row of the settings, in the node's LED and in what the node says of itself to the MQTT, and
@@ -68,17 +71,19 @@ class BoilerThermostat
     static RISE = 10
     # the warnings it raises, as the node tells the house: a contact that may be stuck closed, and a heater that does not heat
     static WARNINGS = ["stuck", "noheat"]
-    # The settings, in the order a panel lists them: [key, label, how it is edited, min, max, unit]. "r" is chosen from the list its range makes and
-    # "n" typed (panel_thermostat_settings.be). A window is from an hour up to another, past midnight when the second comes first, and none when the
-    # two are the same. A window's target is between the two limits as they are set, which the table's own ends only bound (TARGETS); the limits are
-    # the range the thermostat is described with, under the keys and the words a Zigbee thermostat's have (zbdriver_thermostat.be)
+    # A setting is [key, label, how it is edited, min, max, unit]: "r" is chosen from the list its range makes and "n" typed
+    # (panel_thermostat_settings.be). A panel lists how many windows the day has, the settings of each of those, and the rest (table).
+    #
+    # How many windows the day has: its range's end is the most there are
+    static COUNT = ["wn", "Windows", "r", 0, 4, ""]
+    # A window's three settings, each [the last letter of its key, the end of its label, how it is edited, min, max, unit, what a window nobody set
+    # has]. The key is "w", the window's number and the letter, and the label "Window", the number and the end. A window is from an hour up to
+    # another, past midnight when the second comes first, and has no hours when the two are the same. Its target is between the two limits as they
+    # are set, which the ends here only bound
+    static WINDOW = [["s", " from", "r", 0, 23, ":00", 0], ["e", " to", "r", 0, 24, ":00", 0], ["t", " target", "n", 20, 75, "°", 50]]
+    # The rest. The two limits are the range the thermostat is described with, under the keys and the words a Zigbee thermostat's have
+    # (zbdriver_thermostat.be)
     static SETTINGS = [
-        ["w1s", "Window 1 from", "r", 0, 23, ":00"],
-        ["w1e", "Window 1 to", "r", 0, 24, ":00"],
-        ["w1t", "Window 1 target", "n", 20, 75, "°"],
-        ["w2s", "Window 2 from", "r", 0, 23, ":00"],
-        ["w2e", "Window 2 to", "r", 0, 24, ":00"],
-        ["w2t", "Window 2 target", "n", 20, 75, "°"],
         ["lmin", "Operating min", "n", 20, 45, "°"],
         ["lmax", "Operating max", "n", 50, 75, "°"],
         ["hyst", "Hysteresis", "r", 1, 10, "°"],
@@ -90,10 +95,8 @@ class BoilerThermostat
         ["chkd", "Stuck min drop", "r", 1, 10, "°"],
         ["nht", "No-heat alert", "n", 0, 600, " min"]
     ]
-    # the settings that are a target, each within the two limits
-    static TARGETS = ["w1t", "w2t"]
-    # what a thermostat out of its box has: off, until someone turns it on
-    static DEFAULTS = [["mode", "off"], ["w1s", 17], ["w1e", 21], ["w1t", 60], ["w2s", 5], ["w2e", 7], ["w2t", 50], ["lmin", 30], ["lmax", 70],
+    # what a thermostat out of its box has: off, until someone turns it on, and two windows
+    static DEFAULTS = [["mode", "off"], ["wn", 2], ["w1s", 17], ["w1e", 21], ["w1t", 60], ["w2s", 5], ["w2e", 7], ["w2t", 50], ["lmin", 30], ["lmax", 70],
                        ["hyst", 3], ["ceil", 75], ["calib", 0], ["power", 3000], ["chks", 0], ["chke", 5], ["chkd", 1], ["nht", 120]]
 
     var host       # the appliance's node: what this says of itself goes through it (say, send_list)
@@ -117,6 +120,11 @@ class BoilerThermostat
         import persist
         self.host = host
         self.cfg = {}
+        var i = 1
+        while i <= BoilerThermostat.COUNT[4]
+            for p: BoilerThermostat.WINDOW  self.cfg[BoilerThermostat.key(i, p[0])] = p[6] end
+            i += 1
+        end
         for e: BoilerThermostat.DEFAULTS  self.cfg[e[0]] = e[1] end
         var kept = persist.find(BoilerThermostat.KEEP, nil)
         if isinstance(kept, map)
@@ -143,13 +151,37 @@ class BoilerThermostat
 
     # --- the settings ---------------------------------------------------------------------------
 
+    # the key of a window's setting: "w", the window's number and the setting's letter
+    static def key(i, letter)
+        return "w" + str(i) + letter
+    end
+
+    # a window's setting as a row, from its part of WINDOW
+    static def window_row(i, p)
+        return [BoilerThermostat.key(i, p[0]), "Window " + str(i) + p[1], p[2], p[3], p[4], p[5]]
+    end
+
+    # the row of a setting, of whatever window, or nil for a key that is none
+    static def row_of(k)
+        if k == BoilerThermostat.COUNT[0] return BoilerThermostat.COUNT end
+        for e: BoilerThermostat.SETTINGS
+            if e[0] == k return e end
+        end
+        var i = 1
+        while i <= BoilerThermostat.COUNT[4]
+            for p: BoilerThermostat.WINDOW
+                if BoilerThermostat.key(i, p[0]) == k return BoilerThermostat.window_row(i, p) end
+            end
+            i += 1
+        end
+        return nil
+    end
+
     # whether `v` is a value the key `k` takes: a mode, or a whole number in a setting's range
     static def fair(k, v)
         if k == "mode" return v == "off" || v == "heat" end
-        for e: BoilerThermostat.SETTINGS
-            if e[0] == k return type(v) == "int" && v >= e[3] && v <= e[4] end
-        end
-        return false
+        var e = BoilerThermostat.row_of(k)
+        return e != nil && type(v) == "int" && v >= e[3] && v <= e[4]
     end
 
     # the range a target is set in, [lowest, highest] in degrees: the two limits as they are set
@@ -157,20 +189,42 @@ class BoilerThermostat
         return [self.cfg["lmin"], self.cfg["lmax"]]
     end
 
-    # each window's target within the limits: one a limit left outside goes to that limit. Whether any moved
+    # The settings as they stand, in the order a panel lists them: how many windows, the three of each, and the rest. With no window, the one
+    # target, which is the first window's, is where they would be. A target's ends are the limits as they are set
+    def table()
+        var r = self.limits()
+        var n = self.cfg["wn"]
+        var out = [BoilerThermostat.COUNT]
+        if n == 0
+            var t = BoilerThermostat.WINDOW[2]
+            out.push([BoilerThermostat.key(1, t[0]), "Target", t[2], r[0], r[1], t[5]])
+        end
+        var i = 1
+        while i <= n
+            for p: BoilerThermostat.WINDOW
+                var e = BoilerThermostat.window_row(i, p)
+                if p[0] == "t"
+                    e[3] = r[0]
+                    e[4] = r[1]
+                end
+                out.push(e)
+            end
+            i += 1
+        end
+        for e: BoilerThermostat.SETTINGS  out.push(e) end
+        return out
+    end
+
+    # every window's target within the limits, the windows the day does not have too: one a limit left outside goes to that limit
     def fit()
         var r = self.limits()
-        var moved = false
-        for k: BoilerThermostat.TARGETS
-            var v = self.cfg[k]
-            if v < r[0]  v = r[0] end
-            if v > r[1]  v = r[1] end
-            if v != self.cfg[k]
-                self.cfg[k] = v
-                moved = true
-            end
+        var i = 1
+        while i <= BoilerThermostat.COUNT[4]
+            var k = BoilerThermostat.key(i, "t")
+            if self.cfg[k] < r[0]  self.cfg[k] = r[0] end
+            if self.cfg[k] > r[1]  self.cfg[k] = r[1] end
+            i += 1
         end
-        return moved
     end
 
     # the mode and the settings to the flash, a moment after the last change
@@ -189,26 +243,30 @@ class BoilerThermostat
         tasmota.cmd("TempOffset " + str(self.cfg["calib"]), true)
     end
 
-    # a setting as a panel's list has it: a target's ends are the limits as they are set
-    def wire(e)
-        var r = BoilerThermostat.TARGETS.find(e[0]) != nil ? self.limits() : [e[3], e[4]]
-        return {"k": e[0], "l": e[1], "t": e[2], "min": r[0], "max": r[1], "u": e[5]}
+    # a setting as a panel's list has it
+    static def wire(e)
+        return {"k": e[0], "l": e[1], "t": e[2], "min": e[3], "max": e[4], "u": e[5]}
     end
 
-    # The settings' schema: with no clock, a first row that is only read and says the target held; then the settings
+    # whether the first target is held for want of a clock: there are windows, and no clock to tell them by
+    def holding()
+        return self.exception && self.cfg["wn"] > 0
+    end
+
+    # The settings' schema: while the first target is held for want of a clock, a first row that is only read and says it; then the settings
     def schema()
         var out = []
         var r = self.limits()
-        if self.exception  out.push({"k": "held", "l": "No clock: holding", "t": "n", "min": r[0], "max": r[1], "u": "°", "w": 0}) end
-        for e: BoilerThermostat.SETTINGS  out.push(self.wire(e)) end
+        if self.holding()  out.push({"k": "held", "l": "No clock: holding", "t": "n", "min": r[0], "max": r[1], "u": "°", "w": 0}) end
+        for e: self.table()  out.push(BoilerThermostat.wire(e)) end
         return out
     end
 
-    # the settings' values, by key
+    # the values of the settings a panel lists, by key
     def values()
         var v = {}
-        for e: BoilerThermostat.SETTINGS  v[e[0]] = self.cfg[e[0]] end
-        if self.exception  v["held"] = self.cfg["w1t"] end
+        for e: self.table()  v[e[0]] = self.cfg[e[0]] end
+        if self.holding()  v["held"] = self.target_of(1) end
         return v
     end
 
@@ -228,29 +286,46 @@ class BoilerThermostat
         return (r["local"] / 3600) % 24
     end
 
-    # the window whose target holds at the hour `h`, 1 or 2, the first when both do; nil outside both
+    # the hours of a window, [from, to]
+    def hours_of(w)
+        return [self.cfg[BoilerThermostat.key(w, "s")], self.cfg[BoilerThermostat.key(w, "e")]]
+    end
+
+    # the window whose target holds at the hour `h`, the first of them when more than one does; nil outside them all
     def window_in(h)
-        var c = self.cfg
-        if BoilerThermostat.within(h, c["w1s"], c["w1e"]) return 1 end
-        if BoilerThermostat.within(h, c["w2s"], c["w2e"]) return 2 end
+        var w = 1
+        while w <= self.cfg["wn"]
+            var o = self.hours_of(w)
+            if BoilerThermostat.within(h, o[0], o[1]) return w end
+            w += 1
+        end
         return nil
     end
 
-    # The window whose target a panel sees and sets at the hour `h`: the one in force, or the next to begin. With no clock (h nil), and with no
-    # window at all, the first
+    # The window whose target a panel sees and sets at the hour `h`: the one in force, or the next to begin, the first of them when more than
+    # one begins then. With no clock (h nil), and with no window that has hours, the first
     def window_at(h)
         if h == nil return 1 end
-        var w = self.window_in(h)
-        if w != nil return w end
-        var c = self.cfg
-        var d1 = c["w1s"] == c["w1e"] ? 99 : (c["w1s"] - h + 24) % 24
-        var d2 = c["w2s"] == c["w2e"] ? 99 : (c["w2s"] - h + 24) % 24
-        return d2 < d1 ? 2 : 1
+        var at = self.window_in(h)
+        if at != nil return at end
+        at = 1
+        var wait = 24
+        var w = 1
+        while w <= self.cfg["wn"]
+            var o = self.hours_of(w)
+            var d = (o[0] - h + 24) % 24
+            if o[0] != o[1] && d < wait
+                wait = d
+                at = w
+            end
+            w += 1
+        end
+        return at
     end
 
     # the target of a window, in degrees
     def target_of(w)
-        return self.cfg[w == 2 ? "w2t" : "w1t"]
+        return self.cfg[BoilerThermostat.key(w, "t")]
     end
 
     # --- the logic ------------------------------------------------------------------------------
@@ -267,11 +342,12 @@ class BoilerThermostat
     end
 
     # Whether the heater is to be on at the hour `h` (nil with no clock): never while the node is about to restart, in the mode off, with no reading,
-    # or with the water at the ceiling; else on at or below the target less the hysteresis, and off at the target
+    # or with the water at the ceiling; else on at or below the target less the hysteresis, and off at the target. The target is the window's in
+    # force, and none outside the windows; with no window, and with no clock, the first
     def wants(h)
         var c = self.cfg
         if self.stopped || c["mode"] != "heat" || self.water == nil || self.water >= c["ceil"] * 10 return false end
-        var w = h == nil ? 1 : self.window_in(h)
+        var w = h == nil || c["wn"] == 0 ? 1 : self.window_in(h)
         if w == nil return false end
         var t = self.target_of(w)
         if self.relay return self.water < t * 10 end
@@ -457,8 +533,7 @@ class BoilerThermostat
     def set_target(v)
         var r = self.limits()
         if type(v) != "int" || v < r[0] * 10 || v > r[1] * 10 || v % BoilerThermostat.STEP != 0 return false end
-        var w = self.window_at(BoilerThermostat.hour_now())
-        self.cfg[w == 2 ? "w2t" : "w1t"] = v / 10
+        self.cfg[BoilerThermostat.key(self.window_at(BoilerThermostat.hour_now()), "t")] = v / 10
         self.keep()
         return true
     end
@@ -471,21 +546,23 @@ class BoilerThermostat
         return true
     end
 
-    # a setting, by its key: only one the table has, and a value it takes; a window's target is one within the limits. A limit that moves takes
-    # the windows' targets with it, and the thermostat is another to the panels: its range is the limits
+    # A setting, by its key: only one the table has as it stands, so of a window the day has, and a whole number between its ends, which for a
+    # target are the limits. A limit that moves takes the windows' targets with it, and the thermostat is another to the panels: its range is
+    # the limits. A limit that moves, and another count of windows, make the table another: a panel with the settings on show hears them again
     def set_setting(k, v)
-        if k == "mode" || !BoilerThermostat.fair(k, v) return false end
-        var r = self.limits()
-        if BoilerThermostat.TARGETS.find(k) != nil && (v < r[0] || v > r[1]) return false end
-        var limit = (k == "lmin" || k == "lmax") && self.cfg[k] != v
+        var e = nil
+        for row: self.table()
+            if row[0] == k  e = row end
+        end
+        if e == nil || type(v) != "int" || v < e[3] || v > e[4] return false end
+        var moved = self.cfg[k] != v
+        var limit = moved && (k == "lmin" || k == "lmax")
         self.cfg[k] = v
         if limit  self.fit() end
         self.keep()
         if k == "calib"  self.calibrate() end
-        if limit
-            self.send_settings()
-            self.host.described()
-        end
+        if limit || (moved && k == BoilerThermostat.COUNT[0])  self.send_settings() end
+        if limit  self.host.described() end
         return true
     end
 

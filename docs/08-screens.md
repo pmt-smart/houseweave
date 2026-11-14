@@ -77,9 +77,12 @@ and sent a moment after the last touch, so a few touches are one write. For a gr
   A thermostat that measures something other than a room says so in its description, and the line names it: "Water 58.0°" for one on a water
   heater. A few words its state carries follow the temperature while they hold, "Water 58.0°  No clock" for one that keeps a target with no
   clock to follow its hours by. The water heater's thermostat is an appliance ([05 §4](05-the-house.md)): its target is the one of the window of
-  the day in force, or of the next to begin, and a touch changes that window's. Its settings are its two windows (from, to and target of each),
-  its two limits, 30 and 70 degrees out of its box, its hysteresis, its ceiling, its probe's calibration and its heater's power; with no
-  clock, a first row that is only read says the target it holds. A window's target is kept within the limits. The schedule turns it off and
+  the day in force, or of the next to begin, and a touch changes that window's. Its settings begin with how many windows the day has
+  ("Windows", none to four, two out of its box) and list the from, the to and the target of each of those: one more is a window with no hours
+  until it is given some, and one fewer leaves the last as it was, not followed. With none, one row, "Target", is where the windows were, and
+  that target holds at every hour, as on a thermostat that has no hours. Then come
+  its two limits, 30 and 70 degrees out of its box, its hysteresis, its ceiling, its probe's calibration and its heater's power; with windows
+  and no clock, a first row that is only read says the target it holds. A window's target is kept within the limits. The schedule turns it off and
   on and sets its target, which is that window's too. Four more settings are the checks of its relay: the hours a stuck contact is looked
   for in and how far the water has to fall in them ("Stuck check from", "Stuck check to", "Stuck min drop": midnight to five and a degree out
   of its box, and no check with the two hours the same), and the minutes a heater that is on may go with no rise ("No-heat alert", two hours,
