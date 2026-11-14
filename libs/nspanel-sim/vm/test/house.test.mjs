@@ -2337,6 +2337,26 @@ const applianceIeee = (mac) => {
   return `0x${x.slice(0, 6)}FFFE${x.slice(6)}`;
 };
 
+/** An appliance's button held, and the panel adds it to its house from the glass: the appliance is a node of the panel's house, a device of it */
+function addAppliance(h, thr, trace) {
+  const words = () => JSON.stringify(h.texts().filter(Boolean));
+  thr.holdButton();
+  h.run(1500);
+  assert.ok(thr.blinking(1000), `its button held 5 s: the window, and its green LED blinks: ${trace()}`);
+  toMesh(h);
+  tapPlus(h);
+  assert.ok(h.until("thr320d-boiler", 12000), `the appliance heard: ${words()}\n${trace()}`);
+  h.tapRow("thr320d-boiler");
+  assert.ok(h.until("Is thr320d-boiler blinking?", 10000), `the appliance asked to blink: ${words()}`);
+  h.tapDialog("Yes");
+  const inHouse = () => probe(h.panel, "(def () var out = [] for id: global.house.list.ids(false) if global.house.list.role(id) == HouseList.ROLE_DEVICE out.push(id) end end return out end)()");
+  for (let t = 0; t < 60000 && inHouse().length === 0; t += 500) h.run(500);
+  assert.equal(inHouse().length, 1, `the appliance is a node of the panel's house, a device of it: ${words()}\n${trace()}`);
+  for (let t = 0; t < 30000 && probe(thr, "global.appliance_node.house != nil && global.appliance_node.house.up") !== true; t += 500) h.run(500);
+  assert.equal(probe(thr, "global.appliance_node.house != nil && global.appliance_node.house.up"), true, `and the panel's house is the appliance's: ${trace()}`);
+  h.run(3000);
+}
+
 test("an appliance, the THR320D on a water heater: its button opens its window and toggles nothing, the panel adds it to the house, the Hall's + takes its device as a Mesh device, Heat and a target go to it over the mesh and its relay follows the water; the probe unplugged opens the relay, and so do a restart and a boot that finds it closed", async () => {
   const h = await house();
   probed(h);
@@ -2355,21 +2375,7 @@ test("an appliance, the THR320D on a water heater: its button opens its window a
   assert.deepEqual([thr.heating, thr.relays[0]], [false, false], "a press of its button toggles nothing: the relay is the thermostat's");
   assert.ok(!thr.blinking(1500), "with a network, it opens no window at boot");
   // its button held: the window, and the panel adds it to its house from the glass
-  thr.holdButton();
-  h.run(1500);
-  assert.ok(thr.blinking(1000), `its button held 5 s: the window, and its green LED blinks: ${trace()}`);
-  toMesh(h);
-  tapPlus(h);
-  assert.ok(h.until("thr320d-boiler", 12000), `the appliance heard: ${words()}\n${trace()}`);
-  h.tapRow("thr320d-boiler");
-  assert.ok(h.until("Is thr320d-boiler blinking?", 10000), `the appliance asked to blink: ${words()}`);
-  h.tapDialog("Yes");
-  const inHouse = () => probe(h.panel, "(def () var out = [] for id: global.house.list.ids(false) if global.house.list.role(id) == HouseList.ROLE_DEVICE out.push(id) end end return out end)()");
-  for (let t = 0; t < 60000 && inHouse().length === 0; t += 500) h.run(500);
-  assert.equal(inHouse().length, 1, `the appliance is a node of the panel's house, a device of it: ${words()}\n${trace()}`);
-  for (let t = 0; t < 30000 && probe(thr, "global.appliance_node.house != nil && global.appliance_node.house.up") !== true; t += 500) h.run(500);
-  assert.equal(probe(thr, "global.appliance_node.house != nil && global.appliance_node.house.up"), true, `and the panel's house is the appliance's: ${trace()}`);
-  h.run(3000);
+  addAppliance(h, thr, trace);
   // the Hall's +: a Mesh device, the appliance's one device
   toPlan(h);
   h.tap(40, 160, 800);
@@ -2461,6 +2467,68 @@ test("an appliance, the THR320D on a water heater: its button opens its window a
   h.run(200);
   assert.deepEqual([cold.pulses[0].on, cold.heating], [false, false], "the image's rule opens it at the boot, whatever Tasmota believes");
   assert.equal(node(), cold);
+  assert.deepEqual(h.log.filter((l) => /BRY: Exception|failed on/.test(l)), [], "nothing raised on any side");
+  assert.deepEqual(h.glassNotes, []);
+});
+
+test("an appliance's backup through the house's server: it says hello as a device of the house, its device's settings and name go at the round, a change it says nothing of is found by its fingerprint, and the server's backup restores them", async () => {
+  const h = await house();
+  probed(h);
+  const at = Date.UTC(2026, 8, 30, 20, 0, 0) / 1000;
+  const thr = await SimAppliance.create({ house: h.home, files: applianceFiles(), mesh: { id: 0 }, water: 40, epoch: at, timezone: 0,
+    onLog: (level, line) => h.log.push(`${h.home.now} thr [L${level}] ${line}`) });
+  const IEEE = applianceIeee(thr.mac);
+  const NAME = thr.mac.replaceAll(":", "").toLowerCase();
+  let server;
+  const trace = () => `${JSON.stringify(server?.log ?? [])}\n${h.log.filter((l) => /APPLIANCE|BOILER|BACKUP|FLEET|BRY/.test(l) && !/dropped/.test(l)).slice(-16).join("\n")}`;
+  const cfg = (dev, k) => probe(dev, `global.appliance_node.device.cfg['${k}']`);
+  const drive = (dev, m) => dev.console(`ZbRelayDrive ${JSON.stringify({ id: IEEE, ...m })}`);
+  h.run(1000);
+  addAppliance(h, thr, trace);
+  // the server paired on the panel: the house's list takes it to the appliance over the mesh, and the appliance says hello
+  server = await houseServer(h.home, h.panel, { run: (ms) => h.run(ms) });
+  const T = probe(thr, "global.appliance_node.house.list.me");
+  const known = () => server.fleet.fleet().nodes.find((n) => n.node === T);
+  assert.equal(known()?.role, "device", `the pairing's answer has the appliance, by its role: ${JSON.stringify(server.fleet.fleet().nodes.map((n) => [n.node, n.role]))}`);
+  for (let t = 0; t < 40000 && !known()?.seen; t += 500) h.run(500);
+  assert.ok(known()?.seen, `the appliance said hello: ${trace()}`);
+  assert.deepEqual([known().state.role, known().state.backup.at], ["device", null], `as a device, with no backup yet: ${JSON.stringify(known().state)}`);
+  // what the house gave it and what its device was set to: the name, a window fewer, another target
+  probe(thr, `global.appliance_node.named('${JSON.stringify({ IEEE, Name: "Boiler" })}')`);
+  drive(thr, { do: "setting", k: "wn", v: 1 });
+  drive(thr, { do: "target", v: 550 });
+  h.run(4000);
+  assert.deepEqual([cfg(thr, "wn"), cfg(thr, "w1t")], [1, 55]);
+  assert.equal(server.backupOf(thr), undefined, "nothing goes by itself");
+  // the round: its backup, of its kind
+  for (let t = 0; t < 10000 && (await server.fleet.ask(T, "round")).backup !== "Saving"; t += 1000) h.run(1000);
+  for (let t = 0; t < 5000 && !server.backupOf(thr); t += 100) h.run(100);
+  const first = server.backupOf(thr);
+  assert.ok(first, `the appliance's backup, at the round: ${trace()}`);
+  assert.deepEqual([first.device, first.bridge, first.panel, Object.keys(first.keys).sort()], [NAME, undefined, undefined, ["appliance_name", "boiler"]],
+    `the appliance's, by its name under its kind's word, with its device's name and settings and nothing else: ${JSON.stringify(first)}`);
+  assert.deepEqual([first.keys.appliance_name, first.keys.boiler.wn, first.keys.boiler.w1t, first.keys.boiler.mode], ["Boiler", 1, 55, "off"]);
+  assert.deepEqual(server.fleet.fleet().backups.map((b) => [b.mac, b.kind, b.node]), [[NAME, "device", T]], "the server has it as a device's");
+  assert.equal((await server.fleet.ask(T, "round")).backup, "Up to date", "and the next round finds no change");
+  // a change, which the appliance says nothing of: the next round finds it by the fingerprint
+  drive(thr, { do: "setting", k: "hyst", v: 5 });
+  h.run(4000);
+  assert.equal((await server.fleet.ask(T, "round")).backup, "Saving", `a setting changed: found at the round: ${trace()}`);
+  for (let t = 0; t < 5000 && server.backupOf(thr)?.keys.boiler.hyst !== 5; t += 100) h.run(100);
+  assert.equal(server.backupOf(thr).keys.boiler.hyst, 5, `and saved: ${trace()}`);
+  // changes made since, and the server's Restore: the backup's whole in place of them, and the appliance restarts with it
+  drive(thr, { do: "setting", k: "wn", v: 3 });
+  drive(thr, { do: "mode", v: "heat" });
+  h.run(4000);
+  assert.deepEqual([cfg(thr, "wn"), cfg(thr, "mode"), thr.heating], [3, "heat", true]);
+  assert.match(String((await server.fleet.ask(T, "restore")).restore), /Looking|Restoring/, `the server's Restore: ${trace()}`);
+  for (let t = 0; t < 10000 && !thr.restartDue; t += 250) h.run(250);
+  assert.ok(thr.restartDue, `fetched, checked, written, and the appliance restarts: ${trace()}`);
+  assert.equal(thr.heating, false, "the heater off before the restart");
+  const again = await thr.restartNow();
+  h.run(5000);
+  assert.deepEqual([cfg(again, "wn"), cfg(again, "hyst"), cfg(again, "w1t"), cfg(again, "mode"), probe(again, "global.appliance_node.name"), again.heating],
+    [1, 5, 55, "off", "Boiler", false], `the server's configuration in place of the changes made since: ${trace()}`);
   assert.deepEqual(h.log.filter((l) => /BRY: Exception|failed on/.test(l)), [], "nothing raised on any side");
   assert.deepEqual(h.glassNotes, []);
 });

@@ -176,7 +176,10 @@ answer".
 **What goes**, one path for every node (`berry/node_backup.be`):
 
 - **a panel**: its configuration (plans, zones, devices, names), its texts and its preferences, without the pattern lock (`berry/panel_backup.be`);
-- **a bridge**: its devices' names, the alarm, the drivers and the discovery (`berry/bridge_backup.be`);
+- **a bridge**: its devices' names, the alarm, the drivers and the discovery;
+- **an appliance**: the name the house gave its device and the device's settings, a water heater's thermostat's windows, limits and checks.
+  Not what the device measured: a history is no configuration. A bridge's and an appliance's are one part (`berry/keys_backup.be`), what the
+  node keeps under the keys it names, with the word of its kind (`bridge`, `device`), which is how the server tells a backup's kind;
 - **and every node's Tasmota settings** (the whole `/.settings` block, 4 096 bytes: the Wi-Fi and its password, MQTT, the time zone, the template,
   the SetOptions), **sealed with a key derived from the house's key** (`berry/node_settings.be`; AES-128-CCM in the mesh driver,
   `espnow_mesh_group_seal`/`espnow_mesh_group_open`, HKDF-SHA256 from the house's key, a random 12-byte nonce, the label as associated data, a
@@ -185,7 +188,7 @@ answer".
 
 **When.** Nothing periodic during the day: one **round a night**, at the house's hour (02:00 by default, changed on the server's Settings). The
 server calls each node, 5 s apart, and the node backs up **only if something changed** since the last backup: a panel marks a change "Not saved";
-a bridge compares the SHA-256 of what it keeps with its last backup's. The fingerprint of the Tasmota settings leaves out what Tasmota changes by
+a bridge and an appliance compare the SHA-256 of what they keep with their last backup's. The fingerprint of the Tasmota settings leaves out what Tasmota changes by
 itself (the save and boot counters, the checksums, the relays' state, the save time) and includes the house key's version, so a key change backs
 everyone up again. A node that did not answer is called once more a minute after the last. **Back up now** on a node, and Backup on the House tab
 (a node or all), do it at once.
@@ -199,7 +202,7 @@ project it runs; a panel flashed with the firmware before HouseWeave's keeps tha
 `p1-living-room-*`), so either name is the same room (`PanelBackup.FORMER`).
 
 **A hardware swap**: the new device joins the house as any node; on the House tab, the backup of the one that left has **Give to...**, with a node
-of the same kind (a panel's to a panel, a bridge's to a bridge) and a confirmation. The server sends the new node `restore`, and gives it the old
+of the same kind (a panel's to a panel, a bridge's to a bridge, an appliance's to an appliance) and a confirmation. The server sends the new node `restore`, and gives it the old
 backup with `"for"` and the new node's name (a node refuses another's backup otherwise); the new node restarts with the old one's configuration and
 settings, "Not saved" until its first backup ends the swap. The new node's own backup stays, and its **Restore** undoes a mistaken swap.
 
@@ -212,10 +215,11 @@ each comes back with its old name, since names go by the device's IEEE address. 
 
 - the safeboot's receiver and the app's sender: `firmware/host-tests/espnow-ota-receiver`;
 - the node's side: `berry/test/test_node_ota.be`, `berry/test/test_server_link.be`, `berry/test/test_mesh_http.be`, `berry/test/test_panel_backup.be`,
-  `berry/test/test_bridge_backup.be`, `berry/test/test_house_server.be`, in both VMs;
+  `berry/test/test_keys_backup.be`, `berry/test/test_house_server.be`, in both VMs;
 - the server: `libs/nspanel-sim/vm/test/house-fleet.test.mjs` (SHA-256, HMAC and HKDF against `node:crypto`, the two signatures fixed as the node
   makes them, the requests, the backups, the round, the relay and the swaps) and `libs/nspanel-sim/vm/test/house-pairing.test.mjs`;
 - the house end to end in the simulator: `libs/nspanel-sim/vm/test/house.test.mjs` (a server paired on a panel as a person pairs it, the round,
-  Back up now, the restore, a bridge with no Wi-Fi that says its hello and makes its backup through a panel).
+  Back up now, the restore, a bridge with no Wi-Fi that says its hello and makes its backup through a panel, and an appliance's backup at
+  the round and its restore).
 
 The mesh's radio, the real timing and heap, and an image actually written by a neighbour are the bench's ([13](13-testing.md)).

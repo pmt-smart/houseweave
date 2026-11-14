@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0 (2026-11-14)
+
+- An appliance, a node that is itself one device of the house (a Sonoff THR320D on a water heater): the server knows it by its role, `device`,
+  keeps its backup as every node's, asks it at the night's round, and in a hardware swap gives its backup only to another appliance. The House
+  tab names the role, and the Studio has an appliance beside the panel and the bridge.
+
 ## 1.6.0 (2026-10-23)
 
 - Only HouseWeave's names: every node of the house runs the firmware that speaks them, so the server no longer takes or calls a node in the

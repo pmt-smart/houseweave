@@ -128,7 +128,7 @@ test("a node's backup: kept by its radio address, given back to it alone, the ni
   assert.equal(signed(f, "PUT", "/api/backup", "<html>").status, 400, "not JSON");
   assert.equal(signed(f, "PUT", "/api/backup", panelBackup(1, { v: 2 })).status, 400, "another format");
   assert.equal(signed(f, "PUT", "/api/backup", panelBackup(1, { keys: [] })).status, 400, "keys that are not an object");
-  assert.equal(signed(f, "PUT", "/api/backup", { v: 1, keys: {} }).status, 400, "neither a panel's nor a bridge's");
+  assert.equal(signed(f, "PUT", "/api/backup", { v: 1, keys: {} }).status, 400, "one that names no node of any kind");
   const big = utf8(JSON.stringify(panelBackup(1)));
   const t = Math.floor(f.clock.now / 1000);
   assert.equal(f.fleet.handleNode({ method: "PUT", path: "/api/backup", body: big, length: MAX_BACKUP + 1,
@@ -246,6 +246,41 @@ test("the hardware swap: the old node's backup given to a new node of its kind, 
   assert.equal(f.fleet.fleet().backups.find((x) => x.mac === "aabbccddeeff").replaced, null, "and the old backup no longer given");
   assert.equal(JSON.parse(new TextDecoder().decode(signed(f, "GET", "/api/backup", undefined, { node: 6, key: key6, t: Math.floor(f.clock.now / 1000) }).body)).panel, "cccccccccccc");
   assert.deepEqual(await call(f, "POST", "/api/all/restore"), [404, { error: "no such verb" }], "never every node's at once");
+});
+
+test("an appliance, a node that is one device of the house: known by its role, its backup kept as a device's, and swapped only with another appliance", async () => {
+  // node 1 a panel, node 5 a bridge, node 7 an appliance, and node 9 the appliance that replaces it
+  const THR7 = "33".repeat(32);
+  const THR9 = "44".repeat(32);
+  const f = fleetOf({ nodes: [[1, 2, "P-Desk", "192.168.2.113", NODE_PUB, "aabbccddeeff"], [5, 1, "B-PC", "192.168.2.115", SERVER_PUB, "b0b0b0000005"],
+                              [7, 4, "Device 000007", "192.168.2.117", THR7, "d0d0d0000007"], [9, 4, "Device 000009", "192.168.2.119", THR9, "d0d0d0000009"]] });
+  const key7 = pairKey(x25519(SERVER), THR7);
+  const key9 = pairKey(x25519(SERVER), THR9);
+  const deviceBackup = (at, extra = {}) => ({ v: 1, device: "d0d0d0000007", from: "D0:D0:D0:00:00:07", at, keys: { appliance_name: "Boiler", boiler: { mode: "heat", wn: 2 } }, ...extra });
+  assert.deepEqual(f.fleet.fleet().nodes.map((n) => [n.node, n.role]), [[1, "panel"], [5, "bridge"], [7, "device"], [9, "device"]], "the list's fourth role");
+  assert.equal(signed(f, "POST", "/api/hello", { node: 7, kind: "boot", role: "device", image: "tasmota32-houseweave-thr320d", build: "b1", backup: { at: null, dirty: true } },
+    { node: 7, key: key7 }).status, 204, "its hello, signed by its pair's key");
+  const seven = f.fleet.fleet().nodes.find((n) => n.node === 7);
+  assert.deepEqual([seven.role, seven.kind, seven.state.role, seven.state.image], ["device", "boot", "device", "tasmota32-houseweave-thr320d"]);
+  // its backup, kept as every node's, of its own kind
+  assert.equal(signed(f, "PUT", "/api/backup", deviceBackup(3), { node: 7, key: key7 }).status, 204);
+  assert.equal(signed(f, "PUT", "/api/backup", panelBackup(4)).status, 204, "and a panel's, for what is no swap");
+  const list = (await call(f, "GET", "/api/fleet"))[1].backups;
+  assert.deepEqual(list.map((b) => [b.mac, b.kind, b.node]), [["aabbccddeeff", "panel", 1], ["d0d0d0000007", "device", 7]], "the backups the server keeps, each of its node's kind");
+  const got = signed(f, "GET", "/api/backup", undefined, { node: 7, key: key7 });
+  assert.deepEqual([got.status, JSON.parse(new TextDecoder().decode(got.body)).keys.boiler], [200, { mode: "heat", wn: 2 }], "given back to it");
+  // a backup goes only to a node of its kind
+  assert.deepEqual(await call(f, "POST", "/api/replace", { from: "d0d0d0000007", to: 5 }), [400, { error: "a bridge takes a bridge's backup" }]);
+  assert.deepEqual(await call(f, "POST", "/api/replace", { from: "d0d0d0000007", to: 1 }), [400, { error: "a panel takes a panel's backup" }]);
+  assert.deepEqual(await call(f, "POST", "/api/replace", { from: "aabbccddeeff", to: 9 }), [400, { error: "a device takes a device's backup" }]);
+  // the swap: the appliance that replaces it is asked to restore, and given the old one's backup, for it by name
+  const [st] = await call(f, "POST", "/api/replace", { from: "d0d0d0000007", to: 9 });
+  assert.deepEqual([st, f.posted.at(-1)[0], f.posted.at(-1)[1].verb], [200, "http://192.168.2.119/houseweave/do", "restore"]);
+  const doc = JSON.parse(new TextDecoder().decode(signed(f, "GET", "/api/backup", undefined, { node: 9, key: key9 }).body));
+  assert.deepEqual([doc.device, doc.at, doc.for, doc.keys.appliance_name], ["d0d0d0000007", 3, "d0d0d0000009", "Boiler"], "the old one's, for the new one");
+  // the round asks it as every node
+  assert.deepEqual(await call(f, "POST", "/api/node/7/backup"), [200, { v: 1, node: 1, verb: "backup", state: { role: "panel", build: "b2" } }], "a verb asked of it, at its address");
+  assert.equal(f.posted.at(-1)[0], "http://192.168.2.213/houseweave/do", "the one its hello came from");
 });
 
 test("a round asks a node that did not answer once more, a minute after the last, and only that one", async () => {

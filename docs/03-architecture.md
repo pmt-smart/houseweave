@@ -81,12 +81,14 @@ is (`berry/panel_build.be`), and one Tasmota rule for all its parts (`berry/pane
 - **The alarm** (`berry/zbbridge_alarm.be`, with its replica, [05 §5](05-the-house.md)).
 - **Entering the house** (`berry/node_pairing.be`): what the panel that adds the node says over the pairing's link, on any node with no screen.
   The window, its button and its LED are `berry/node_host.be`'s.
-- **The bridge's backup** (`berry/bridge_backup.be`). Its clock is every such node's (`berry/node_host.be`, by the rule of `berry/clock_link.be`).
+- **The bridge's backup**, what it keeps under the keys it names (`berry/keys_backup.be`, [06 §7](06-ota-and-backup.md)). Its clock is every
+  such node's (`berry/node_host.be`, by the rule of `berry/clock_link.be`).
 
 **An appliance's node** (`berry/appliance_node.be`) is the same node with no screen around one device, in the place of a Zigbee network:
 `ApplianceNode.start()` is the whole of its `autoexec.be`. It runs what a panel says of a device (a driver's command, a ping, the name the house
 gave it), answers the page of its devices with the one it is, and says the device's state as a bridge's drivers do (`ZbDriver`), its description
-only to the panels that show it ([05 §4](05-the-house.md)). The device is a class of its own, handed the node:
+only to the panels that show it ([05 §4](05-the-house.md)). Its backup on the house's server is the name the house gave its device and the
+device's settings, by the same part as a bridge's ([06 §7](06-ota-and-backup.md)). The device is a class of its own, handed the node:
 
 - **The water heater's thermostat** (`berry/boiler_thermostat.be`): a probe in the water, a relay on the heater, and its logic every second, on
   the appliance, with every panel off and the mesh down. The heater comes on at the target less the hysteresis and goes off at the target. A day

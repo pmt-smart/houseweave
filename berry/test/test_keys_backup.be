@@ -1,6 +1,7 @@
-# berry/node_backup.be with berry/bridge_backup.be, a bridge's configuration kept on the house's server, against requests the test
-# answers: what goes (its devices' names, the alarm, the drivers, the discovery) and what never does, the fingerprint the round compares (the bridge
-# says nothing of its changes), and the restore, which puts the backup's whole in place of what the bridge has.
+# berry/node_backup.be with berry/keys_backup.be, the configuration of a node with no screen kept on the house's server, against requests the test
+# answers. A bridge's: what goes (its devices' names, the alarm, the drivers, the discovery) and what never does, the fingerprint the round compares
+# (the bridge says nothing of its changes), and the restore, which puts the backup's whole in place of what the bridge has. And an appliance's, the
+# same part made with another kind's word and other keys: the one device it is, and a backup of another kind refused.
 
 import persist
 import json
@@ -95,7 +96,11 @@ var http = FakeHttp()
 var hellos = FakeHttp()
 var b = nil
 var link = ServerLink(/ -> house, hellos, / -> {"role": "bridge", "backup": b.brief()}, nil)
-b = NodeBackup(BridgeBackup(), http, link)
+# a bridge's part, as the bridge makes it (zbbridge_relay.be): its kind's word, its keys, and the one whose entries are its devices
+var KEYS = ["zb_relay_names", "zb_alarm_cfg", "zb_relay_drivers", "zb_relay_assigned", "zb_relay_discovery", "zb_relay_expire"]
+def bridge_part() return KeysBackup("bridge", KEYS, "zb_relay_names") end
+b = NodeBackup(bridge_part(), http, link)
+check("the backup's state is kept under the kind's word", b.part.KEY, "bridge_backup")
 
 var nonces = 0
 def server_says(verb)
@@ -284,8 +289,32 @@ n = size(http.reqs)
 # --- the boot ----------------------------------------------------------------------------------------
 persist.store["bridge_backup"]["dirty"] = true
 tasmota.timers.clear()
-var again = NodeBackup(BridgeBackup(), http, link)
+var again = NodeBackup(bridge_part(), http, link)
 check("a change not backed up before a restart waits for the round", [size(http.reqs), tasmota.timers.size(), again.state()["pending"]], [n, 0, true])
+
+# --- an appliance's: the same part, by another kind's word and other keys ---------------------------
+# what an appliance keeps (appliance_node.be): the name the house gave its device, and the device's settings
+persist.store["appliance_name"] = "Boiler"
+persist.store["boiler"] = {"mode": "heat", "wn": 2, "w1t": 60}
+var device = KeysBackup("device", ["appliance_name", "boiler"], nil)
+var d = device.doc()
+check("an appliance's backup: named under its kind's word, with what its keys hold and nothing of a bridge's",
+      [d["v"], d["device"], d.contains("bridge"), d["from"], d["keys"]], [1, NAME, false, "B0:B0:B0:00:00:05", {"appliance_name": "Boiler", "boiler": {"mode": "heat", "wn": 2, "w1t": 60}}])
+check("its state under its own key, and the one device it is, whatever its keys hold", [device.KEY, device.summary(d)["devices"], device.summary(d)["zones"]], ["device_backup", 1, 0])
+check("its fingerprint follows what the keys hold", [size(device.fingerprint()), device.fingerprint() == KeysBackup("device", ["appliance_name", "boiler"], nil).fingerprint()], [64, true])
+var before = device.fingerprint()
+persist.store["boiler"]["w1t"] = 55
+check("a setting changed is another fingerprint", device.fingerprint() != before, true)
+check("its own backup is one to restore", isinstance(device.check(json.dump(d)), map), true)
+check("a bridge's is not, though it names this node: no node under this kind's word", device.check(backup_of(1, nil)), "Another device's")
+check("nor is another appliance's", device.check(json.dump({"v": 1, "device": "aabbccddeeff", "keys": {}})), "Another device's")
+check("but for this one by name, in a hardware swap", isinstance(device.check(json.dump({"v": 1, "device": "aabbccddeeff", "for": NAME, "keys": {}})), map), true)
+check("a key an appliance's backup never carries", device.check(json.dump({"v": 1, "device": NAME, "keys": {"zb_relay_names": {}}})), "Not a backup")
+check("and an appliance's is none to a bridge", b.part.check(json.dump(d)), "Another bridge's")
+tasmota.cmds.clear()
+var went = device.apply({"v": 1, "device": NAME, "at": 1789000000, "keys": {"boiler": {"mode": "off", "wn": 0, "w1t": 45}}}, / -> true)
+check("restored: the settings the backup has, the name it had not taken out, and the node restarts",
+      [went, persist.store["boiler"], persist.find("appliance_name"), tasmota.cmds], [true, {"mode": "off", "wn": 0, "w1t": 45}, nil, ["Restart 1"]])
 
 if failures == 0
     print("ok - " + str(checks) + " checks")

@@ -19,7 +19,7 @@ import { SimDevice, type DeviceOptions } from "./device.js";
  * tasmota32-houseweave-thr320d compiles them in (firmware/overrides/platformio_override.ini), its autoexec.be loads a fix of any of them
  * (berry/appliance_autoexec.be), and test/brain.test.mjs holds the three lists to each other.
  */
-export const APPLIANCE_FILES = ["panel_build.be", "pair_sign.be", "clock_link.be", "node_host.be", "node_pairing.be", "mesh_beat.be", "mesh_events.be", "mesh_cmd.be", "house_list.be", "house_key.be", "house_state.be", "house_devices.be", "house_link.be", "house_channel.be", "house_mesh.be", "house_commands.be", "house_mqtt.be", "panel_wifi.be", "panel_http.be", "node_ota.be", "node_wireless.be", "server_link.be", "mesh_http.be", "node_settings.be", "node_backup.be", "boiler_history.be", "boiler_thermostat.be", "appliance_node.be"] as const;
+export const APPLIANCE_FILES = ["panel_build.be", "pair_sign.be", "clock_link.be", "node_host.be", "node_pairing.be", "mesh_beat.be", "mesh_events.be", "mesh_cmd.be", "house_list.be", "house_key.be", "house_state.be", "house_devices.be", "house_link.be", "house_channel.be", "house_mesh.be", "house_commands.be", "house_mqtt.be", "panel_wifi.be", "panel_http.be", "node_ota.be", "node_wireless.be", "server_link.be", "mesh_http.be", "node_settings.be", "node_backup.be", "keys_backup.be", "boiler_history.be", "boiler_thermostat.be", "appliance_node.be"] as const;
 
 /** GPIO_LED1, the function gpio.pin() looks up, and the pins the template gives its first two: the red and the green */
 const LED1 = 288;

@@ -6,7 +6,8 @@
 # fields are here. What is an appliance's own is here: the one device it is, what a panel asks of it, and what it says back.
 #
 # THE DEVICE is an object of the image's own class (BoilerThermostat, boiler_thermostat.be), handed this node, with
-#   statics    ID, KIND, MODEL and NAME: the driver's name, the kind a panel gives it, its model, and what it is called before a panel names it
+#   statics    ID, KIND, MODEL and NAME: the driver's name, the kind a panel gives it, its model, and what it is called before a panel names it;
+#              KEEP, the key persist keeps its settings under
 #   methods    describe(), a new map, what a panel registers it with; state(), its whole state; command(cmd), a panel's command, true when taken;
 #              tick(), every second; stop(), the node is about to restart; rows(), its rows of the node's Main settings; signal(), whether the
 #              node's LED is to blink slowly; telemetry(), what Tasmota's telemetry says of it; warnings(), a new or kept map of the warnings it
@@ -29,6 +30,9 @@
 # it holds, "n": the device's name}, a notification on each (panel_alarm.be, device_word). It is said as it comes and goes, and all of them
 # again, held or not, after a boot and every WARN_AGAIN_S: a panel that restarted has lost its list, and one that was off when a warning ended
 # still has it open.
+#
+# ITS BACKUP on the house's server (keys_backup.be) is the name the house gave the device and the device's settings, what persist keeps under
+# NAME_KEY and the device's KEEP. Not what the device measured: a history is no configuration, and it is a file of the device's own.
 #
 # Compiled into the appliance's firmware: one class, nothing at the top, every module imported where it is used. `ApplianceNode.start()` is the whole of
 # the appliance's autoexec.be. It comes after NodeHost, NodePairing, PairSign and the device's class, which it names.
@@ -93,8 +97,9 @@ class ApplianceNode : Driver
         tasmota.add_cmd("ZbRelayDrive", def (cmd, idx, payload)
             if a.drive(payload)  tasmota.resp_cmnd_done() else tasmota.resp_cmnd_failed() end
         end)
-        # the house on this node, as on every node with no screen (node_host.be)
-        NodeHost.start(a, global.contains("HouseList") ? global.HouseList.ROLE_DEVICE : 0, nil)
+        # the house on this node, as on every node with no screen (node_host.be), the house's server with the appliance's backup included
+        NodeHost.start(a, global.contains("HouseList") ? global.HouseList.ROLE_DEVICE : 0,
+                       global.contains("KeysBackup") ? / -> global.KeysBackup(ApplianceNode.ROLE, [ApplianceNode.NAME_KEY, a.device.KEEP], nil) : nil)
         if a.house != nil
             # told to join another house: out of this one, its window opens for a panel of the other
             a.house.on_move = / -> NodeHost.open_window(a, NodeHost.BOOT_WINDOW_MS, false)

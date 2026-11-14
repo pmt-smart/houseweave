@@ -60,8 +60,8 @@ class NodeHost
     static TIME_ASK_MS = 60000
 
     # The house on the node, at its boot: the commands of the mesh, the house's list with its console commands and its MQTT, the node's Wi-Fi, its OTA, the
-    # house's server with the node's backup, its screens, and the panels it forgets. `role` is the node's in the house (HouseList.ROLE_...), and `part` the
-    # class of what goes in its backup (BridgeBackup), or nil for a node that keeps none. Each piece only where the image has its class
+    # house's server with the node's backup, its screens, and the panels it forgets. `role` is the node's in the house (HouseList.ROLE_...), and `part` what
+    # makes the object of what goes in its backup, called with nothing (KeysBackup), or nil for a node that keeps none. Each piece only where the image has its class
     static def start(node, role, part)
         import global
         # the commands the other nodes of the house send over the mesh to this node: the class waits for the mesh by itself

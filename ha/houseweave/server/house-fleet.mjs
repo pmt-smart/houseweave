@@ -24,8 +24,8 @@
 //   POST /api/all/<verb>          the verb (backup, upgrade, state) asked of every node in turn, a few seconds apart
 //   POST /api/replace             {"from": a backup's radio address, "to": a node}: the hardware swap, the node restoring that backup
 //
-// THE HARDWARE SWAP: a node that replaces another (a panel or a bridge that died) joins the house as any node, and the owner gives it the old one's
-// backup here. The server keeps the swap, asks the new node to restore, and gives it the old one's backup when it asks for its own, with "for" and the
+// THE HARDWARE SWAP: a node that replaces another of its kind (a panel, a bridge or an appliance that died) joins the house as any node, and the
+// owner gives it the old one's backup here. The server keeps the swap, asks the new node to restore, and gives it the old one's backup when it asks for its own, with "for" and the
 // new node's name (a node takes no backup of another name but so); the new node's first backup of its own ends the swap. Its own backup before the
 // swap stays, and its Restore brings it back.
 //
@@ -62,8 +62,12 @@ export const GATEWAYS = 2;
 export const VERBS = ["backup", "upgrade", "state"];
 /** what the owner asks of one node: those, and the restore of its backup */
 export const NODE_VERBS = [...VERBS, "restore"];
-const ROLES = { 1: "bridge", 2: "panel", 3: "server" };
+const ROLES = { 1: "bridge", 2: "panel", 3: "server", 4: "device" };
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
+/** the kinds of node that keep a backup: a backup names its node under its kind's word, which is the node's role */
+const BACKUP_KINDS = ["panel", "bridge", "device"];
+/** the kind of node a backup is of, or null for what names none */
+const kindOf = (doc) => (doc !== null && typeof doc === "object" ? BACKUP_KINDS.find((k) => typeof doc[k] === "string") ?? null : null);
 
 // --- SHA-256 (FIPS 180-4), HMAC (RFC 2104), HKDF (RFC 5869) ------------------------------------------------------------------------------
 
@@ -380,7 +384,7 @@ export function createFleet({ shared, random, store, house = () => null, post, n
     } catch {
       return text(400, "not JSON");
     }
-    if (doc === null || typeof doc !== "object" || Array.isArray(doc) || doc.v !== 1 || (typeof doc.panel !== "string" && typeof doc.bridge !== "string") ||
+    if (doc === null || typeof doc !== "object" || Array.isArray(doc) || doc.v !== 1 || kindOf(doc) === null ||
         doc.keys === null || typeof doc.keys !== "object" || Array.isArray(doc.keys)) {
       return text(400, "not a backup of a node");
     }
@@ -541,7 +545,7 @@ export function createFleet({ shared, random, store, house = () => null, post, n
         // kept as it came
       }
       const owner = Object.values(state.nodes).find((r) => r.mac === mac);
-      return { mac, kind: typeof doc?.bridge === "string" ? "bridge" : "panel", project: doc?.project ?? null, at: doc?.at ?? null, node: owner?.node ?? null,
+      return { mac, kind: kindOf(doc) ?? "panel", project: doc?.project ?? null, at: doc?.at ?? null, node: owner?.node ?? null,
                replaced: state.replaced?.[mac] ?? null };
     });
   }
@@ -572,7 +576,7 @@ export function createFleet({ shared, random, store, house = () => null, post, n
     } catch {
       return { error: "not a backup" };
     }
-    if ((typeof doc?.bridge === "string" ? "bridge" : "panel") !== rec.role) return { error: `a ${rec.role} takes a ${rec.role}'s backup` };
+    if (kindOf(doc) !== rec.role) return { error: `a ${rec.role} takes a ${rec.role}'s backup` };
     state.swaps[to] = { from, at: now() };
     state.replaced[from] = { by: to, at: now() };
     save();

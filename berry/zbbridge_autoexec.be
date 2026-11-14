@@ -29,7 +29,7 @@
 import global
 import path
 
-for f: ["panel_build.be", "pair_sign.be", "clock_link.be", "node_host.be", "node_pairing.be", "zbbridge_discovery.be", "zbbridge_drivers.be", "zbdriver_thermostat.be", "zbdriver_cover.be", "zbdriver_twokey.be", "mesh_beat.be", "mesh_events.be", "zbbridge_alarm_merge.be", "zbbridge_alarm_mesh.be", "zbbridge_alarm.be", "mesh_cmd.be", "house_list.be", "house_key.be", "house_state.be", "house_devices.be", "house_link.be", "house_channel.be", "house_mesh.be", "house_commands.be", "house_mqtt.be", "house_alarm.be", "panel_wifi.be", "panel_http.be", "node_ota.be", "node_wireless.be", "server_link.be", "mesh_http.be", "node_settings.be", "node_backup.be", "bridge_backup.be", "zbbridge_relay.be"]
+for f: ["panel_build.be", "pair_sign.be", "clock_link.be", "node_host.be", "node_pairing.be", "zbbridge_discovery.be", "zbbridge_drivers.be", "zbdriver_thermostat.be", "zbdriver_cover.be", "zbdriver_twokey.be", "mesh_beat.be", "mesh_events.be", "zbbridge_alarm_merge.be", "zbbridge_alarm_mesh.be", "zbbridge_alarm.be", "mesh_cmd.be", "house_list.be", "house_key.be", "house_state.be", "house_devices.be", "house_link.be", "house_channel.be", "house_mesh.be", "house_commands.be", "house_mqtt.be", "house_alarm.be", "panel_wifi.be", "panel_http.be", "node_ota.be", "node_wireless.be", "server_link.be", "mesh_http.be", "node_settings.be", "node_backup.be", "keys_backup.be", "zbbridge_relay.be"]
     if path.exists(f)
         load(f)
         log("ZBBRIDGE_RELAY: " + f + " runs from the file system, over the firmware's", 1)

@@ -1,5 +1,5 @@
-# node_backup.be -- a node's configuration kept on the house's server, a panel's and a bridge's alike: what goes and how it comes back
-# are the node's own (`part`: panel_backup.be, bridge_backup.be), and this is the way to the server and back, which is the upgrade's (node_ota.be).
+# node_backup.be -- a node's configuration kept on the house's server, a panel's, a bridge's and an appliance's alike: what goes and how it comes back
+# are the node's own (`part`: panel_backup.be, keys_backup.be), and this is the way to the server and back, which is the upgrade's (node_ota.be).
 #
 # THE SERVER is the one the house's list has, paired on a panel, reached over HTTP; every request is signed with the key of the node's pair with it
 # (server_link.be), and the server keeps the backup by the node's radio address, out of the folder it serves, the nine before it beside it. A node that

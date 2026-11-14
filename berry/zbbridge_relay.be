@@ -74,6 +74,10 @@ class ZbBridgeRelay
     static ROLE = "bridge"
     static MAIN_ROWS = 2
     static LED = 0
+    # What of a bridge goes in its backup (keys_backup.be), the first of them the one whose entries are its devices: the names the panels gave its
+    # devices, the alarm's configuration, which driver each device runs and the drivers it was given, and the discovery's word to Home Assistant.
+    # Not its Zigbee network: a bridge flashed again forms its network again, and its devices are paired again
+    static BACKUP_KEYS = ["zb_relay_names", "zb_alarm_cfg", "zb_relay_drivers", "zb_relay_assigned", "zb_relay_discovery", "zb_relay_expire"]
 
     var pending    # {address -> filtered attributes} accumulated, pending send (a map,
                    # serialised only when actually sending, send_now)
@@ -107,7 +111,7 @@ class ZbBridgeRelay
     var wifi       # its Wi-Fi as a panel of the house shows it and asks for it in this bridge's Wireless settings (panel_wifi.be), or nil
     var ota        # its OTA, from the house's server (node_ota.be), in those Wireless settings, or nil
     var link       # the house's server: the pair's key, its requests and this bridge's word to it (server_link.be), or nil
-    var backup     # its configuration kept on the house's server (node_backup.be, bridge_backup.be), or nil
+    var backup     # its configuration kept on the house's server (node_backup.be, keys_backup.be), or nil
 
     def init()
         self.pending = nil
@@ -160,7 +164,8 @@ class ZbBridgeRelay
         tasmota.add_cmd("ZbRelayAlarm", / cmd, idx, payload -> r.alarm_cmd(payload))
         # the house on this bridge, as on every node with no screen (node_host.be): the commands of the mesh, the house's list and its MQTT, its Wi-Fi, its
         # OTA, the house's server with the bridge's backup, and its screens on a panel
-        NodeHost.start(r, global.contains("HouseList") ? global.HouseList.ROLE_BRIDGE : 0, global.contains("BridgeBackup") ? global.BridgeBackup : nil)
+        NodeHost.start(r, global.contains("HouseList") ? global.HouseList.ROLE_BRIDGE : 0,
+                       global.contains("KeysBackup") ? / -> global.KeysBackup(ZbBridgeRelay.ROLE, ZbBridgeRelay.BACKUP_KEYS, ZbBridgeRelay.BACKUP_KEYS[0]) : nil)
         if r.house != nil
             # told to join another house: out of this one, its window opens for a panel of the other, with its Wi-Fi and its devices kept
             r.house.on_move = / -> r.open_window(NodeHost.BOOT_WINDOW_MS, false)

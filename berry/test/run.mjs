@@ -138,7 +138,7 @@ const tests = [
   { driver: "../panel_http.be", test: "test_panel_http.be", stub: "stub_http.be" },
   // the backup: what goes, when, whose the server's is, and the restore with its checks
   { driver: "../panel_backup.be", before: [...STORE, "../panel_thermostat_settings.be", "../panel_thermostat_view.be", "../panel_cover_view.be", "../panel_page_buttons.be", "../node_ota.be", "../node_wireless.be", "../panel_ui.be", "../panel_http.be", "../server_link.be", "../node_settings.be", "../node_backup.be"], test: "test_panel_backup.be", stub: "stub_http.be", modules: { mqtt: "stub_mqtt.be", crypto: "stub_crypto.be" } },
-  { driver: "../bridge_backup.be", before: ["../panel_http.be", "../server_link.be", "../node_settings.be", "../node_backup.be"], test: "test_bridge_backup.be", stub: "stub_http.be", modules: { crypto: "stub_crypto.be" } },
+  { driver: "../keys_backup.be", before: ["../panel_http.be", "../server_link.be", "../node_settings.be", "../node_backup.be"], test: "test_keys_backup.be", stub: "stub_http.be", modules: { crypto: "stub_crypto.be" } },
   // the panel's side of the transports: when each mode's link is up, and where a command went
   { driver: "../zigbee_bridge.be", before: ["../pair_sign.be"], test: "test_zigbee_bridge.be", stub: "stub_zbbridge.be", modules: { crypto: "stub_crypto.be" } },
   // the signatures of what a panel and its bridge say once paired, on a real SHA-256
