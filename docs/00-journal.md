@@ -18,6 +18,7 @@ was wrong and what holds.
 - [2026-11-13 — A thermostat's range is its own two limits](#2026-11-13--a-thermostats-range-is-its-own-two-limits)
 - [2026-11-13 — The simulated appliance, and a relay opened at every boot](#2026-11-13--the-simulated-appliance-and-a-relay-opened-at-every-boot)
 - [2026-11-13 — A latching relay checked by the water, and a device's warning to every panel](#2026-11-13--a-latching-relay-checked-by-the-water-and-a-devices-warning-to-every-panel)
+- [2026-11-14 — A day of as many windows as a setting says, and one target with none](#2026-11-14--a-day-of-as-many-windows-as-a-setting-says-and-one-target-with-none)
 
 ---
 
@@ -646,3 +647,38 @@ THR320D's 4 016 bytes larger than `449b370`'s. The bridge's was not built: nothi
 |---|---|---|---|
 | panel (US) | 2 176 KB | 2 072 864 bytes | 151.7 KB |
 | THR320D | 1 856 KB | 1 480 384 bytes | 410.3 KB |
+
+## 2026-11-14 — A day of as many windows as a setting says, and one target with none
+
+**The ask.** The water heater's thermostat had two windows of the day, and a day with neither given hours was a heater that never worked. A
+house may want one window, or more than two, or none: the target held at every hour, as on a thermostat that has no hours. The hours and
+the targets out of the box stay: 17 to 21 at 60 degrees, and 5 to 7 at 50.
+
+**The count.** The first of its settings is how many windows the day has, "Windows", none to four and two out of the box
+([08 §4](08-screens.md)). The screen of a device's settings is a list the device says, so the rows of the windows are made from the count,
+on the appliance, and a panel has nothing new to know: the list is said again when the count moves. One more is a window with no hours
+until it is given some. One fewer leaves the last as it was, not followed, and there again when the day has it back. A setting of a window
+the day does not have is refused.
+
+**None.** One row, "Target", is where the windows were, and that target holds at every hour, with the hysteresis, the ceiling and the
+safety as ever. It is the first window's target, the one already held with no clock, so the rule is one: with no window to follow, the
+first target holds ([03 §3](03-architecture.md)). The row that says a target is held for want of a clock is there only with windows: with
+none, the target's own row says it.
+
+**What none changes.** The heater may work at any hour, by day too, before the sun has had its turn. And a night the heater worked in is
+not judged for a stuck contact, so with no window few nights are left to judge.
+
+**Four is a first number**, as the form is, a count and not a button to add a window and another to delete one: a count that changes the
+list asks nothing new of a panel.
+
+**The tests.** The thermostat's suite has the count (154 checks): none, one, three and four; a window past the count; what a window was
+left as, across counts; the list said again only when the count moves. The node's has the list as it is said (81). In the simulator's
+house, the window in force left with no hours turns the heater off, "Windows" set to none from the panel turns it on again, and the
+settings on the glass are the count, the one target and the rest.
+
+**The image, measured** on the build of this change (`8a1c70b/592f7062`): the THR320D's is 1 344 bytes larger than `25f78c2`'s. The
+panel's and the bridge's were not built: nothing they compile changed.
+
+| image | app partition | used | free |
+|---|---|---|---|
+| THR320D | 1 856 KB | 1 481 728 bytes | 409.0 KB |
