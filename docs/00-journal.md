@@ -20,6 +20,7 @@ was wrong and what holds.
 - [2026-11-13 — A latching relay checked by the water, and a device's warning to every panel](#2026-11-13--a-latching-relay-checked-by-the-water-and-a-devices-warning-to-every-panel)
 - [2026-11-14 — A day of as many windows as a setting says, and one target with none](#2026-11-14--a-day-of-as-many-windows-as-a-setting-says-and-one-target-with-none)
 - [2026-11-14 — An appliance on the house's server, and one backup part for the nodes with no screen](#2026-11-14--an-appliance-on-the-houses-server-and-one-backup-part-for-the-nodes-with-no-screen)
+- [2026-11-14 — The chart of what a device measured, on the panel](#2026-11-14--the-chart-of-what-a-device-measured-on-the-panel)
 
 ---
 
@@ -721,3 +722,46 @@ the THR320D's 2 720 bytes larger than `8a1c70b`'s. The panel's was not built: of
 |---|---|---|---|
 | bridge | 1 856 KB | 1 754 112 bytes | 143.0 KB |
 | THR320D | 1 856 KB | 1 484 448 bytes | 406.3 KB |
+
+## 2026-11-14 — The chart of what a device measured, on the panel
+
+**What it is.** The water heater's thermostat has kept what it measured since its first build: the water and the heater's minutes every
+five minutes for a week, and each day's lowest, highest and minutes for a year. Now a panel draws it ([08 §4](08-screens.md)): the last
+24 hours and, a swipe away, the last 30 days.
+
+**Where it opens.** The first row of the device's settings, "History". It is the device that lists the row, in the list of settings it
+says, as a kind of row of its own that sets nothing: a device with no history lists none, and the panel has no word of which kind of
+device keeps one. The row takes a touch with Editing on or off, since it only reads.
+
+**How the series comes.** The chart asks the device with the thermostat's verb `history` and a period, and the device says a list in the
+node's numbered frames, the ones the settings come in: what the series is first (its period, the local time it ends at, the heater's
+power), then its bytes in base64, 48 an entry so that two fit a frame. The last day is 96 steps of a quarter of an hour, 192 bytes in
+three frames; the last month 30 days, 120 bytes in two. Nothing crosses the mesh while no chart is open, and the panel keeps the series
+only while the chart is on show: its live heap with the chart open is under what the settings' list kept, in the simulator.
+
+**How it is drawn.** On the plan's page, where the cards go, as the house's calendar is: no byte of `.tft`, and it reaches a panel by the
+OTA. The glass draws rectangles, circles and text, so the water is a column a step, the target a line across, and the heater's time a
+band under the columns; columns side by side of one height go as one rectangle. A day whose every step is another height, the heater on
+and off by turns, is 154 instructions and 3 481 bytes on the wire, 0.3 s at 115 200 bps. The energy is the heater's minutes times the
+power typed in its settings, since the board measures no current.
+
+**What the picture showed.** The numbers of the charts are held by a suite, but two texts one over the other are not a number: drawn on
+the emulated glass, the month's lower end of the water's scale was under the upper end of the energy's, each text's box being filled
+with the page's colour. The scale's numbers are now inside their chart's height, the upper under its top and the lower over its foot,
+and their room is four characters wide, for "100°".
+
+**With no clock on the device** the history has no place for what it holds, and the chart says so. A series of the other chart that
+comes late, after a swipe, is not drawn.
+
+**The tests.** The history's suite has the two series (39 checks), the thermostat's the verb and the list (161), the node's the frames
+(82), the panel's chart its rectangles, its texts and its cost (32), and the panel thermostat's the row, the touch, the frames and the
+leaving (212). No function of the panel's Berry passes 256 constants. In the simulator's house, the row on the glass opens the last
+day, asked of the appliance over the mesh, and a swipe the last month.
+
+**The images, measured** on the build of this change (`192b72c/592f7062`): the panel's is 9 008 bytes larger than `25f78c2`'s, and the
+THR320D's 1 472 bytes larger than `5664740`'s. The bridge's was not built: nothing it compiles changed.
+
+| image | app partition | used | free |
+|---|---|---|---|
+| panel (US) | 2 176 KB | 2 081 872 bytes | 142.9 KB |
+| THR320D | 1 856 KB | 1 485 920 bytes | 404.9 KB |
